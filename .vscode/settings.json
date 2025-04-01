@@ -1,12 +1,27 @@
 {
-    "ros.distro": "humble",
     "python.autoComplete.extraPaths": [
-        "/home/jun/ros2_ws/install/turtlesim/local/lib/python3.10/dist-packages",
+        "/home/jun/nav2_ws/install/dwb_msgs/local/lib/python3.10/dist-packages",
+        "/home/jun/nav2_ws/install/nav_2d_msgs/local/lib/python3.10/dist-packages",
+        "/home/jun/nav2_ws/install/nav2_simple_commander/lib/python3.10/site-packages",
+        "/home/jun/nav2_ws/install/nav2_msgs/local/lib/python3.10/dist-packages",
+        "/home/jun/nav2_ws/install/nav2_common/local/lib/python3.10/dist-packages",
+        "/home/jun/nav2_ws/build/grandslam_description",
+        "/home/jun/nav2_ws/install/grandslam_description/lib/python3.10/site-packages",
+        "/home/jun/lane_tracking_ws/build/lane_tracking",
+        "/home/jun/lane_tracking_ws/install/lane_tracking/lib/python3.10/site-packages",
         "/opt/ros/humble/lib/python3.10/site-packages",
         "/opt/ros/humble/local/lib/python3.10/dist-packages"
     ],
     "python.analysis.extraPaths": [
-        "/home/jun/ros2_ws/install/turtlesim/local/lib/python3.10/dist-packages",
+        "/home/jun/nav2_ws/install/dwb_msgs/local/lib/python3.10/dist-packages",
+        "/home/jun/nav2_ws/install/nav_2d_msgs/local/lib/python3.10/dist-packages",
+        "/home/jun/nav2_ws/install/nav2_simple_commander/lib/python3.10/site-packages",
+        "/home/jun/nav2_ws/install/nav2_msgs/local/lib/python3.10/dist-packages",
+        "/home/jun/nav2_ws/install/nav2_common/local/lib/python3.10/dist-packages",
+        "/home/jun/nav2_ws/build/grandslam_description",
+        "/home/jun/nav2_ws/install/grandslam_description/lib/python3.10/site-packages",
+        "/home/jun/lane_tracking_ws/build/lane_tracking",
+        "/home/jun/lane_tracking_ws/install/lane_tracking/lib/python3.10/site-packages",
         "/opt/ros/humble/lib/python3.10/site-packages",
         "/opt/ros/humble/local/lib/python3.10/dist-packages"
     ]

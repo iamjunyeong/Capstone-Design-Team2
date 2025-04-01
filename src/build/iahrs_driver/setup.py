@@ -1,1 +1,0 @@
-/home/jun/ros2_ws/src/sensor_drivers/iahrs_driver/setup.py

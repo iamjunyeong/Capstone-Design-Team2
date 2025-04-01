@@ -1,1 +1,0 @@
-/home/jun/ros2_ws/build/nav2_sms_behavior/rosidl_generator_py/nav2_sms_behavior/action/_send_sms_s.c

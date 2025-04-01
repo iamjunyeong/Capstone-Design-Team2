@@ -1,6 +1,0 @@
-setup.py
-nav2_sms_behavior/__init__.py
-nav2_sms_behavior.egg-info/PKG-INFO
-nav2_sms_behavior.egg-info/SOURCES.txt
-nav2_sms_behavior.egg-info/dependency_links.txt
-nav2_sms_behavior.egg-info/top_level.txt

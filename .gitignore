@@ -1,0 +1,15 @@
+# ROS2 colcon build
+build/
+install/
+log/
+.colcon/
+.vscode/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Generated files
+*.pdf
+*.gv
+

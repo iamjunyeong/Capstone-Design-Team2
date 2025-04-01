@@ -1,6 +1,0 @@
-{
-  "package_name": "nav2_sms_behavior",
-  "non_idl_tuples": [
-    "/home/jun/ros2_ws/src/navigation2_tutorials/nav2_sms_behavior:action/SendSms.action"
-  ]
-}

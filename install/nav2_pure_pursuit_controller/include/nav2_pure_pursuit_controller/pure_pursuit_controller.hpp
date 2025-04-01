@@ -1,1 +1,0 @@
-/home/jun/ros2_ws/src/navigation2_tutorials/nav2_pure_pursuit_controller/include/nav2_pure_pursuit_controller/pure_pursuit_controller.hpp

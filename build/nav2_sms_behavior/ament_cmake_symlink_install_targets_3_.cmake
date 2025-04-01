@@ -1,1 +1,0 @@
-ament_cmake_symlink_install_targets("TARGET_FILES" "/home/jun/ros2_ws/build/nav2_sms_behavior/libnav2_sms_behavior_plugin.so" "TARGETS" "nav2_sms_behavior_plugin" "ARCHIVE_DESTINATION" "lib" "LIBRARY_DESTINATION" "lib" "RUNTIME_DESTINATION" "lib/nav2_sms_behavior")

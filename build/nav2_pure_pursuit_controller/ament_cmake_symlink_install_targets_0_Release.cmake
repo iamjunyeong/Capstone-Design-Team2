@@ -1,1 +1,0 @@
-ament_cmake_symlink_install_targets("TARGET_FILES" "/home/jun/ros2_ws/build/nav2_pure_pursuit_controller/libnav2_pure_pursuit_controller.so" "TARGETS" "nav2_pure_pursuit_controller" "ARCHIVE_DESTINATION" "lib" "LIBRARY_DESTINATION" "lib" "RUNTIME_DESTINATION" "bin")

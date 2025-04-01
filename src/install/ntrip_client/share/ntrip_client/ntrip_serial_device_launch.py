@@ -1,1 +1,0 @@
-/home/jun/ros2_ws/src/build/ntrip_client/launch/ntrip_serial_device_launch.py

@@ -1,1 +1,0 @@
-/home/jun/ros2_ws/src/navigation2_tutorials/nav2_sms_behavior/include/nav2_sms_behavior/type_conversion.hpp

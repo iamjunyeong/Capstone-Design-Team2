@@ -1,1 +1,0 @@
-ament_cmake_symlink_install_targets("TARGET_FILES" "/home/jun/ros2_ws/src/build/nav2_sms_behavior/rosidl_generator_py/nav2_sms_behavior/nav2_sms_behavior_s__rosidl_typesupport_fastrtps_c.cpython-310-x86_64-linux-gnu.so" "TARGETS" "nav2_sms_behavior__rosidl_typesupport_fastrtps_c__pyext" "DESTINATION" "local/lib/python3.10/dist-packages/nav2_sms_behavior")

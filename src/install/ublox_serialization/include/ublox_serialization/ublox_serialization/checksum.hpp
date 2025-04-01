@@ -1,1 +1,0 @@
-/home/jun/ros2_ws/src/sensor_drivers/ublox-ros2/ublox_serialization/include/ublox_serialization/checksum.hpp
