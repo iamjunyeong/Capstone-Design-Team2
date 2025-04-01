@@ -41,13 +41,13 @@ Capstone-Design-Team2/
 feature-[컴포넌트]-[기능]
 ```
 
-### 예시
+### 브랜치 예시
 
-- `feature-hardware-sensor-bringup`
-- `feature-nav2-navigation`
-- `feature-application-hmi`
-
----
+| 컴포넌트 | 브랜치명 예시 |
+| --- | --- |
+| application | `feature-application-haptic-feedback` |
+| nav2 | `feature-nav2-behavior-tree` |
+| hardware | `feature-hardware-control` |
 
 ## 👥 협업 흐름 예시
 
@@ -67,16 +67,22 @@ git commit -m "Add IMU launch to sensor_bringup"
 git push origin feature-hardware-sensor-bringup
 ```
 
-### 3. PR 생성
+### 3. GitHub Pull Request 생성
 
-- GitHub에서 `feature-* → dev`로 Pull Request 생성
-- 코드 리뷰 후 병합
+- `base`: `dev`
+- `compare`: `feature/본인브랜치`
+- 제목 예시: `Add path tracking module`
+- 본문: 작업한 기능, 테스트 여부 등 간단한 설명
 
----
+### 4. 코드 리뷰 및 머지
+
+- 팀원 1인 이상 코드 리뷰
+- 충돌 발생 시 직접 해결 후 다시 커밋
+- 리뷰 완료 시 `dev` 브랜치에 병합
 
 ## 🔁 dev → main 병합
 
-시연/배포 전에는 `dev` 브랜치를 `main`으로 병합합니다.
+시연/배포 전에는 `dev` 브랜치를 `main`으로 병합합니다. (팀장이 할거임)
 
 ```bash
 git checkout main
@@ -85,14 +91,21 @@ git merge dev
 git push origin main
 ```
 
----
-
-## 🚫 브랜치 보호 권장 설정 (GitHub에서)
-
+## 🚫 브랜치 주의 사항
 - `main`: 직접 푸시 ❌, PR만 가능 ✅
 - `dev`: 리뷰 후 병합 ✅
 
----
+
+
+## 🔁 자주 쓰는 Git 명령어 요약
+
+```bash
+git checkout -b feature/xxx        # 새 작업 브랜치
+git add . && git commit -m "메시지" # 커밋
+git push origin feature/xxx        # 푸시
+git pull origin dev                # 최신 dev 반영
+git merge origin/dev               # dev 머지
+```
 
 ## 📬 문의
 
