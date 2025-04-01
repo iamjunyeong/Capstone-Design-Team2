@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'sensor_drivers'
+package_name = 'sensor_bringup'
 
 setup(
     name=package_name,
@@ -10,7 +10,7 @@ setup(
         ('share/' + package_name + '/launch', [
             'launch/imu.launch.py',
             'launch/rtk_gps.launch.py',
-            'launch/sensor_bringup.launch.py'
+            'launch/sensors_bringup.launch.py',
             'launch/ublox_gps_node-launch.py',
         ]),
         #('share/' + package_name + '/config', ['config/imu.yaml', 'config/gps.yaml']),
