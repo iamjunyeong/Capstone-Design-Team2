@@ -1,0 +1,58 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/NavPOSLLH.msg
+// generated code does not contain a copyright notice
+
+
+module ublox_msgs {
+  module msg {
+    module NavPOSLLH_Constants {
+      const uint8 CLASS_ID = 1;
+      const uint8 MESSAGE_ID = 2;
+    };
+    @verbatim (language="comment", text=
+      "NAV-POSLLH (0x01 0x02)" "\n"
+      "Geodetic Position Solution" "\n"
+      "" "\n"
+      "See important comments concerning validity of position given in section" "\n"
+      "Navigation Output Filters." "\n"
+      "This message outputs the Geodetic position in the currently selected" "\n"
+      "Ellipsoid. The default is the WGS84 Ellipsoid, but can be changed with the" "\n"
+      "message CFG-DAT.")
+    struct NavPOSLLH {
+      @verbatim (language="comment", text=
+        "GPS Millisecond Time of Week")
+      @unit (value="ms")
+      uint32 i_tow;
+
+      @verbatim (language="comment", text=
+        "Longitude")
+      @unit (value="deg / 1e-7")
+      int32 lon;
+
+      @verbatim (language="comment", text=
+        "Latitude")
+      @unit (value="deg / 1e-7")
+      int32 lat;
+
+      @verbatim (language="comment", text=
+        "Height above Ellipsoid")
+      @unit (value="mm")
+      int32 height;
+
+      @verbatim (language="comment", text=
+        "Height above mean sea level")
+      @unit (value="mm")
+      int32 h_msl;
+
+      @verbatim (language="comment", text=
+        "Horizontal Accuracy Estimate")
+      @unit (value="mm")
+      uint32 h_acc;
+
+      @verbatim (language="comment", text=
+        "Vertical Accuracy Estimate")
+      @unit (value="mm")
+      uint32 v_acc;
+    };
+  };
+};

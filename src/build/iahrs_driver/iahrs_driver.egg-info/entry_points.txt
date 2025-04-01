@@ -1,0 +1,3 @@
+[console_scripts]
+driver = iahrs_driver.driver:main
+

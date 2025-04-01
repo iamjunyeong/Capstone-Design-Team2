@@ -1,0 +1,577 @@
+[0.083s] DEBUG:colcon:Command line arguments: ['/usr/bin/colcon', 'build', '--symlink-install']
+[0.083s] DEBUG:colcon:Parsed command line arguments: Namespace(log_base=None, log_level=None, verb_name='build', build_base='build', install_base='install', merge_install=False, symlink_install=True, test_result_base=None, continue_on_error=False, executor='parallel', parallel_workers=16, event_handlers=None, ignore_user_meta=False, metas=['./colcon.meta'], base_paths=['.'], packages_ignore=None, packages_ignore_regex=None, paths=None, packages_up_to=None, packages_up_to_regex=None, packages_above=None, packages_above_and_dependencies=None, packages_above_depth=None, packages_select_by_dep=None, packages_skip_by_dep=None, packages_skip_up_to=None, packages_select_build_failed=False, packages_skip_build_finished=False, packages_select_test_failures=False, packages_skip_test_passed=False, packages_select=None, packages_skip=None, packages_select_regex=None, packages_skip_regex=None, packages_start=None, packages_end=None, allow_overriding=[], cmake_args=None, cmake_target=None, cmake_target_skip_unavailable=False, cmake_clean_cache=False, cmake_clean_first=False, cmake_force_configure=False, ament_cmake_args=None, catkin_cmake_args=None, catkin_skip_building_tests=False, mixin_files=None, mixin=None, verb_parser=<colcon_mixin.mixin.mixin_argument.MixinArgumentDecorator object at 0x7851b5607580>, verb_extension=<colcon_core.verb.build.BuildVerb object at 0x7851b579c4c0>, main=<bound method BuildVerb.main of <colcon_core.verb.build.BuildVerb object at 0x7851b579c4c0>>, mixin_verb=('build',))
+[0.193s] Level 1:colcon.colcon_core.package_discovery:discover_packages(colcon_meta) check parameters
+[0.193s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) check parameters
+[0.193s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) check parameters
+[0.193s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) check parameters
+[0.193s] Level 1:colcon.colcon_core.package_discovery:discover_packages(colcon_meta) discover
+[0.193s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) discover
+[0.193s] INFO:colcon.colcon_core.package_discovery:Crawling recursively for packages in '/home/jun/ros2_ws/src'
+[0.193s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['ignore', 'ignore_ament_install']
+[0.193s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ignore'
+[0.193s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ignore_ament_install'
+[0.193s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['colcon_pkg']
+[0.193s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'colcon_pkg'
+[0.193s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['colcon_meta']
+[0.193s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'colcon_meta'
+[0.193s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['ros']
+[0.193s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ros'
+[0.201s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['cmake', 'python']
+[0.201s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'cmake'
+[0.201s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'python'
+[0.201s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['python_setup_py']
+[0.201s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'python_setup_py'
+[0.201s] Level 1:colcon.colcon_core.package_identification:_identify(build) by extensions ['ignore', 'ignore_ament_install']
+[0.201s] Level 1:colcon.colcon_core.package_identification:_identify(build) by extension 'ignore'
+[0.201s] Level 1:colcon.colcon_core.package_identification:_identify(build) ignored
+[0.201s] Level 1:colcon.colcon_core.package_identification:_identify(grandslam_description) by extensions ['ignore', 'ignore_ament_install']
+[0.201s] Level 1:colcon.colcon_core.package_identification:_identify(grandslam_description) by extension 'ignore'
+[0.201s] Level 1:colcon.colcon_core.package_identification:_identify(grandslam_description) by extension 'ignore_ament_install'
+[0.201s] Level 1:colcon.colcon_core.package_identification:_identify(grandslam_description) by extensions ['colcon_pkg']
+[0.201s] Level 1:colcon.colcon_core.package_identification:_identify(grandslam_description) by extension 'colcon_pkg'
+[0.201s] Level 1:colcon.colcon_core.package_identification:_identify(grandslam_description) by extensions ['colcon_meta']
+[0.201s] Level 1:colcon.colcon_core.package_identification:_identify(grandslam_description) by extension 'colcon_meta'
+[0.201s] Level 1:colcon.colcon_core.package_identification:_identify(grandslam_description) by extensions ['ros']
+[0.201s] Level 1:colcon.colcon_core.package_identification:_identify(grandslam_description) by extension 'ros'
+[0.203s] DEBUG:colcon.colcon_core.package_identification:Package 'grandslam_description' with type 'ros.ament_python' and name 'grandslam_description'
+[0.203s] Level 1:colcon.colcon_core.package_identification:_identify(install) by extensions ['ignore', 'ignore_ament_install']
+[0.203s] Level 1:colcon.colcon_core.package_identification:_identify(install) by extension 'ignore'
+[0.203s] Level 1:colcon.colcon_core.package_identification:_identify(install) ignored
+[0.203s] Level 1:colcon.colcon_core.package_identification:_identify(log) by extensions ['ignore', 'ignore_ament_install']
+[0.203s] Level 1:colcon.colcon_core.package_identification:_identify(log) by extension 'ignore'
+[0.203s] Level 1:colcon.colcon_core.package_identification:_identify(log) ignored
+[0.203s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials) by extensions ['ignore', 'ignore_ament_install']
+[0.203s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials) by extension 'ignore'
+[0.203s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials) by extension 'ignore_ament_install'
+[0.203s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials) by extensions ['colcon_pkg']
+[0.203s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials) by extension 'colcon_pkg'
+[0.203s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials) by extensions ['colcon_meta']
+[0.203s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials) by extension 'colcon_meta'
+[0.203s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials) by extensions ['ros']
+[0.203s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials) by extension 'ros'
+[0.203s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials) by extensions ['cmake', 'python']
+[0.203s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials) by extension 'cmake'
+[0.203s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials) by extension 'python'
+[0.203s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials) by extensions ['python_setup_py']
+[0.203s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials) by extension 'python_setup_py'
+[0.203s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/nav2_costmap_filters_demo) by extensions ['ignore', 'ignore_ament_install']
+[0.203s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/nav2_costmap_filters_demo) by extension 'ignore'
+[0.203s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/nav2_costmap_filters_demo) by extension 'ignore_ament_install'
+[0.203s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/nav2_costmap_filters_demo) by extensions ['colcon_pkg']
+[0.204s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/nav2_costmap_filters_demo) by extension 'colcon_pkg'
+[0.204s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/nav2_costmap_filters_demo) by extensions ['colcon_meta']
+[0.204s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/nav2_costmap_filters_demo) by extension 'colcon_meta'
+[0.204s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/nav2_costmap_filters_demo) by extensions ['ros']
+[0.204s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/nav2_costmap_filters_demo) by extension 'ros'
+[0.204s] DEBUG:colcon.colcon_core.package_identification:Package 'navigation2_tutorials/nav2_costmap_filters_demo' with type 'ros.ament_cmake' and name 'nav2_costmap_filters_demo'
+[0.204s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/nav2_gradient_costmap_plugin) by extensions ['ignore', 'ignore_ament_install']
+[0.204s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/nav2_gradient_costmap_plugin) by extension 'ignore'
+[0.204s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/nav2_gradient_costmap_plugin) by extension 'ignore_ament_install'
+[0.204s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/nav2_gradient_costmap_plugin) by extensions ['colcon_pkg']
+[0.204s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/nav2_gradient_costmap_plugin) by extension 'colcon_pkg'
+[0.204s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/nav2_gradient_costmap_plugin) by extensions ['colcon_meta']
+[0.204s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/nav2_gradient_costmap_plugin) by extension 'colcon_meta'
+[0.204s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/nav2_gradient_costmap_plugin) by extensions ['ros']
+[0.204s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/nav2_gradient_costmap_plugin) by extension 'ros'
+[0.205s] DEBUG:colcon.colcon_core.package_identification:Package 'navigation2_tutorials/nav2_gradient_costmap_plugin' with type 'ros.ament_cmake' and name 'nav2_gradient_costmap_plugin'
+[0.205s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/nav2_pure_pursuit_controller) by extensions ['ignore', 'ignore_ament_install']
+[0.205s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/nav2_pure_pursuit_controller) by extension 'ignore'
+[0.205s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/nav2_pure_pursuit_controller) by extension 'ignore_ament_install'
+[0.205s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/nav2_pure_pursuit_controller) by extensions ['colcon_pkg']
+[0.205s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/nav2_pure_pursuit_controller) by extension 'colcon_pkg'
+[0.205s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/nav2_pure_pursuit_controller) by extensions ['colcon_meta']
+[0.205s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/nav2_pure_pursuit_controller) by extension 'colcon_meta'
+[0.205s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/nav2_pure_pursuit_controller) by extensions ['ros']
+[0.205s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/nav2_pure_pursuit_controller) by extension 'ros'
+[0.206s] DEBUG:colcon.colcon_core.package_identification:Package 'navigation2_tutorials/nav2_pure_pursuit_controller' with type 'ros.ament_cmake' and name 'nav2_pure_pursuit_controller'
+[0.206s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/nav2_sms_behavior) by extensions ['ignore', 'ignore_ament_install']
+[0.206s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/nav2_sms_behavior) by extension 'ignore'
+[0.206s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/nav2_sms_behavior) by extension 'ignore_ament_install'
+[0.206s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/nav2_sms_behavior) by extensions ['colcon_pkg']
+[0.206s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/nav2_sms_behavior) by extension 'colcon_pkg'
+[0.206s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/nav2_sms_behavior) by extensions ['colcon_meta']
+[0.206s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/nav2_sms_behavior) by extension 'colcon_meta'
+[0.206s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/nav2_sms_behavior) by extensions ['ros']
+[0.206s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/nav2_sms_behavior) by extension 'ros'
+[0.207s] DEBUG:colcon.colcon_core.package_identification:Package 'navigation2_tutorials/nav2_sms_behavior' with type 'ros.ament_cmake' and name 'nav2_sms_behavior'
+[0.207s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/nav2_straightline_planner) by extensions ['ignore', 'ignore_ament_install']
+[0.207s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/nav2_straightline_planner) by extension 'ignore'
+[0.207s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/nav2_straightline_planner) by extension 'ignore_ament_install'
+[0.207s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/nav2_straightline_planner) by extensions ['colcon_pkg']
+[0.207s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/nav2_straightline_planner) by extension 'colcon_pkg'
+[0.207s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/nav2_straightline_planner) by extensions ['colcon_meta']
+[0.207s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/nav2_straightline_planner) by extension 'colcon_meta'
+[0.207s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/nav2_straightline_planner) by extensions ['ros']
+[0.207s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/nav2_straightline_planner) by extension 'ros'
+[0.218s] DEBUG:colcon.colcon_core.package_identification:Package 'navigation2_tutorials/nav2_straightline_planner' with type 'ros.ament_cmake' and name 'nav2_straightline_planner'
+[0.218s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/sam_bot_description) by extensions ['ignore', 'ignore_ament_install']
+[0.218s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/sam_bot_description) by extension 'ignore'
+[0.218s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/sam_bot_description) by extension 'ignore_ament_install'
+[0.218s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/sam_bot_description) by extensions ['colcon_pkg']
+[0.218s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/sam_bot_description) by extension 'colcon_pkg'
+[0.218s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/sam_bot_description) by extensions ['colcon_meta']
+[0.218s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/sam_bot_description) by extension 'colcon_meta'
+[0.218s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/sam_bot_description) by extensions ['ros']
+[0.218s] Level 1:colcon.colcon_core.package_identification:_identify(navigation2_tutorials/sam_bot_description) by extension 'ros'
+[0.218s] DEBUG:colcon.colcon_core.package_identification:Package 'navigation2_tutorials/sam_bot_description' with type 'ros.ament_cmake' and name 'sam_bot_description'
+[0.218s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_bringup) by extensions ['ignore', 'ignore_ament_install']
+[0.218s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_bringup) by extension 'ignore'
+[0.218s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_bringup) by extension 'ignore_ament_install'
+[0.218s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_bringup) by extensions ['colcon_pkg']
+[0.219s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_bringup) by extension 'colcon_pkg'
+[0.219s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_bringup) by extensions ['colcon_meta']
+[0.219s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_bringup) by extension 'colcon_meta'
+[0.219s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_bringup) by extensions ['ros']
+[0.219s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_bringup) by extension 'ros'
+[0.219s] DEBUG:colcon.colcon_core.package_identification:Package 'sensor_bringup' with type 'ros.ament_python' and name 'sensor_drivers'
+[0.219s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers) by extensions ['ignore', 'ignore_ament_install']
+[0.219s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers) by extension 'ignore'
+[0.219s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers) by extension 'ignore_ament_install'
+[0.219s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers) by extensions ['colcon_pkg']
+[0.219s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers) by extension 'colcon_pkg'
+[0.219s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers) by extensions ['colcon_meta']
+[0.219s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers) by extension 'colcon_meta'
+[0.219s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers) by extensions ['ros']
+[0.219s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers) by extension 'ros'
+[0.219s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers) by extensions ['cmake', 'python']
+[0.219s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers) by extension 'cmake'
+[0.219s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers) by extension 'python'
+[0.219s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers) by extensions ['python_setup_py']
+[0.219s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers) by extension 'python_setup_py'
+[0.219s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/iahrs_driver) by extensions ['ignore', 'ignore_ament_install']
+[0.219s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/iahrs_driver) by extension 'ignore'
+[0.219s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/iahrs_driver) by extension 'ignore_ament_install'
+[0.219s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/iahrs_driver) by extensions ['colcon_pkg']
+[0.219s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/iahrs_driver) by extension 'colcon_pkg'
+[0.219s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/iahrs_driver) by extensions ['colcon_meta']
+[0.219s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/iahrs_driver) by extension 'colcon_meta'
+[0.219s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/iahrs_driver) by extensions ['ros']
+[0.219s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/iahrs_driver) by extension 'ros'
+[0.220s] DEBUG:colcon.colcon_core.package_identification:Package 'sensor_drivers/iahrs_driver' with type 'ros.ament_python' and name 'iahrs_driver'
+[0.220s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/iahrs_driver_interface) by extensions ['ignore', 'ignore_ament_install']
+[0.220s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/iahrs_driver_interface) by extension 'ignore'
+[0.220s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/iahrs_driver_interface) by extension 'ignore_ament_install'
+[0.220s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/iahrs_driver_interface) by extensions ['colcon_pkg']
+[0.220s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/iahrs_driver_interface) by extension 'colcon_pkg'
+[0.220s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/iahrs_driver_interface) by extensions ['colcon_meta']
+[0.220s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/iahrs_driver_interface) by extension 'colcon_meta'
+[0.220s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/iahrs_driver_interface) by extensions ['ros']
+[0.220s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/iahrs_driver_interface) by extension 'ros'
+[0.220s] DEBUG:colcon.colcon_core.package_identification:Package 'sensor_drivers/iahrs_driver_interface' with type 'ros.ament_cmake' and name 'iahrs_driver_interface'
+[0.220s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ntrip_client-ros2) by extensions ['ignore', 'ignore_ament_install']
+[0.220s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ntrip_client-ros2) by extension 'ignore'
+[0.220s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ntrip_client-ros2) by extension 'ignore_ament_install'
+[0.220s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ntrip_client-ros2) by extensions ['colcon_pkg']
+[0.220s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ntrip_client-ros2) by extension 'colcon_pkg'
+[0.220s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ntrip_client-ros2) by extensions ['colcon_meta']
+[0.220s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ntrip_client-ros2) by extension 'colcon_meta'
+[0.220s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ntrip_client-ros2) by extensions ['ros']
+[0.220s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ntrip_client-ros2) by extension 'ros'
+[0.221s] DEBUG:colcon.colcon_core.package_identification:Package 'sensor_drivers/ntrip_client-ros2' with type 'ros.ament_python' and name 'ntrip_client'
+[0.221s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ublox-ros2) by extensions ['ignore', 'ignore_ament_install']
+[0.221s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ublox-ros2) by extension 'ignore'
+[0.221s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ublox-ros2) by extension 'ignore_ament_install'
+[0.221s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ublox-ros2) by extensions ['colcon_pkg']
+[0.221s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ublox-ros2) by extension 'colcon_pkg'
+[0.221s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ublox-ros2) by extensions ['colcon_meta']
+[0.221s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ublox-ros2) by extension 'colcon_meta'
+[0.221s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ublox-ros2) by extensions ['ros']
+[0.221s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ublox-ros2) by extension 'ros'
+[0.221s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ublox-ros2) by extensions ['cmake', 'python']
+[0.221s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ublox-ros2) by extension 'cmake'
+[0.221s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ublox-ros2) by extension 'python'
+[0.221s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ublox-ros2) by extensions ['python_setup_py']
+[0.221s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ublox-ros2) by extension 'python_setup_py'
+[0.221s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ublox-ros2/ublox) by extensions ['ignore', 'ignore_ament_install']
+[0.221s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ublox-ros2/ublox) by extension 'ignore'
+[0.221s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ublox-ros2/ublox) by extension 'ignore_ament_install'
+[0.221s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ublox-ros2/ublox) by extensions ['colcon_pkg']
+[0.221s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ublox-ros2/ublox) by extension 'colcon_pkg'
+[0.221s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ublox-ros2/ublox) by extensions ['colcon_meta']
+[0.221s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ublox-ros2/ublox) by extension 'colcon_meta'
+[0.222s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ublox-ros2/ublox) by extensions ['ros']
+[0.222s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ublox-ros2/ublox) by extension 'ros'
+[0.222s] DEBUG:colcon.colcon_core.package_identification:Package 'sensor_drivers/ublox-ros2/ublox' with type 'ros.ament_cmake' and name 'ublox'
+[0.222s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ublox-ros2/ublox_gps) by extensions ['ignore', 'ignore_ament_install']
+[0.222s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ublox-ros2/ublox_gps) by extension 'ignore'
+[0.222s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ublox-ros2/ublox_gps) by extension 'ignore_ament_install'
+[0.222s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ublox-ros2/ublox_gps) by extensions ['colcon_pkg']
+[0.222s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ublox-ros2/ublox_gps) by extension 'colcon_pkg'
+[0.222s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ublox-ros2/ublox_gps) by extensions ['colcon_meta']
+[0.222s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ublox-ros2/ublox_gps) by extension 'colcon_meta'
+[0.222s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ublox-ros2/ublox_gps) by extensions ['ros']
+[0.222s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ublox-ros2/ublox_gps) by extension 'ros'
+[0.223s] DEBUG:colcon.colcon_core.package_identification:Package 'sensor_drivers/ublox-ros2/ublox_gps' with type 'ros.ament_cmake' and name 'ublox_gps'
+[0.223s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ublox-ros2/ublox_msgs) by extensions ['ignore', 'ignore_ament_install']
+[0.223s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ublox-ros2/ublox_msgs) by extension 'ignore'
+[0.223s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ublox-ros2/ublox_msgs) by extension 'ignore_ament_install'
+[0.223s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ublox-ros2/ublox_msgs) by extensions ['colcon_pkg']
+[0.223s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ublox-ros2/ublox_msgs) by extension 'colcon_pkg'
+[0.223s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ublox-ros2/ublox_msgs) by extensions ['colcon_meta']
+[0.223s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ublox-ros2/ublox_msgs) by extension 'colcon_meta'
+[0.223s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ublox-ros2/ublox_msgs) by extensions ['ros']
+[0.223s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ublox-ros2/ublox_msgs) by extension 'ros'
+[0.223s] DEBUG:colcon.colcon_core.package_identification:Package 'sensor_drivers/ublox-ros2/ublox_msgs' with type 'ros.ament_cmake' and name 'ublox_msgs'
+[0.224s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ublox-ros2/ublox_serialization) by extensions ['ignore', 'ignore_ament_install']
+[0.224s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ublox-ros2/ublox_serialization) by extension 'ignore'
+[0.224s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ublox-ros2/ublox_serialization) by extension 'ignore_ament_install'
+[0.224s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ublox-ros2/ublox_serialization) by extensions ['colcon_pkg']
+[0.224s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ublox-ros2/ublox_serialization) by extension 'colcon_pkg'
+[0.224s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ublox-ros2/ublox_serialization) by extensions ['colcon_meta']
+[0.224s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ublox-ros2/ublox_serialization) by extension 'colcon_meta'
+[0.224s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ublox-ros2/ublox_serialization) by extensions ['ros']
+[0.224s] Level 1:colcon.colcon_core.package_identification:_identify(sensor_drivers/ublox-ros2/ublox_serialization) by extension 'ros'
+[0.224s] DEBUG:colcon.colcon_core.package_identification:Package 'sensor_drivers/ublox-ros2/ublox_serialization' with type 'ros.ament_cmake' and name 'ublox_serialization'
+[0.224s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) using defaults
+[0.224s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) discover
+[0.224s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) using defaults
+[0.224s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) discover
+[0.224s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) using defaults
+[0.246s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) check parameters
+[0.246s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) discover
+[0.249s] DEBUG:colcon.colcon_installed_package_information.package_discovery:Found 1 installed packages in /home/jun/lane_tracking_ws/install
+[0.250s] DEBUG:colcon.colcon_installed_package_information.package_discovery:Found 40 installed packages in /home/jun/nav2_ws/install
+[0.252s] DEBUG:colcon.colcon_installed_package_information.package_discovery:Found 408 installed packages in /opt/ros/humble
+[0.254s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) using defaults
+[0.304s] Level 5:colcon.colcon_core.verb:set package 'grandslam_description' build argument 'cmake_args' from command line to 'None'
+[0.304s] Level 5:colcon.colcon_core.verb:set package 'grandslam_description' build argument 'cmake_target' from command line to 'None'
+[0.304s] Level 5:colcon.colcon_core.verb:set package 'grandslam_description' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.304s] Level 5:colcon.colcon_core.verb:set package 'grandslam_description' build argument 'cmake_clean_cache' from command line to 'False'
+[0.304s] Level 5:colcon.colcon_core.verb:set package 'grandslam_description' build argument 'cmake_clean_first' from command line to 'False'
+[0.304s] Level 5:colcon.colcon_core.verb:set package 'grandslam_description' build argument 'cmake_force_configure' from command line to 'False'
+[0.304s] Level 5:colcon.colcon_core.verb:set package 'grandslam_description' build argument 'ament_cmake_args' from command line to 'None'
+[0.304s] Level 5:colcon.colcon_core.verb:set package 'grandslam_description' build argument 'catkin_cmake_args' from command line to 'None'
+[0.304s] Level 5:colcon.colcon_core.verb:set package 'grandslam_description' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.304s] DEBUG:colcon.colcon_core.verb:Building package 'grandslam_description' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/jun/ros2_ws/src/build/grandslam_description', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/jun/ros2_ws/src/install/grandslam_description', 'merge_install': False, 'path': '/home/jun/ros2_ws/src/grandslam_description', 'symlink_install': True, 'test_result_base': None}
+[0.305s] Level 5:colcon.colcon_core.verb:set package 'iahrs_driver' build argument 'cmake_args' from command line to 'None'
+[0.305s] Level 5:colcon.colcon_core.verb:set package 'iahrs_driver' build argument 'cmake_target' from command line to 'None'
+[0.305s] Level 5:colcon.colcon_core.verb:set package 'iahrs_driver' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.305s] Level 5:colcon.colcon_core.verb:set package 'iahrs_driver' build argument 'cmake_clean_cache' from command line to 'False'
+[0.305s] Level 5:colcon.colcon_core.verb:set package 'iahrs_driver' build argument 'cmake_clean_first' from command line to 'False'
+[0.305s] Level 5:colcon.colcon_core.verb:set package 'iahrs_driver' build argument 'cmake_force_configure' from command line to 'False'
+[0.305s] Level 5:colcon.colcon_core.verb:set package 'iahrs_driver' build argument 'ament_cmake_args' from command line to 'None'
+[0.305s] Level 5:colcon.colcon_core.verb:set package 'iahrs_driver' build argument 'catkin_cmake_args' from command line to 'None'
+[0.305s] Level 5:colcon.colcon_core.verb:set package 'iahrs_driver' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.305s] DEBUG:colcon.colcon_core.verb:Building package 'iahrs_driver' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/jun/ros2_ws/src/build/iahrs_driver', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/jun/ros2_ws/src/install/iahrs_driver', 'merge_install': False, 'path': '/home/jun/ros2_ws/src/sensor_drivers/iahrs_driver', 'symlink_install': True, 'test_result_base': None}
+[0.305s] Level 5:colcon.colcon_core.verb:set package 'iahrs_driver_interface' build argument 'cmake_args' from command line to 'None'
+[0.305s] Level 5:colcon.colcon_core.verb:set package 'iahrs_driver_interface' build argument 'cmake_target' from command line to 'None'
+[0.305s] Level 5:colcon.colcon_core.verb:set package 'iahrs_driver_interface' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.305s] Level 5:colcon.colcon_core.verb:set package 'iahrs_driver_interface' build argument 'cmake_clean_cache' from command line to 'False'
+[0.305s] Level 5:colcon.colcon_core.verb:set package 'iahrs_driver_interface' build argument 'cmake_clean_first' from command line to 'False'
+[0.305s] Level 5:colcon.colcon_core.verb:set package 'iahrs_driver_interface' build argument 'cmake_force_configure' from command line to 'False'
+[0.305s] Level 5:colcon.colcon_core.verb:set package 'iahrs_driver_interface' build argument 'ament_cmake_args' from command line to 'None'
+[0.305s] Level 5:colcon.colcon_core.verb:set package 'iahrs_driver_interface' build argument 'catkin_cmake_args' from command line to 'None'
+[0.305s] Level 5:colcon.colcon_core.verb:set package 'iahrs_driver_interface' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.305s] DEBUG:colcon.colcon_core.verb:Building package 'iahrs_driver_interface' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/jun/ros2_ws/src/build/iahrs_driver_interface', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/jun/ros2_ws/src/install/iahrs_driver_interface', 'merge_install': False, 'path': '/home/jun/ros2_ws/src/sensor_drivers/iahrs_driver_interface', 'symlink_install': True, 'test_result_base': None}
+[0.305s] Level 5:colcon.colcon_core.verb:set package 'nav2_costmap_filters_demo' build argument 'cmake_args' from command line to 'None'
+[0.305s] Level 5:colcon.colcon_core.verb:set package 'nav2_costmap_filters_demo' build argument 'cmake_target' from command line to 'None'
+[0.305s] Level 5:colcon.colcon_core.verb:set package 'nav2_costmap_filters_demo' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.305s] Level 5:colcon.colcon_core.verb:set package 'nav2_costmap_filters_demo' build argument 'cmake_clean_cache' from command line to 'False'
+[0.305s] Level 5:colcon.colcon_core.verb:set package 'nav2_costmap_filters_demo' build argument 'cmake_clean_first' from command line to 'False'
+[0.305s] Level 5:colcon.colcon_core.verb:set package 'nav2_costmap_filters_demo' build argument 'cmake_force_configure' from command line to 'False'
+[0.305s] Level 5:colcon.colcon_core.verb:set package 'nav2_costmap_filters_demo' build argument 'ament_cmake_args' from command line to 'None'
+[0.305s] Level 5:colcon.colcon_core.verb:set package 'nav2_costmap_filters_demo' build argument 'catkin_cmake_args' from command line to 'None'
+[0.305s] Level 5:colcon.colcon_core.verb:set package 'nav2_costmap_filters_demo' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.305s] DEBUG:colcon.colcon_core.verb:Building package 'nav2_costmap_filters_demo' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/jun/ros2_ws/src/build/nav2_costmap_filters_demo', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/jun/ros2_ws/src/install/nav2_costmap_filters_demo', 'merge_install': False, 'path': '/home/jun/ros2_ws/src/navigation2_tutorials/nav2_costmap_filters_demo', 'symlink_install': True, 'test_result_base': None}
+[0.306s] Level 5:colcon.colcon_core.verb:set package 'nav2_gradient_costmap_plugin' build argument 'cmake_args' from command line to 'None'
+[0.306s] Level 5:colcon.colcon_core.verb:set package 'nav2_gradient_costmap_plugin' build argument 'cmake_target' from command line to 'None'
+[0.306s] Level 5:colcon.colcon_core.verb:set package 'nav2_gradient_costmap_plugin' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.306s] Level 5:colcon.colcon_core.verb:set package 'nav2_gradient_costmap_plugin' build argument 'cmake_clean_cache' from command line to 'False'
+[0.306s] Level 5:colcon.colcon_core.verb:set package 'nav2_gradient_costmap_plugin' build argument 'cmake_clean_first' from command line to 'False'
+[0.306s] Level 5:colcon.colcon_core.verb:set package 'nav2_gradient_costmap_plugin' build argument 'cmake_force_configure' from command line to 'False'
+[0.306s] Level 5:colcon.colcon_core.verb:set package 'nav2_gradient_costmap_plugin' build argument 'ament_cmake_args' from command line to 'None'
+[0.306s] Level 5:colcon.colcon_core.verb:set package 'nav2_gradient_costmap_plugin' build argument 'catkin_cmake_args' from command line to 'None'
+[0.306s] Level 5:colcon.colcon_core.verb:set package 'nav2_gradient_costmap_plugin' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.306s] DEBUG:colcon.colcon_core.verb:Building package 'nav2_gradient_costmap_plugin' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/jun/ros2_ws/src/build/nav2_gradient_costmap_plugin', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/jun/ros2_ws/src/install/nav2_gradient_costmap_plugin', 'merge_install': False, 'path': '/home/jun/ros2_ws/src/navigation2_tutorials/nav2_gradient_costmap_plugin', 'symlink_install': True, 'test_result_base': None}
+[0.306s] Level 5:colcon.colcon_core.verb:set package 'nav2_pure_pursuit_controller' build argument 'cmake_args' from command line to 'None'
+[0.306s] Level 5:colcon.colcon_core.verb:set package 'nav2_pure_pursuit_controller' build argument 'cmake_target' from command line to 'None'
+[0.306s] Level 5:colcon.colcon_core.verb:set package 'nav2_pure_pursuit_controller' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.306s] Level 5:colcon.colcon_core.verb:set package 'nav2_pure_pursuit_controller' build argument 'cmake_clean_cache' from command line to 'False'
+[0.306s] Level 5:colcon.colcon_core.verb:set package 'nav2_pure_pursuit_controller' build argument 'cmake_clean_first' from command line to 'False'
+[0.306s] Level 5:colcon.colcon_core.verb:set package 'nav2_pure_pursuit_controller' build argument 'cmake_force_configure' from command line to 'False'
+[0.306s] Level 5:colcon.colcon_core.verb:set package 'nav2_pure_pursuit_controller' build argument 'ament_cmake_args' from command line to 'None'
+[0.306s] Level 5:colcon.colcon_core.verb:set package 'nav2_pure_pursuit_controller' build argument 'catkin_cmake_args' from command line to 'None'
+[0.306s] Level 5:colcon.colcon_core.verb:set package 'nav2_pure_pursuit_controller' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.306s] DEBUG:colcon.colcon_core.verb:Building package 'nav2_pure_pursuit_controller' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/jun/ros2_ws/src/build/nav2_pure_pursuit_controller', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/jun/ros2_ws/src/install/nav2_pure_pursuit_controller', 'merge_install': False, 'path': '/home/jun/ros2_ws/src/navigation2_tutorials/nav2_pure_pursuit_controller', 'symlink_install': True, 'test_result_base': None}
+[0.306s] Level 5:colcon.colcon_core.verb:set package 'nav2_sms_behavior' build argument 'cmake_args' from command line to 'None'
+[0.306s] Level 5:colcon.colcon_core.verb:set package 'nav2_sms_behavior' build argument 'cmake_target' from command line to 'None'
+[0.306s] Level 5:colcon.colcon_core.verb:set package 'nav2_sms_behavior' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.306s] Level 5:colcon.colcon_core.verb:set package 'nav2_sms_behavior' build argument 'cmake_clean_cache' from command line to 'False'
+[0.307s] Level 5:colcon.colcon_core.verb:set package 'nav2_sms_behavior' build argument 'cmake_clean_first' from command line to 'False'
+[0.307s] Level 5:colcon.colcon_core.verb:set package 'nav2_sms_behavior' build argument 'cmake_force_configure' from command line to 'False'
+[0.307s] Level 5:colcon.colcon_core.verb:set package 'nav2_sms_behavior' build argument 'ament_cmake_args' from command line to 'None'
+[0.307s] Level 5:colcon.colcon_core.verb:set package 'nav2_sms_behavior' build argument 'catkin_cmake_args' from command line to 'None'
+[0.307s] Level 5:colcon.colcon_core.verb:set package 'nav2_sms_behavior' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.307s] DEBUG:colcon.colcon_core.verb:Building package 'nav2_sms_behavior' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/jun/ros2_ws/src/build/nav2_sms_behavior', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/jun/ros2_ws/src/install/nav2_sms_behavior', 'merge_install': False, 'path': '/home/jun/ros2_ws/src/navigation2_tutorials/nav2_sms_behavior', 'symlink_install': True, 'test_result_base': None}
+[0.307s] Level 5:colcon.colcon_core.verb:set package 'nav2_straightline_planner' build argument 'cmake_args' from command line to 'None'
+[0.307s] Level 5:colcon.colcon_core.verb:set package 'nav2_straightline_planner' build argument 'cmake_target' from command line to 'None'
+[0.307s] Level 5:colcon.colcon_core.verb:set package 'nav2_straightline_planner' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.307s] Level 5:colcon.colcon_core.verb:set package 'nav2_straightline_planner' build argument 'cmake_clean_cache' from command line to 'False'
+[0.307s] Level 5:colcon.colcon_core.verb:set package 'nav2_straightline_planner' build argument 'cmake_clean_first' from command line to 'False'
+[0.307s] Level 5:colcon.colcon_core.verb:set package 'nav2_straightline_planner' build argument 'cmake_force_configure' from command line to 'False'
+[0.307s] Level 5:colcon.colcon_core.verb:set package 'nav2_straightline_planner' build argument 'ament_cmake_args' from command line to 'None'
+[0.307s] Level 5:colcon.colcon_core.verb:set package 'nav2_straightline_planner' build argument 'catkin_cmake_args' from command line to 'None'
+[0.307s] Level 5:colcon.colcon_core.verb:set package 'nav2_straightline_planner' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.307s] DEBUG:colcon.colcon_core.verb:Building package 'nav2_straightline_planner' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/jun/ros2_ws/src/build/nav2_straightline_planner', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/jun/ros2_ws/src/install/nav2_straightline_planner', 'merge_install': False, 'path': '/home/jun/ros2_ws/src/navigation2_tutorials/nav2_straightline_planner', 'symlink_install': True, 'test_result_base': None}
+[0.308s] Level 5:colcon.colcon_core.verb:set package 'ntrip_client' build argument 'cmake_args' from command line to 'None'
+[0.308s] Level 5:colcon.colcon_core.verb:set package 'ntrip_client' build argument 'cmake_target' from command line to 'None'
+[0.308s] Level 5:colcon.colcon_core.verb:set package 'ntrip_client' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.308s] Level 5:colcon.colcon_core.verb:set package 'ntrip_client' build argument 'cmake_clean_cache' from command line to 'False'
+[0.308s] Level 5:colcon.colcon_core.verb:set package 'ntrip_client' build argument 'cmake_clean_first' from command line to 'False'
+[0.308s] Level 5:colcon.colcon_core.verb:set package 'ntrip_client' build argument 'cmake_force_configure' from command line to 'False'
+[0.308s] Level 5:colcon.colcon_core.verb:set package 'ntrip_client' build argument 'ament_cmake_args' from command line to 'None'
+[0.308s] Level 5:colcon.colcon_core.verb:set package 'ntrip_client' build argument 'catkin_cmake_args' from command line to 'None'
+[0.308s] Level 5:colcon.colcon_core.verb:set package 'ntrip_client' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.308s] DEBUG:colcon.colcon_core.verb:Building package 'ntrip_client' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/jun/ros2_ws/src/build/ntrip_client', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/jun/ros2_ws/src/install/ntrip_client', 'merge_install': False, 'path': '/home/jun/ros2_ws/src/sensor_drivers/ntrip_client-ros2', 'symlink_install': True, 'test_result_base': None}
+[0.308s] Level 5:colcon.colcon_core.verb:set package 'sam_bot_description' build argument 'cmake_args' from command line to 'None'
+[0.308s] Level 5:colcon.colcon_core.verb:set package 'sam_bot_description' build argument 'cmake_target' from command line to 'None'
+[0.308s] Level 5:colcon.colcon_core.verb:set package 'sam_bot_description' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.308s] Level 5:colcon.colcon_core.verb:set package 'sam_bot_description' build argument 'cmake_clean_cache' from command line to 'False'
+[0.308s] Level 5:colcon.colcon_core.verb:set package 'sam_bot_description' build argument 'cmake_clean_first' from command line to 'False'
+[0.308s] Level 5:colcon.colcon_core.verb:set package 'sam_bot_description' build argument 'cmake_force_configure' from command line to 'False'
+[0.308s] Level 5:colcon.colcon_core.verb:set package 'sam_bot_description' build argument 'ament_cmake_args' from command line to 'None'
+[0.308s] Level 5:colcon.colcon_core.verb:set package 'sam_bot_description' build argument 'catkin_cmake_args' from command line to 'None'
+[0.308s] Level 5:colcon.colcon_core.verb:set package 'sam_bot_description' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.308s] DEBUG:colcon.colcon_core.verb:Building package 'sam_bot_description' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/jun/ros2_ws/src/build/sam_bot_description', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/jun/ros2_ws/src/install/sam_bot_description', 'merge_install': False, 'path': '/home/jun/ros2_ws/src/navigation2_tutorials/sam_bot_description', 'symlink_install': True, 'test_result_base': None}
+[0.308s] Level 5:colcon.colcon_core.verb:set package 'sensor_drivers' build argument 'cmake_args' from command line to 'None'
+[0.308s] Level 5:colcon.colcon_core.verb:set package 'sensor_drivers' build argument 'cmake_target' from command line to 'None'
+[0.308s] Level 5:colcon.colcon_core.verb:set package 'sensor_drivers' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.308s] Level 5:colcon.colcon_core.verb:set package 'sensor_drivers' build argument 'cmake_clean_cache' from command line to 'False'
+[0.308s] Level 5:colcon.colcon_core.verb:set package 'sensor_drivers' build argument 'cmake_clean_first' from command line to 'False'
+[0.308s] Level 5:colcon.colcon_core.verb:set package 'sensor_drivers' build argument 'cmake_force_configure' from command line to 'False'
+[0.308s] Level 5:colcon.colcon_core.verb:set package 'sensor_drivers' build argument 'ament_cmake_args' from command line to 'None'
+[0.308s] Level 5:colcon.colcon_core.verb:set package 'sensor_drivers' build argument 'catkin_cmake_args' from command line to 'None'
+[0.308s] Level 5:colcon.colcon_core.verb:set package 'sensor_drivers' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.308s] DEBUG:colcon.colcon_core.verb:Building package 'sensor_drivers' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/jun/ros2_ws/src/build/sensor_drivers', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/jun/ros2_ws/src/install/sensor_drivers', 'merge_install': False, 'path': '/home/jun/ros2_ws/src/sensor_bringup', 'symlink_install': True, 'test_result_base': None}
+[0.309s] Level 5:colcon.colcon_core.verb:set package 'ublox_serialization' build argument 'cmake_args' from command line to 'None'
+[0.309s] Level 5:colcon.colcon_core.verb:set package 'ublox_serialization' build argument 'cmake_target' from command line to 'None'
+[0.309s] Level 5:colcon.colcon_core.verb:set package 'ublox_serialization' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.309s] Level 5:colcon.colcon_core.verb:set package 'ublox_serialization' build argument 'cmake_clean_cache' from command line to 'False'
+[0.309s] Level 5:colcon.colcon_core.verb:set package 'ublox_serialization' build argument 'cmake_clean_first' from command line to 'False'
+[0.309s] Level 5:colcon.colcon_core.verb:set package 'ublox_serialization' build argument 'cmake_force_configure' from command line to 'False'
+[0.309s] Level 5:colcon.colcon_core.verb:set package 'ublox_serialization' build argument 'ament_cmake_args' from command line to 'None'
+[0.309s] Level 5:colcon.colcon_core.verb:set package 'ublox_serialization' build argument 'catkin_cmake_args' from command line to 'None'
+[0.309s] Level 5:colcon.colcon_core.verb:set package 'ublox_serialization' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.309s] DEBUG:colcon.colcon_core.verb:Building package 'ublox_serialization' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/jun/ros2_ws/src/build/ublox_serialization', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/jun/ros2_ws/src/install/ublox_serialization', 'merge_install': False, 'path': '/home/jun/ros2_ws/src/sensor_drivers/ublox-ros2/ublox_serialization', 'symlink_install': True, 'test_result_base': None}
+[0.309s] Level 5:colcon.colcon_core.verb:set package 'ublox_msgs' build argument 'cmake_args' from command line to 'None'
+[0.309s] Level 5:colcon.colcon_core.verb:set package 'ublox_msgs' build argument 'cmake_target' from command line to 'None'
+[0.309s] Level 5:colcon.colcon_core.verb:set package 'ublox_msgs' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.309s] Level 5:colcon.colcon_core.verb:set package 'ublox_msgs' build argument 'cmake_clean_cache' from command line to 'False'
+[0.309s] Level 5:colcon.colcon_core.verb:set package 'ublox_msgs' build argument 'cmake_clean_first' from command line to 'False'
+[0.309s] Level 5:colcon.colcon_core.verb:set package 'ublox_msgs' build argument 'cmake_force_configure' from command line to 'False'
+[0.309s] Level 5:colcon.colcon_core.verb:set package 'ublox_msgs' build argument 'ament_cmake_args' from command line to 'None'
+[0.309s] Level 5:colcon.colcon_core.verb:set package 'ublox_msgs' build argument 'catkin_cmake_args' from command line to 'None'
+[0.309s] Level 5:colcon.colcon_core.verb:set package 'ublox_msgs' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.309s] DEBUG:colcon.colcon_core.verb:Building package 'ublox_msgs' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/jun/ros2_ws/src/build/ublox_msgs', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/jun/ros2_ws/src/install/ublox_msgs', 'merge_install': False, 'path': '/home/jun/ros2_ws/src/sensor_drivers/ublox-ros2/ublox_msgs', 'symlink_install': True, 'test_result_base': None}
+[0.309s] Level 5:colcon.colcon_core.verb:set package 'ublox_gps' build argument 'cmake_args' from command line to 'None'
+[0.309s] Level 5:colcon.colcon_core.verb:set package 'ublox_gps' build argument 'cmake_target' from command line to 'None'
+[0.309s] Level 5:colcon.colcon_core.verb:set package 'ublox_gps' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.309s] Level 5:colcon.colcon_core.verb:set package 'ublox_gps' build argument 'cmake_clean_cache' from command line to 'False'
+[0.310s] Level 5:colcon.colcon_core.verb:set package 'ublox_gps' build argument 'cmake_clean_first' from command line to 'False'
+[0.310s] Level 5:colcon.colcon_core.verb:set package 'ublox_gps' build argument 'cmake_force_configure' from command line to 'False'
+[0.310s] Level 5:colcon.colcon_core.verb:set package 'ublox_gps' build argument 'ament_cmake_args' from command line to 'None'
+[0.310s] Level 5:colcon.colcon_core.verb:set package 'ublox_gps' build argument 'catkin_cmake_args' from command line to 'None'
+[0.310s] Level 5:colcon.colcon_core.verb:set package 'ublox_gps' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.310s] DEBUG:colcon.colcon_core.verb:Building package 'ublox_gps' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/jun/ros2_ws/src/build/ublox_gps', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/jun/ros2_ws/src/install/ublox_gps', 'merge_install': False, 'path': '/home/jun/ros2_ws/src/sensor_drivers/ublox-ros2/ublox_gps', 'symlink_install': True, 'test_result_base': None}
+[0.310s] Level 5:colcon.colcon_core.verb:set package 'ublox' build argument 'cmake_args' from command line to 'None'
+[0.310s] Level 5:colcon.colcon_core.verb:set package 'ublox' build argument 'cmake_target' from command line to 'None'
+[0.310s] Level 5:colcon.colcon_core.verb:set package 'ublox' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.310s] Level 5:colcon.colcon_core.verb:set package 'ublox' build argument 'cmake_clean_cache' from command line to 'False'
+[0.310s] Level 5:colcon.colcon_core.verb:set package 'ublox' build argument 'cmake_clean_first' from command line to 'False'
+[0.310s] Level 5:colcon.colcon_core.verb:set package 'ublox' build argument 'cmake_force_configure' from command line to 'False'
+[0.310s] Level 5:colcon.colcon_core.verb:set package 'ublox' build argument 'ament_cmake_args' from command line to 'None'
+[0.311s] Level 5:colcon.colcon_core.verb:set package 'ublox' build argument 'catkin_cmake_args' from command line to 'None'
+[0.311s] Level 5:colcon.colcon_core.verb:set package 'ublox' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.311s] DEBUG:colcon.colcon_core.verb:Building package 'ublox' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/jun/ros2_ws/src/build/ublox', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/jun/ros2_ws/src/install/ublox', 'merge_install': False, 'path': '/home/jun/ros2_ws/src/sensor_drivers/ublox-ros2/ublox', 'symlink_install': True, 'test_result_base': None}
+[0.311s] INFO:colcon.colcon_core.executor:Executing jobs using 'parallel' executor
+[0.314s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:run_until_complete
+[0.314s] INFO:colcon.colcon_ros.task.ament_cmake.build:Building ROS package in '/home/jun/ros2_ws/src/sensor_drivers/ublox-ros2/ublox_serialization' with build type 'ament_cmake'
+[0.314s] INFO:colcon.colcon_cmake.task.cmake.build:Building CMake package in '/home/jun/ros2_ws/src/sensor_drivers/ublox-ros2/ublox_serialization'
+[0.317s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_core.shell.bat': Not used on non-Windows systems
+[0.317s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.317s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.322s] INFO:colcon.colcon_ros.task.ament_python.build:Building ROS package in '/home/jun/ros2_ws/src/grandslam_description' with build type 'ament_python'
+[0.322s] Level 1:colcon.colcon_core.shell:create_environment_hook('grandslam_description', 'ament_prefix_path')
+[0.322s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/jun/ros2_ws/src/install/grandslam_description/share/grandslam_description/hook/ament_prefix_path.ps1'
+[0.323s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/jun/ros2_ws/src/install/grandslam_description/share/grandslam_description/hook/ament_prefix_path.dsv'
+[0.324s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/jun/ros2_ws/src/install/grandslam_description/share/grandslam_description/hook/ament_prefix_path.sh'
+[0.324s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.324s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.329s] INFO:colcon.colcon_ros.task.ament_python.build:Building ROS package in '/home/jun/ros2_ws/src/sensor_drivers/iahrs_driver' with build type 'ament_python'
+[0.329s] Level 1:colcon.colcon_core.shell:create_environment_hook('iahrs_driver', 'ament_prefix_path')
+[0.329s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/jun/ros2_ws/src/install/iahrs_driver/share/iahrs_driver/hook/ament_prefix_path.ps1'
+[0.330s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/jun/ros2_ws/src/install/iahrs_driver/share/iahrs_driver/hook/ament_prefix_path.dsv'
+[0.330s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/jun/ros2_ws/src/install/iahrs_driver/share/iahrs_driver/hook/ament_prefix_path.sh'
+[0.330s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.330s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.334s] INFO:colcon.colcon_ros.task.ament_cmake.build:Building ROS package in '/home/jun/ros2_ws/src/sensor_drivers/iahrs_driver_interface' with build type 'ament_cmake'
+[0.334s] INFO:colcon.colcon_cmake.task.cmake.build:Building CMake package in '/home/jun/ros2_ws/src/sensor_drivers/iahrs_driver_interface'
+[0.334s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.334s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.338s] INFO:colcon.colcon_ros.task.ament_cmake.build:Building ROS package in '/home/jun/ros2_ws/src/navigation2_tutorials/nav2_costmap_filters_demo' with build type 'ament_cmake'
+[0.338s] INFO:colcon.colcon_cmake.task.cmake.build:Building CMake package in '/home/jun/ros2_ws/src/navigation2_tutorials/nav2_costmap_filters_demo'
+[0.338s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.338s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.343s] INFO:colcon.colcon_ros.task.ament_cmake.build:Building ROS package in '/home/jun/ros2_ws/src/navigation2_tutorials/nav2_gradient_costmap_plugin' with build type 'ament_cmake'
+[0.343s] INFO:colcon.colcon_cmake.task.cmake.build:Building CMake package in '/home/jun/ros2_ws/src/navigation2_tutorials/nav2_gradient_costmap_plugin'
+[0.343s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.343s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.347s] INFO:colcon.colcon_ros.task.ament_cmake.build:Building ROS package in '/home/jun/ros2_ws/src/navigation2_tutorials/nav2_pure_pursuit_controller' with build type 'ament_cmake'
+[0.347s] INFO:colcon.colcon_cmake.task.cmake.build:Building CMake package in '/home/jun/ros2_ws/src/navigation2_tutorials/nav2_pure_pursuit_controller'
+[0.347s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.347s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.351s] INFO:colcon.colcon_ros.task.ament_cmake.build:Building ROS package in '/home/jun/ros2_ws/src/navigation2_tutorials/nav2_sms_behavior' with build type 'ament_cmake'
+[0.351s] INFO:colcon.colcon_cmake.task.cmake.build:Building CMake package in '/home/jun/ros2_ws/src/navigation2_tutorials/nav2_sms_behavior'
+[0.351s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.351s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.355s] INFO:colcon.colcon_ros.task.ament_cmake.build:Building ROS package in '/home/jun/ros2_ws/src/navigation2_tutorials/nav2_straightline_planner' with build type 'ament_cmake'
+[0.355s] INFO:colcon.colcon_cmake.task.cmake.build:Building CMake package in '/home/jun/ros2_ws/src/navigation2_tutorials/nav2_straightline_planner'
+[0.355s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.355s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.359s] INFO:colcon.colcon_ros.task.ament_python.build:Building ROS package in '/home/jun/ros2_ws/src/sensor_drivers/ntrip_client-ros2' with build type 'ament_python'
+[0.360s] Level 1:colcon.colcon_core.shell:create_environment_hook('ntrip_client', 'ament_prefix_path')
+[0.360s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/jun/ros2_ws/src/install/ntrip_client/share/ntrip_client/hook/ament_prefix_path.ps1'
+[0.360s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/jun/ros2_ws/src/install/ntrip_client/share/ntrip_client/hook/ament_prefix_path.dsv'
+[0.360s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/jun/ros2_ws/src/install/ntrip_client/share/ntrip_client/hook/ament_prefix_path.sh'
+[0.360s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.360s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.364s] INFO:colcon.colcon_ros.task.ament_cmake.build:Building ROS package in '/home/jun/ros2_ws/src/navigation2_tutorials/sam_bot_description' with build type 'ament_cmake'
+[0.364s] INFO:colcon.colcon_cmake.task.cmake.build:Building CMake package in '/home/jun/ros2_ws/src/navigation2_tutorials/sam_bot_description'
+[0.364s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.364s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.369s] INFO:colcon.colcon_ros.task.ament_python.build:Building ROS package in '/home/jun/ros2_ws/src/sensor_bringup' with build type 'ament_python'
+[0.369s] Level 1:colcon.colcon_core.shell:create_environment_hook('sensor_drivers', 'ament_prefix_path')
+[0.369s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/jun/ros2_ws/src/install/sensor_drivers/share/sensor_drivers/hook/ament_prefix_path.ps1'
+[0.369s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/jun/ros2_ws/src/install/sensor_drivers/share/sensor_drivers/hook/ament_prefix_path.dsv'
+[0.369s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/jun/ros2_ws/src/install/sensor_drivers/share/sensor_drivers/hook/ament_prefix_path.sh'
+[0.370s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.370s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.378s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/jun/ros2_ws/src/build/ublox_serialization': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/jun/lane_tracking_ws/install/lane_tracking:/home/jun/nav2_ws/install/nav2_simple_commander:/opt/ros/humble /usr/bin/cmake /home/jun/ros2_ws/src/sensor_drivers/ublox-ros2/ublox_serialization -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/jun/ros2_ws/src/install/ublox_serialization
+[0.544s] INFO:colcon.colcon_core.task.python.build:Building Python package in '/home/jun/ros2_ws/src/grandslam_description'
+[0.544s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.544s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.717s] INFO:colcon.colcon_core.task.python.build:Building Python package in '/home/jun/ros2_ws/src/sensor_drivers/iahrs_driver'
+[0.718s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.718s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.725s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/jun/ros2_ws/src/build/iahrs_driver_interface': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/jun/lane_tracking_ws/install/lane_tracking:/home/jun/nav2_ws/install/nav2_simple_commander:/opt/ros/humble /usr/bin/cmake /home/jun/ros2_ws/src/sensor_drivers/iahrs_driver_interface -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/jun/ros2_ws/src/install/iahrs_driver_interface
+[0.727s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/jun/ros2_ws/src/build/nav2_costmap_filters_demo': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/jun/lane_tracking_ws/install/lane_tracking:/home/jun/nav2_ws/install/nav2_simple_commander:/opt/ros/humble /usr/bin/cmake /home/jun/ros2_ws/src/navigation2_tutorials/nav2_costmap_filters_demo -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/jun/ros2_ws/src/install/nav2_costmap_filters_demo
+[0.729s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/jun/ros2_ws/src/build/nav2_gradient_costmap_plugin': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/jun/lane_tracking_ws/install/lane_tracking:/home/jun/nav2_ws/install/nav2_simple_commander:/opt/ros/humble /usr/bin/cmake /home/jun/ros2_ws/src/navigation2_tutorials/nav2_gradient_costmap_plugin -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/jun/ros2_ws/src/install/nav2_gradient_costmap_plugin
+[0.732s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/jun/ros2_ws/src/build/nav2_pure_pursuit_controller': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/jun/lane_tracking_ws/install/lane_tracking:/home/jun/nav2_ws/install/nav2_simple_commander:/opt/ros/humble /usr/bin/cmake /home/jun/ros2_ws/src/navigation2_tutorials/nav2_pure_pursuit_controller -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/jun/ros2_ws/src/install/nav2_pure_pursuit_controller
+[0.735s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/jun/ros2_ws/src/build/nav2_sms_behavior': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/jun/lane_tracking_ws/install/lane_tracking:/home/jun/nav2_ws/install/nav2_simple_commander:/opt/ros/humble /usr/bin/cmake /home/jun/ros2_ws/src/navigation2_tutorials/nav2_sms_behavior -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/jun/ros2_ws/src/install/nav2_sms_behavior
+[0.738s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/jun/ros2_ws/src/build/nav2_straightline_planner': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/jun/lane_tracking_ws/install/lane_tracking:/home/jun/nav2_ws/install/nav2_simple_commander:/opt/ros/humble /usr/bin/cmake /home/jun/ros2_ws/src/navigation2_tutorials/nav2_straightline_planner -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/jun/ros2_ws/src/install/nav2_straightline_planner
+[0.947s] INFO:colcon.colcon_core.task.python.build:Building Python package in '/home/jun/ros2_ws/src/sensor_drivers/ntrip_client-ros2'
+[0.947s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.948s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.956s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/jun/ros2_ws/src/build/sam_bot_description': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/jun/lane_tracking_ws/install/lane_tracking:/home/jun/nav2_ws/install/nav2_simple_commander:/opt/ros/humble /usr/bin/cmake /home/jun/ros2_ws/src/navigation2_tutorials/sam_bot_description -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/jun/ros2_ws/src/install/sam_bot_description
+[1.172s] WARNING:colcon.colcon_ros.task.ament_python.build:Package 'sensor_drivers' doesn't explicitly install a marker in the package index (colcon-ros currently does it implicitly but that fallback will be removed in the future)
+[1.172s] INFO:colcon.colcon_core.task.python.build:Building Python package in '/home/jun/ros2_ws/src/sensor_bringup'
+[1.173s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[1.173s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[1.192s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/jun/ros2_ws/src/build/ublox_serialization' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/jun/lane_tracking_ws/install/lane_tracking:/home/jun/nav2_ws/install/nav2_simple_commander:/opt/ros/humble /usr/bin/cmake /home/jun/ros2_ws/src/sensor_drivers/ublox-ros2/ublox_serialization -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/jun/ros2_ws/src/install/ublox_serialization
+[1.193s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/jun/ros2_ws/src/build/ublox_serialization': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/jun/lane_tracking_ws/install/lane_tracking:/home/jun/nav2_ws/install/nav2_simple_commander:/opt/ros/humble /usr/bin/cmake --build /home/jun/ros2_ws/src/build/ublox_serialization -- -j16 -l16
+[1.261s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/jun/ros2_ws/src/build/ublox_serialization' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/jun/lane_tracking_ws/install/lane_tracking:/home/jun/nav2_ws/install/nav2_simple_commander:/opt/ros/humble /usr/bin/cmake --build /home/jun/ros2_ws/src/build/ublox_serialization -- -j16 -l16
+[1.278s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/jun/ros2_ws/src/build/ublox_serialization': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/jun/lane_tracking_ws/install/lane_tracking:/home/jun/nav2_ws/install/nav2_simple_commander:/opt/ros/humble /usr/bin/cmake --install /home/jun/ros2_ws/src/build/ublox_serialization
+[1.395s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/jun/ros2_ws/src/build/nav2_costmap_filters_demo' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/jun/lane_tracking_ws/install/lane_tracking:/home/jun/nav2_ws/install/nav2_simple_commander:/opt/ros/humble /usr/bin/cmake /home/jun/ros2_ws/src/navigation2_tutorials/nav2_costmap_filters_demo -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/jun/ros2_ws/src/install/nav2_costmap_filters_demo
+[1.395s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/jun/ros2_ws/src/build/nav2_costmap_filters_demo': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/jun/lane_tracking_ws/install/lane_tracking:/home/jun/nav2_ws/install/nav2_simple_commander:/opt/ros/humble /usr/bin/cmake --build /home/jun/ros2_ws/src/build/nav2_costmap_filters_demo -- -j16 -l16
+[1.460s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/jun/ros2_ws/src/build/nav2_costmap_filters_demo' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/jun/lane_tracking_ws/install/lane_tracking:/home/jun/nav2_ws/install/nav2_simple_commander:/opt/ros/humble /usr/bin/cmake --build /home/jun/ros2_ws/src/build/nav2_costmap_filters_demo -- -j16 -l16
+[1.463s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/jun/ros2_ws/src/build/nav2_costmap_filters_demo': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/jun/lane_tracking_ws/install/lane_tracking:/home/jun/nav2_ws/install/nav2_simple_commander:/opt/ros/humble /usr/bin/cmake --install /home/jun/ros2_ws/src/build/nav2_costmap_filters_demo
+[1.575s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(ublox_serialization)
+[1.576s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/jun/ros2_ws/src/build/ublox_serialization' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/jun/lane_tracking_ws/install/lane_tracking:/home/jun/nav2_ws/install/nav2_simple_commander:/opt/ros/humble /usr/bin/cmake --install /home/jun/ros2_ws/src/build/ublox_serialization
+[1.579s] Level 1:colcon.colcon_core.environment:checking '/home/jun/ros2_ws/src/install/ublox_serialization' for CMake module files
+[1.580s] Level 1:colcon.colcon_core.environment:checking '/home/jun/ros2_ws/src/install/ublox_serialization' for CMake config files
+[1.580s] Level 1:colcon.colcon_core.shell:create_environment_hook('ublox_serialization', 'cmake_prefix_path')
+[1.580s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/jun/ros2_ws/src/install/ublox_serialization/share/ublox_serialization/hook/cmake_prefix_path.ps1'
+[1.581s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/jun/ros2_ws/src/install/ublox_serialization/share/ublox_serialization/hook/cmake_prefix_path.dsv'
+[1.581s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/jun/ros2_ws/src/install/ublox_serialization/share/ublox_serialization/hook/cmake_prefix_path.sh'
+[1.582s] Level 1:colcon.colcon_core.environment:checking '/home/jun/ros2_ws/src/install/ublox_serialization/bin'
+[1.582s] Level 1:colcon.colcon_core.environment:checking '/home/jun/ros2_ws/src/install/ublox_serialization/lib/pkgconfig/ublox_serialization.pc'
+[1.582s] Level 1:colcon.colcon_core.environment:checking '/home/jun/ros2_ws/src/install/ublox_serialization/lib/python3.10/site-packages'
+[1.583s] Level 1:colcon.colcon_core.environment:checking '/home/jun/ros2_ws/src/install/ublox_serialization/bin'
+[1.583s] INFO:colcon.colcon_core.shell:Creating package script '/home/jun/ros2_ws/src/install/ublox_serialization/share/ublox_serialization/package.ps1'
+[1.584s] INFO:colcon.colcon_core.shell:Creating package descriptor '/home/jun/ros2_ws/src/install/ublox_serialization/share/ublox_serialization/package.dsv'
+[1.584s] INFO:colcon.colcon_core.shell:Creating package script '/home/jun/ros2_ws/src/install/ublox_serialization/share/ublox_serialization/package.sh'
+[1.585s] INFO:colcon.colcon_core.shell:Creating package script '/home/jun/ros2_ws/src/install/ublox_serialization/share/ublox_serialization/package.bash'
+[1.586s] INFO:colcon.colcon_core.shell:Creating package script '/home/jun/ros2_ws/src/install/ublox_serialization/share/ublox_serialization/package.zsh'
+[1.586s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/home/jun/ros2_ws/src/install/ublox_serialization/share/colcon-core/packages/ublox_serialization)
+[1.587s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(ublox_serialization)
+[1.587s] Level 1:colcon.colcon_core.environment:checking '/home/jun/ros2_ws/src/install/ublox_serialization' for CMake module files
+[1.588s] Level 1:colcon.colcon_core.environment:checking '/home/jun/ros2_ws/src/install/ublox_serialization' for CMake config files
+[1.589s] Level 1:colcon.colcon_core.shell:create_environment_hook('ublox_serialization', 'cmake_prefix_path')
+[1.589s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/jun/ros2_ws/src/install/ublox_serialization/share/ublox_serialization/hook/cmake_prefix_path.ps1'
+[1.590s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/jun/ros2_ws/src/install/ublox_serialization/share/ublox_serialization/hook/cmake_prefix_path.dsv'
+[1.590s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/jun/ros2_ws/src/install/ublox_serialization/share/ublox_serialization/hook/cmake_prefix_path.sh'
+[1.591s] Level 1:colcon.colcon_core.environment:checking '/home/jun/ros2_ws/src/install/ublox_serialization/bin'
+[1.591s] Level 1:colcon.colcon_core.environment:checking '/home/jun/ros2_ws/src/install/ublox_serialization/lib/pkgconfig/ublox_serialization.pc'
+[1.591s] Level 1:colcon.colcon_core.environment:checking '/home/jun/ros2_ws/src/install/ublox_serialization/lib/python3.10/site-packages'
+[1.591s] Level 1:colcon.colcon_core.environment:checking '/home/jun/ros2_ws/src/install/ublox_serialization/bin'
+[1.592s] INFO:colcon.colcon_core.shell:Creating package script '/home/jun/ros2_ws/src/install/ublox_serialization/share/ublox_serialization/package.ps1'
+[1.592s] INFO:colcon.colcon_core.shell:Creating package descriptor '/home/jun/ros2_ws/src/install/ublox_serialization/share/ublox_serialization/package.dsv'
+[1.593s] INFO:colcon.colcon_core.shell:Creating package script '/home/jun/ros2_ws/src/install/ublox_serialization/share/ublox_serialization/package.sh'
+[1.593s] INFO:colcon.colcon_core.shell:Creating package script '/home/jun/ros2_ws/src/install/ublox_serialization/share/ublox_serialization/package.bash'
+[1.593s] INFO:colcon.colcon_core.shell:Creating package script '/home/jun/ros2_ws/src/install/ublox_serialization/share/ublox_serialization/package.zsh'
+[1.593s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/home/jun/ros2_ws/src/install/ublox_serialization/share/colcon-core/packages/ublox_serialization)
+[1.594s] INFO:colcon.colcon_ros.task.ament_cmake.build:Building ROS package in '/home/jun/ros2_ws/src/sensor_drivers/ublox-ros2/ublox_msgs' with build type 'ament_cmake'
+[1.594s] INFO:colcon.colcon_cmake.task.cmake.build:Building CMake package in '/home/jun/ros2_ws/src/sensor_drivers/ublox-ros2/ublox_msgs'
+[1.594s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[1.594s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[1.603s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/jun/ros2_ws/src/build/sensor_drivers': PYTHONPATH=/home/jun/ros2_ws/src/build/sensor_drivers/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/jun/ros2_ws/src/install/sensor_drivers/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/jun/ros2_ws/src/build/sensor_drivers/build --no-deps symlink_data
+[1.605s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/jun/ros2_ws/src/build/grandslam_description': PYTHONPATH=/home/jun/ros2_ws/src/build/grandslam_description/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/jun/ros2_ws/src/install/grandslam_description/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/jun/ros2_ws/src/build/grandslam_description/build --no-deps symlink_data
+[1.607s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/jun/ros2_ws/src/build/iahrs_driver': PYTHONPATH=/home/jun/ros2_ws/src/build/iahrs_driver/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/jun/ros2_ws/src/install/iahrs_driver/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/jun/ros2_ws/src/build/iahrs_driver/build --no-deps symlink_data
+[1.611s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/jun/ros2_ws/src/build/ntrip_client': PYTHONPATH=/home/jun/ros2_ws/src/build/ntrip_client/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/jun/ros2_ws/src/install/ntrip_client/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/jun/ros2_ws/src/build/ntrip_client/build --no-deps symlink_data
+[1.614s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/jun/ros2_ws/src/build/ublox_msgs': AMENT_PREFIX_PATH=/home/jun/ros2_ws/src/install/ublox_serialization:${AMENT_PREFIX_PATH} CMAKE_PREFIX_PATH=/home/jun/ros2_ws/src/install/ublox_serialization:/home/jun/nav2_ws/install/sam_bot_description:/home/jun/nav2_ws/install/nav2_system_tests:/home/jun/nav2_ws/install/nav2_bringup:/home/jun/nav2_ws/install/navigation2:/home/jun/nav2_ws/install/nav2_smoother:/home/jun/nav2_ws/install/nav2_graceful_controller:/home/jun/nav2_ws/install/nav2_dwb_controller:/home/jun/nav2_ws/install/nav2_controller:/home/jun/nav2_ws/install/dwb_plugins:/home/jun/nav2_ws/install/dwb_critics:/home/jun/nav2_ws/install/dwb_core:/home/jun/nav2_ws/install/nav_2d_utils:/home/jun/nav2_ws/install/dwb_msgs:/home/jun/nav2_ws/install/nav_2d_msgs:/home/jun/nav2_ws/install/nav2_waypoint_follower:/home/jun/nav2_ws/install/nav2_theta_star_planner:/home/jun/nav2_ws/install/nav2_smac_planner:/home/jun/nav2_ws/install/nav2_rotation_shim_controller:/home/jun/nav2_ws/install/nav2_regulated_pure_pursuit_controller:/home/jun/nav2_ws/install/nav2_planner:/home/jun/nav2_ws/install/nav2_navfn_planner:/home/jun/nav2_ws/install/nav2_mppi_controller:/home/jun/nav2_ws/install/nav2_constrained_smoother:/home/jun/nav2_ws/install/nav2_bt_navigator:/home/jun/nav2_ws/install/nav2_behaviors:/home/jun/nav2_ws/install/nav2_core:/home/jun/nav2_ws/install/nav2_collision_monitor:/home/jun/nav2_ws/install/costmap_queue:/home/jun/nav2_ws/install/nav2_costmap_2d:/home/jun/nav2_ws/install/nav2_voxel_grid:/home/jun/nav2_ws/install/nav2_velocity_smoother:/home/jun/nav2_ws/install/nav2_rviz_plugins:/home/jun/nav2_ws/install/nav2_map_server:/home/jun/nav2_ws/install/nav2_lifecycle_manager:/home/jun/nav2_ws/install/nav2_behavior_tree:/home/jun/nav2_ws/install/nav2_amcl:/home/jun/nav2_ws/install/nav2_util:/home/jun/nav2_ws/install/nav2_msgs:/home/jun/nav2_ws/install/nav2_common:/home/jun/lane_tracking_ws/install/lane_tracking:/home/jun/nav2_ws/install/nav2_simple_commander:/opt/ros/humble /usr/bin/cmake /home/jun/ros2_ws/src/sensor_drivers/ublox-ros2/ublox_msgs -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/jun/ros2_ws/src/install/ublox_msgs
+[1.804s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(nav2_costmap_filters_demo)
+[1.805s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/jun/ros2_ws/src/build/nav2_costmap_filters_demo' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/jun/lane_tracking_ws/install/lane_tracking:/home/jun/nav2_ws/install/nav2_simple_commander:/opt/ros/humble /usr/bin/cmake --install /home/jun/ros2_ws/src/build/nav2_costmap_filters_demo
+[1.805s] Level 1:colcon.colcon_core.environment:checking '/home/jun/ros2_ws/src/install/nav2_costmap_filters_demo' for CMake module files
+[1.807s] Level 1:colcon.colcon_core.environment:checking '/home/jun/ros2_ws/src/install/nav2_costmap_filters_demo' for CMake config files
+[1.807s] Level 1:colcon.colcon_core.shell:create_environment_hook('nav2_costmap_filters_demo', 'cmake_prefix_path')
+[1.807s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/jun/ros2_ws/src/install/nav2_costmap_filters_demo/share/nav2_costmap_filters_demo/hook/cmake_prefix_path.ps1'
+[1.808s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/jun/ros2_ws/src/install/nav2_costmap_filters_demo/share/nav2_costmap_filters_demo/hook/cmake_prefix_path.dsv'
+[1.808s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/jun/ros2_ws/src/install/nav2_costmap_filters_demo/share/nav2_costmap_filters_demo/hook/cmake_prefix_path.sh'
+[1.808s] Level 1:colcon.colcon_core.environment:checking '/home/jun/ros2_ws/src/install/nav2_costmap_filters_demo/bin'
+[1.808s] Level 1:colcon.colcon_core.environment:checking '/home/jun/ros2_ws/src/install/nav2_costmap_filters_demo/lib/pkgconfig/nav2_costmap_filters_demo.pc'
+[1.809s] Level 1:colcon.colcon_core.environment:checking '/home/jun/ros2_ws/src/install/nav2_costmap_filters_demo/lib/python3.10/site-packages'
+[1.809s] Level 1:colcon.colcon_core.environment:checking '/home/jun/ros2_ws/src/install/nav2_costmap_filters_demo/bin'
+[1.809s] INFO:colcon.colcon_core.shell:Creating package script '/home/jun/ros2_ws/src/install/nav2_costmap_filters_demo/share/nav2_costmap_filters_demo/package.ps1'
+[1.820s] INFO:colcon.colcon_core.shell:Creating package descriptor '/home/jun/ros2_ws/src/install/nav2_costmap_filters_demo/share/nav2_costmap_filters_demo/package.dsv'
+[1.821s] INFO:colcon.colcon_core.shell:Creating package script '/home/jun/ros2_ws/src/install/nav2_costmap_filters_demo/share/nav2_costmap_filters_demo/package.sh'
+[1.821s] INFO:colcon.colcon_core.shell:Creating package script '/home/jun/ros2_ws/src/install/nav2_costmap_filters_demo/share/nav2_costmap_filters_demo/package.bash'
+[1.821s] INFO:colcon.colcon_core.shell:Creating package script '/home/jun/ros2_ws/src/install/nav2_costmap_filters_demo/share/nav2_costmap_filters_demo/package.zsh'
+[1.821s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/home/jun/ros2_ws/src/install/nav2_costmap_filters_demo/share/colcon-core/packages/nav2_costmap_filters_demo)
+[1.822s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(nav2_costmap_filters_demo)
+[1.823s] Level 1:colcon.colcon_core.environment:checking '/home/jun/ros2_ws/src/install/nav2_costmap_filters_demo' for CMake module files
+[1.823s] Level 1:colcon.colcon_core.environment:checking '/home/jun/ros2_ws/src/install/nav2_costmap_filters_demo' for CMake config files
+[1.823s] Level 1:colcon.colcon_core.shell:create_environment_hook('nav2_costmap_filters_demo', 'cmake_prefix_path')
+[1.824s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/jun/ros2_ws/src/install/nav2_costmap_filters_demo/share/nav2_costmap_filters_demo/hook/cmake_prefix_path.ps1'
+[1.824s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/jun/ros2_ws/src/install/nav2_costmap_filters_demo/share/nav2_costmap_filters_demo/hook/cmake_prefix_path.dsv'
+[1.824s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/jun/ros2_ws/src/install/nav2_costmap_filters_demo/share/nav2_costmap_filters_demo/hook/cmake_prefix_path.sh'
+[1.825s] Level 1:colcon.colcon_core.environment:checking '/home/jun/ros2_ws/src/install/nav2_costmap_filters_demo/bin'
+[1.825s] Level 1:colcon.colcon_core.environment:checking '/home/jun/ros2_ws/src/install/nav2_costmap_filters_demo/lib/pkgconfig/nav2_costmap_filters_demo.pc'
+[1.825s] Level 1:colcon.colcon_core.environment:checking '/home/jun/ros2_ws/src/install/nav2_costmap_filters_demo/lib/python3.10/site-packages'
+[1.825s] Level 1:colcon.colcon_core.environment:checking '/home/jun/ros2_ws/src/install/nav2_costmap_filters_demo/bin'
+[1.826s] INFO:colcon.colcon_core.shell:Creating package script '/home/jun/ros2_ws/src/install/nav2_costmap_filters_demo/share/nav2_costmap_filters_demo/package.ps1'
+[1.829s] INFO:colcon.colcon_core.shell:Creating package descriptor '/home/jun/ros2_ws/src/install/nav2_costmap_filters_demo/share/nav2_costmap_filters_demo/package.dsv'
+[1.831s] INFO:colcon.colcon_core.shell:Creating package script '/home/jun/ros2_ws/src/install/nav2_costmap_filters_demo/share/nav2_costmap_filters_demo/package.sh'
+[1.832s] INFO:colcon.colcon_core.shell:Creating package script '/home/jun/ros2_ws/src/install/nav2_costmap_filters_demo/share/nav2_costmap_filters_demo/package.bash'
+[1.833s] INFO:colcon.colcon_core.shell:Creating package script '/home/jun/ros2_ws/src/install/nav2_costmap_filters_demo/share/nav2_costmap_filters_demo/package.zsh'
+[1.834s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/home/jun/ros2_ws/src/install/nav2_costmap_filters_demo/share/colcon-core/packages/nav2_costmap_filters_demo)
+[1.837s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/jun/ros2_ws/src/build/sam_bot_description' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/jun/lane_tracking_ws/install/lane_tracking:/home/jun/nav2_ws/install/nav2_simple_commander:/opt/ros/humble /usr/bin/cmake /home/jun/ros2_ws/src/navigation2_tutorials/sam_bot_description -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/jun/ros2_ws/src/install/sam_bot_description
+[1.837s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/jun/ros2_ws/src/build/sam_bot_description': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/jun/lane_tracking_ws/install/lane_tracking:/home/jun/nav2_ws/install/nav2_simple_commander:/opt/ros/humble /usr/bin/cmake --build /home/jun/ros2_ws/src/build/sam_bot_description -- -j16 -l16
+[2.029s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/jun/ros2_ws/src/build/sensor_drivers' returned '1': PYTHONPATH=/home/jun/ros2_ws/src/build/sensor_drivers/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/jun/ros2_ws/src/install/sensor_drivers/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/jun/ros2_ws/src/build/sensor_drivers/build --no-deps symlink_data
+[4.311s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:closing loop
+[4.312s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:loop closed
+[4.312s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:run_until_complete finished with '1'
+[4.312s] DEBUG:colcon.colcon_core.event_reactor:joining thread
+[4.317s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.terminal_notifier': Not used on non-Darwin systems
+[4.317s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.win32': Not used on non-Windows systems
+[4.317s] INFO:colcon.colcon_notification.desktop_notification:Sending desktop notification using 'notify2'
+[4.330s] DEBUG:colcon.colcon_core.event_reactor:joined thread
+[4.330s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/jun/ros2_ws/src/install/local_setup.ps1'
+[4.331s] INFO:colcon.colcon_core.shell:Creating prefix util module '/home/jun/ros2_ws/src/install/_local_setup_util_ps1.py'
+[4.332s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/jun/ros2_ws/src/install/setup.ps1'
+[4.334s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/jun/ros2_ws/src/install/local_setup.sh'
+[4.334s] INFO:colcon.colcon_core.shell:Creating prefix util module '/home/jun/ros2_ws/src/install/_local_setup_util_sh.py'
+[4.334s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/jun/ros2_ws/src/install/setup.sh'
+[4.336s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/jun/ros2_ws/src/install/local_setup.bash'
+[4.336s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/jun/ros2_ws/src/install/setup.bash'
+[4.338s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/jun/ros2_ws/src/install/local_setup.zsh'
+[4.338s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/jun/ros2_ws/src/install/setup.zsh'

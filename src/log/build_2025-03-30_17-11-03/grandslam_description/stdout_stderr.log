@@ -1,0 +1,27 @@
+/usr/lib/python3/dist-packages/setuptools/dist.py:723: UserWarning: Usage of dash-separated 'script-dir' will not be supported in future versions. Please use the underscore name 'script_dir' instead
+  warnings.warn(
+running develop
+running egg_info
+creating grandslam_description.egg-info
+writing grandslam_description.egg-info/PKG-INFO
+writing dependency_links to grandslam_description.egg-info/dependency_links.txt
+writing entry points to grandslam_description.egg-info/entry_points.txt
+writing requirements to grandslam_description.egg-info/requires.txt
+writing top-level names to grandslam_description.egg-info/top_level.txt
+writing manifest file 'grandslam_description.egg-info/SOURCES.txt'
+reading manifest file 'grandslam_description.egg-info/SOURCES.txt'
+writing manifest file 'grandslam_description.egg-info/SOURCES.txt'
+running build_ext
+Creating /home/jun/ros2_ws/src/install/grandslam_description/lib/python3.10/site-packages/grandslam-description.egg-link (link to .)
+
+Installed /home/jun/ros2_ws/src/build/grandslam_description
+running symlink_data
+creating /home/jun/ros2_ws/src/install/grandslam_description/share/ament_index
+creating /home/jun/ros2_ws/src/install/grandslam_description/share/ament_index/resource_index
+creating /home/jun/ros2_ws/src/install/grandslam_description/share/ament_index/resource_index/packages
+symbolically linking /home/jun/ros2_ws/src/build/grandslam_description/resource/grandslam_description -> /home/jun/ros2_ws/src/install/grandslam_description/share/ament_index/resource_index/packages
+symbolically linking /home/jun/ros2_ws/src/build/grandslam_description/package.xml -> /home/jun/ros2_ws/src/install/grandslam_description/share/grandslam_description
+creating /home/jun/ros2_ws/src/install/grandslam_description/share/grandslam_description/launch
+symbolically linking /home/jun/ros2_ws/src/build/grandslam_description/launch/grandslam.launch.py -> /home/jun/ros2_ws/src/install/grandslam_description/share/grandslam_description/launch
+creating /home/jun/ros2_ws/src/install/grandslam_description/share/grandslam_description/urdf
+symbolically linking /home/jun/ros2_ws/src/build/grandslam_description/urdf/grandslam.xacro -> /home/jun/ros2_ws/src/install/grandslam_description/share/grandslam_description/urdf

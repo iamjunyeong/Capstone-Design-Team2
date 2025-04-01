@@ -1,0 +1,34 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/MonVER.msg
+// generated code does not contain a copyright notice
+
+#include "ublox_msgs/msg/MonVERExtension.idl"
+
+module ublox_msgs {
+  module msg {
+    typedef uint8 uint8__30[30];
+    typedef uint8 uint8__10[10];
+    module MonVER_Constants {
+      const uint8 CLASS_ID = 10;
+      const uint8 MESSAGE_ID = 4;
+    };
+    @verbatim (language="comment", text=
+      "MON-VER (0x0A 0x04)" "\n"
+      "" "\n"
+      "Receiver/Software Version" "\n"
+      "Returned when the version is polled.")
+    struct MonVER {
+      @verbatim (language="comment", text=
+        "Zero-terminated software version string.")
+      uint8__30 sw_version;
+
+      @verbatim (language="comment", text=
+        "Zero-terminated hardware version string.")
+      uint8__10 hw_version;
+
+      @verbatim (language="comment", text=
+        "Start of repeated block (N times)")
+      sequence<ublox_msgs::msg::MonVERExtension> extension;
+    };
+  };
+};

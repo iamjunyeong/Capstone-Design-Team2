@@ -1,0 +1,77 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/RxmRAWX.msg
+// generated code does not contain a copyright notice
+
+#include "ublox_msgs/msg/RxmRAWXMeas.idl"
+
+module ublox_msgs {
+  module msg {
+    typedef uint8 uint8__2[2];
+    module RxmRAWX_Constants {
+      const uint8 CLASS_ID = 2;
+      const uint8 MESSAGE_ID = 21;
+      @verbatim (language="comment", text=
+        "Leap seconds have been determined")
+      const uint8 REC_STAT_LEAP_SEC = 1;
+      @verbatim (language="comment", text=
+        "Clock reset applied. Typically the receiver" "\n"        "clock is changed in increments of integer" "\n"        "milliseconds.")
+      const uint8 REC_STAT_CLK_RESET = 2;
+    };
+    @verbatim (language="comment", text=
+      "RXM-RAWX (0x02 0x15)" "\n"
+      "Multi-GNSS Raw Measurement Data" "\n"
+      "" "\n"
+      "This message contains the information needed to be able to generate a RINEX 3" "\n"
+      "multi-GNSS observation file." "\n"
+      "This message contains pseudorange, Doppler, carrier phase, phase lock and" "\n"
+      "signal quality information for GNSS satellites once signals have been" "\n"
+      "synchronized. This message supports all active GNSS.")
+    struct RxmRAWX {
+      @verbatim (language="comment", text=
+        "Measurement time of week in receiver local time" "\n"
+        "approximately aligned to the GPS time system. The" "\n"
+        "receiver local time of week number and leap second" "\n"
+        "information can be used to translate the time to other" "\n"
+        "time systems. More information about the difference in" "\n"
+        "time systems can be found in RINEX 3 documentation." "\n"
+        "For a receiver operating in GLONASS only mode, UTC" "\n"
+        "time can be determined by subtracting the leapS field" "\n"
+        "from GPS time regardless of whether the GPS leap" "\n"
+        "seconds are valid.")
+      @unit (value="s")
+      double rcv_tow;
+
+      @verbatim (language="comment", text=
+        "GPS week number in receiver local time.")
+      @unit (value="weeks")
+      uint16 week;
+
+      @verbatim (language="comment", text=
+        "GPS leap seconds (GPS-UTC)." "\n"
+        "This field represents the receiver's best knowledge of" "\n"
+        "the leap seconds offset. A flag is given in the" "\n"
+        "recStat bitfield to indicate if the leap seconds" "\n"
+        "are known.")
+      @unit (value="s")
+      int8 leap_s;
+
+      @verbatim (language="comment", text=
+        "# of measurements to follow")
+      uint8 num_meas;
+
+      @verbatim (language="comment", text=
+        "Receiver tracking status bitfield")
+      uint8 rec_stat;
+
+      @verbatim (language="comment", text=
+        "Message version (0x01 for this version).")
+      uint8 version;
+
+      @verbatim (language="comment", text=
+        "Reserved")
+      uint8__2 reserved1;
+
+      sequence<ublox_msgs::msg::RxmRAWXMeas> meas;
+    };
+  };
+};

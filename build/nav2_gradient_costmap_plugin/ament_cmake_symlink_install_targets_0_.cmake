@@ -1,0 +1,1 @@
+ament_cmake_symlink_install_targets("TARGET_FILES" "/home/jun/ros2_ws/build/nav2_gradient_costmap_plugin/libnav2_gradient_costmap_plugin_core.so" "TARGETS" "nav2_gradient_costmap_plugin_core" "DESTINATION" "lib")

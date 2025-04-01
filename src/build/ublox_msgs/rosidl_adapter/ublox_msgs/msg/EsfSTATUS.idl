@@ -1,0 +1,63 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/EsfSTATUS.msg
+// generated code does not contain a copyright notice
+
+#include "ublox_msgs/msg/EsfSTATUSSens.idl"
+
+module ublox_msgs {
+  module msg {
+    typedef uint8 uint8__7[7];
+    typedef uint8 uint8__2[2];
+    module EsfSTATUS_Constants {
+      const uint8 CLASS_ID = 16;
+      const uint8 MESSAGE_ID = 16;
+      @verbatim (language="comment", text=
+        "receiver is initializing some unknown values" "\n"        "required for doing sensor fusion")
+      const uint8 FUSION_MODE_INIT = 0;
+      @verbatim (language="comment", text=
+        "GNSS and sensor data are" "\n"        "used for navigation solution computation")
+      const uint8 FUSION_MODE_FUSION = 1;
+      @verbatim (language="comment", text=
+        "sensor fusion is temporarily disabled" "\n"        "due to e.g. invalid sensor data or detected" "\n"        "ferry")
+      const uint8 FUSION_MODE_SUSPENDED = 2;
+      @verbatim (language="comment", text=
+        "sensor fusion is permanently disabled" "\n"        "until receiver reset due e.g. to sensor" "\n"        "error")
+      const uint8 FUSION_MODE_DISABLED = 3;
+    };
+    @verbatim (language="comment", text=
+      "ESF-STATUS (0x10 0x10)" "\n"
+      "External Sensor Fusion (ESF) status information" "\n"
+      "" "\n"
+      "Supported on UDR/ADR products")
+    struct EsfSTATUS {
+      @verbatim (language="comment", text=
+        "GPS time of week of the navigation epoch")
+      @unit (value="ms")
+      uint32 i_tow;
+
+      @verbatim (language="comment", text=
+        "Message version (2 for this version)")
+      uint8 version;
+
+      @verbatim (language="comment", text=
+        "Reserved")
+      uint8__7 reserved1;
+
+      @verbatim (language="comment", text=
+        "Fusion mode:")
+      uint8 fusion_mode;
+
+      @verbatim (language="comment", text=
+        "Reserved")
+      uint8__2 reserved2;
+
+      @verbatim (language="comment", text=
+        "Number of sensors")
+      uint8 num_sens;
+
+      @verbatim (language="comment", text=
+        "Start of repeated block (numSens times)")
+      sequence<ublox_msgs::msg::EsfSTATUSSens> sens;
+    };
+  };
+};

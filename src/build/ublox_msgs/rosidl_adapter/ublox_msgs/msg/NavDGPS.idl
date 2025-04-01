@@ -1,0 +1,56 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/NavDGPS.msg
+// generated code does not contain a copyright notice
+
+#include "ublox_msgs/msg/NavDGPSSV.idl"
+
+module ublox_msgs {
+  module msg {
+    module NavDGPS_Constants {
+      const uint8 CLASS_ID = 1;
+      const uint8 MESSAGE_ID = 49;
+      const uint8 DGPS_CORRECTION_NONE = 0;
+      const uint8 DGPS_CORRECTION_PR_PRR = 1;
+    };
+    @verbatim (language="comment", text=
+      "NAV-DGPS (0x01 0x31)" "\n"
+      "DGPS Data Used for NAV" "\n"
+      "" "\n"
+      "This message outputs the Correction data as it has been applied to the current" "\n"
+      "NAV Solution. See also the notes on the RTCM protocol.")
+    struct NavDGPS {
+      @verbatim (language="comment", text=
+        "GPS Millisecond time of week")
+      @unit (value="ms")
+      uint32 i_tow;
+
+      @verbatim (language="comment", text=
+        "Age of newest correction data")
+      @unit (value="ms")
+      int32 age;
+
+      @verbatim (language="comment", text=
+        "DGPS Base Station ID")
+      int16 base_id;
+
+      @verbatim (language="comment", text=
+        "DGPS Base Station Health Status")
+      int16 base_health;
+
+      @verbatim (language="comment", text=
+        "Number of channels for which correction data is" "\n"
+        "following")
+      int8 num_ch;
+
+      @verbatim (language="comment", text=
+        "DGPS Correction Type Status")
+      uint8 status;
+
+      @verbatim (language="comment", text=
+        "Reserved")
+      uint16 reserved1;
+
+      sequence<ublox_msgs::msg::NavDGPSSV> sv;
+    };
+  };
+};

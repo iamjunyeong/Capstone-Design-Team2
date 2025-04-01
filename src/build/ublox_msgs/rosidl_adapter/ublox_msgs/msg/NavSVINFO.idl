@@ -1,0 +1,52 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/NavSVINFO.msg
+// generated code does not contain a copyright notice
+
+#include "ublox_msgs/msg/NavSVINFOSV.idl"
+
+module ublox_msgs {
+  module msg {
+    module NavSVINFO_Constants {
+      const uint8 CLASS_ID = 1;
+      const uint8 MESSAGE_ID = 48;
+      @verbatim (language="comment", text=
+        "Chip Hardware generation flags" "\n"        "Antaris, Antaris 4")
+      const uint8 CHIPGEN_ANTARIS = 0;
+      @verbatim (language="comment", text=
+        "u-blox 5")
+      const uint8 CHIPGEN_UBLOX5 = 1;
+      @verbatim (language="comment", text=
+        "u-blox 6")
+      const uint8 CHIPGEN_UBLOX6 = 2;
+      @verbatim (language="comment", text=
+        "u-blox 7")
+      const uint8 CHIPGEN_UBLOX7 = 3;
+      @verbatim (language="comment", text=
+        "u-blox 8 / u-blox M8")
+      const uint8 CHIPGEN_UBLOX8 = 4;
+    };
+    @verbatim (language="comment", text=
+      "NAV-SVINFO (0x01 0x30)" "\n"
+      "Space Vehicle Information")
+    struct NavSVINFO {
+      @verbatim (language="comment", text=
+        "GPS Millisecond time of week")
+      @unit (value="ms")
+      uint32 i_tow;
+
+      @verbatim (language="comment", text=
+        "Number of channels")
+      uint8 num_ch;
+
+      @verbatim (language="comment", text=
+        "Bitmask")
+      uint8 global_flags;
+
+      @verbatim (language="comment", text=
+        "Reserved")
+      uint16 reserved2;
+
+      sequence<ublox_msgs::msg::NavSVINFOSV> sv;
+    };
+  };
+};

@@ -1,0 +1,52 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/CfgANT.msg
+// generated code does not contain a copyright notice
+
+
+module ublox_msgs {
+  module msg {
+    module CfgANT_Constants {
+      const uint8 CLASS_ID = 6;
+      const uint8 MESSAGE_ID = 19;
+      @verbatim (language="comment", text=
+        "Enable Antenna Supply Voltage Control Signal")
+      const uint16 FLAGS_SVCS = 1;
+      @verbatim (language="comment", text=
+        "Enable Short Circuit Detection")
+      const uint16 FLAGS_SCD = 2;
+      @verbatim (language="comment", text=
+        "Enable Open Circuit Detection")
+      const uint16 FLAGS_OCD = 4;
+      @verbatim (language="comment", text=
+        "Power Down Antenna supply if Short Circuit is" "\n"        "detected. (only in combination with Bit 1)")
+      const uint16 FLAGS_PDWN_ON_SCD = 8;
+      @verbatim (language="comment", text=
+        "Enable automatic recovery from short state")
+      const uint16 FLAGS_RECOVERY = 16;
+      @verbatim (language="comment", text=
+        "PIO-Pin used for switching antenna supply" "\n"        "(internal to TIM-LP/TIM-LF)")
+      const uint16 PIN_SWITCH_MASK = 31;
+      @verbatim (language="comment", text=
+        "PIO-Pin used for detecting a short in the" "\n"        "antenna supply")
+      const uint16 PIN_SCD_MASK = 992;
+      @verbatim (language="comment", text=
+        "PIO-Pin used for detecting open/not connected" "\n"        "antenna")
+      const uint16 PIN_OCD_MASK = 31744;
+      @verbatim (language="comment", text=
+        "if set to one, and this command is sent to the" "\n"        "receiver, the receiver will reconfigure the" "\n"        "pins as specified.")
+      const uint16 PIN_RECONFIG = 32678;
+    };
+    @verbatim (language="comment", text=
+      "CFG-ANT (0x06 0x13)" "\n"
+      "Antenna Control Settings")
+    struct CfgANT {
+      @verbatim (language="comment", text=
+        "Antenna Flag Mask")
+      uint16 flags;
+
+      @verbatim (language="comment", text=
+        "Antenna Pin Configuration")
+      uint16 pins;
+    };
+  };
+};

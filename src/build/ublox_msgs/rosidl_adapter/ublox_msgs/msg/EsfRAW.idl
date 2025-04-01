@@ -1,0 +1,33 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/EsfRAW.msg
+// generated code does not contain a copyright notice
+
+#include "ublox_msgs/msg/EsfRAWBlock.idl"
+
+module ublox_msgs {
+  module msg {
+    typedef uint8 uint8__4[4];
+    module EsfRAW_Constants {
+      const uint8 CLASS_ID = 16;
+      const uint8 MESSAGE_ID = 3;
+    };
+    @verbatim (language="comment", text=
+      "ESF-RAW (0x10 0x03)" "\n"
+      "Raw sensor measurements" "\n"
+      "" "\n"
+      "The message contains measurements from the active inertial sensors connected" "\n"
+      "to the GNSS chip. Possible data types for the data field are accelerometer," "\n"
+      "gyroscope and temperature readings as described in the ESF Measurement Data" "\n"
+      "section. Note that the rate selected in CFG-MSG is not respected. If a" "\n"
+      "positive rate is selected then all raw measurements will be output." "\n"
+      "" "\n"
+      "Supported on ADR/UDR products.")
+    struct EsfRAW {
+      @verbatim (language="comment", text=
+        "Reserved")
+      uint8__4 reserved0;
+
+      sequence<ublox_msgs::msg::EsfRAWBlock> blocks;
+    };
+  };
+};

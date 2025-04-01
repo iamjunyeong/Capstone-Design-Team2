@@ -1,0 +1,26 @@
+/usr/lib/python3/dist-packages/setuptools/dist.py:723: UserWarning: Usage of dash-separated 'script-dir' will not be supported in future versions. Please use the underscore name 'script_dir' instead
+  warnings.warn(
+running develop
+running egg_info
+creating iahrs_driver.egg-info
+writing iahrs_driver.egg-info/PKG-INFO
+writing dependency_links to iahrs_driver.egg-info/dependency_links.txt
+writing entry points to iahrs_driver.egg-info/entry_points.txt
+writing requirements to iahrs_driver.egg-info/requires.txt
+writing top-level names to iahrs_driver.egg-info/top_level.txt
+writing manifest file 'iahrs_driver.egg-info/SOURCES.txt'
+reading manifest file 'iahrs_driver.egg-info/SOURCES.txt'
+writing manifest file 'iahrs_driver.egg-info/SOURCES.txt'
+running build_ext
+Creating /home/jun/ros2_ws/src/install/iahrs_driver/lib/python3.10/site-packages/iahrs-driver.egg-link (link to .)
+Installing driver script to /home/jun/ros2_ws/src/install/iahrs_driver/lib/iahrs_driver
+
+Installed /home/jun/ros2_ws/src/build/iahrs_driver
+running symlink_data
+creating /home/jun/ros2_ws/src/install/iahrs_driver/share/ament_index
+creating /home/jun/ros2_ws/src/install/iahrs_driver/share/ament_index/resource_index
+creating /home/jun/ros2_ws/src/install/iahrs_driver/share/ament_index/resource_index/packages
+symbolically linking /home/jun/ros2_ws/src/build/iahrs_driver/resource/iahrs_driver -> /home/jun/ros2_ws/src/install/iahrs_driver/share/ament_index/resource_index/packages
+symbolically linking /home/jun/ros2_ws/src/build/iahrs_driver/package.xml -> /home/jun/ros2_ws/src/install/iahrs_driver/share/iahrs_driver
+creating /home/jun/ros2_ws/src/install/iahrs_driver/share/iahrs_driver/launch
+error: can't copy '/home/jun/ros2_ws/src/build/iahrs_driver/launch/iahrs_driver_launch.py': doesn't exist or not a regular file

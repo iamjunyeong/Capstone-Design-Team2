@@ -1,0 +1,61 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/NavDOP.msg
+// generated code does not contain a copyright notice
+
+
+module ublox_msgs {
+  module msg {
+    module NavDOP_Constants {
+      const uint8 CLASS_ID = 1;
+      const uint8 MESSAGE_ID = 4;
+    };
+    @verbatim (language="comment", text=
+      "NAV-DOP (0x01 0x04)" "\n"
+      "Dilution of precision" "\n"
+      "" "\n"
+      "- DOP values are dimensionless." "\n"
+      "- All DOP values are scaled by a factor of 100. If the unit transmits a value" "\n"
+      "  of e.g. 156, the DOP value is 1.56.")
+    struct NavDOP {
+      @verbatim (language="comment", text=
+        "GPS Millisecond Time of Week")
+      @unit (value="ms")
+      uint32 i_tow;
+
+      @verbatim (language="comment", text=
+        "Geometric DOP")
+      @unit (value="1 / 0.01")
+      uint16 g_dop;
+
+      @verbatim (language="comment", text=
+        "Position DOP")
+      @unit (value="1 / 0.01")
+      uint16 p_dop;
+
+      @verbatim (language="comment", text=
+        "Time DOP")
+      @unit (value="1 / 0.01")
+      uint16 t_dop;
+
+      @verbatim (language="comment", text=
+        "Vertical DOP")
+      @unit (value="1 / 0.01")
+      uint16 v_dop;
+
+      @verbatim (language="comment", text=
+        "Horizontal DOP")
+      @unit (value="1 / 0.01")
+      uint16 h_dop;
+
+      @verbatim (language="comment", text=
+        "Northing DOP")
+      @unit (value="1 / 0.01")
+      uint16 n_dop;
+
+      @verbatim (language="comment", text=
+        "Easting DOP")
+      @unit (value="1 / 0.01")
+      uint16 e_dop;
+    };
+  };
+};

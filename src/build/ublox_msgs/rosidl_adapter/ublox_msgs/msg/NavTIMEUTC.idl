@@ -1,0 +1,104 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/NavTIMEUTC.msg
+// generated code does not contain a copyright notice
+
+
+module ublox_msgs {
+  module msg {
+    module NavTIMEUTC_Constants {
+      const uint8 CLASS_ID = 1;
+      const uint8 MESSAGE_ID = 33;
+      @verbatim (language="comment", text=
+        "Valid Time of Week")
+      const uint8 VALID_TOW = 1;
+      @verbatim (language="comment", text=
+        "Valid Week Number")
+      const uint8 VALID_WKN = 2;
+      @verbatim (language="comment", text=
+        "Valid Leap Seconds, i.e. Leap Seconds already known")
+      const uint8 VALID_UTC = 4;
+      @verbatim (language="comment", text=
+        "UTC standard Identifier Bit mask:")
+      const uint8 VALID_UTC_STANDARD_MASK = 240;
+      @verbatim (language="comment", text=
+        "Information not available")
+      const uint8 UTC_STANDARD_NOT_AVAILABLE = 0;
+      @verbatim (language="comment", text=
+        "Communications Research Labratory")
+      const uint8 UTC_STANDARD_CRL = 16;
+      @verbatim (language="comment", text=
+        "National Institute of Standards and" "\n"        "Technology (NIST)")
+      const uint8 UTC_STANDARD_NIST = 32;
+      @verbatim (language="comment", text=
+        "U.S. Naval Observatory (USNO)")
+      const uint8 UTC_STANDARD_USNO = 48;
+      @verbatim (language="comment", text=
+        "International Bureau of Weights and" "\n"        "Measures (BIPM)")
+      const uint8 UTC_STANDARD_BIPM = 64;
+      @verbatim (language="comment", text=
+        "European Laboratory (tbd)")
+      const uint8 UTC_STANDARD_EL = 80;
+      @verbatim (language="comment", text=
+        "Former Soviet Union (SU)")
+      const uint8 UTC_STANDARD_SU = 96;
+      @verbatim (language="comment", text=
+        "National Time Service Center, China")
+      const uint8 UTC_STANDARD_NTSC = 112;
+      const uint8 UTC_STANDARD_UNKNOWN = 240;
+    };
+    @verbatim (language="comment", text=
+      "NAV-TIMEUTC (0x01 0x21)" "\n"
+      "UTC Time Solution")
+    struct NavTIMEUTC {
+      @verbatim (language="comment", text=
+        "GPS Millisecond time of week")
+      @unit (value="ms")
+      uint32 i_tow;
+
+      @verbatim (language="comment", text=
+        "Time Accuracy Estimate")
+      @unit (value="ns")
+      uint32 t_acc;
+
+      @verbatim (language="comment", text=
+        "Fraction of second, range -1e9 .. 1e9 (UTC)")
+      @unit (value="ns")
+      int32 nano;
+
+      @verbatim (language="comment", text=
+        "Year, range 1999..2099 (UTC)")
+      @unit (value="y")
+      uint16 year;
+
+      @verbatim (language="comment", text=
+        "Month, range 1..12 (UTC)")
+      @unit (value="month")
+      uint8 month;
+
+      @verbatim (language="comment", text=
+        "Day of Month, range 1..31 (UTC)")
+      @unit (value="d")
+      uint8 day;
+
+      @verbatim (language="comment", text=
+        "Hour of Day, range 0..23 (UTC)")
+      @unit (value="h")
+      uint8 hour;
+
+      @verbatim (language="comment", text=
+        "Minute of Hour, range 0..59 (UTC)")
+      @unit (value="min")
+      uint8 min;
+
+      @verbatim (language="comment", text=
+        "Seconds of Minute, range 0..60 (UTC) (60 for" "\n"
+        "leap second)")
+      @unit (value="s")
+      uint8 sec;
+
+      @verbatim (language="comment", text=
+        "Validity Flags")
+      uint8 valid;
+    };
+  };
+};

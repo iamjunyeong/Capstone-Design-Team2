@@ -1,0 +1,69 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/CfgUSB.msg
+// generated code does not contain a copyright notice
+
+
+module ublox_msgs {
+  module msg {
+    typedef uint8 uint8__2[2];
+    typedef int8 int8__32[32];
+    module CfgUSB_Constants {
+      const uint8 CLASS_ID = 6;
+      const uint8 MESSAGE_ID = 27;
+      @verbatim (language="comment", text=
+        "force re-enumeration")
+      const uint16 FLAGS_RE_ENUM = 0;
+      @verbatim (language="comment", text=
+        "self-powered (1), bus-powered (0)")
+      const uint16 FLAGS_POWER_MODE = 2;
+    };
+    @verbatim (language="comment", text=
+      "UBX-CFG-USB (0x06 0x1B)" "\n"
+      "USB Configuration")
+    struct CfgUSB {
+      @verbatim (language="comment", text=
+        "Only set to registered Vendor IDs." "\n"
+        "Changing this field requires special Host drivers.")
+      uint16 vendor_id;
+
+      @verbatim (language="comment", text=
+        "Product ID. Changing this field requires special" "\n"
+        "Host drivers.")
+      uint16 product_id;
+
+      @verbatim (language="comment", text=
+        "Reserved")
+      uint8__2 reserved1;
+
+      @verbatim (language="comment", text=
+        "Reserved")
+      uint8__2 reserved2;
+
+      @verbatim (language="comment", text=
+        "Power consumed by the device")
+      @unit (value="mA")
+      uint16 power_consumption;
+
+      @verbatim (language="comment", text=
+        "various configuration flags (see graphic below)")
+      uint16 flags;
+
+      @verbatim (language="comment", text=
+        "String containing the vendor name." "\n"
+        "32 ASCII bytes including 0-termination.")
+      int8__32 vendor_string;
+
+      @verbatim (language="comment", text=
+        "String containing the product name." "\n"
+        "32 ASCII bytes including 0-termination.")
+      int8__32 product_string;
+
+      @verbatim (language="comment", text=
+        "String containing the serial number." "\n"
+        "32 ASCII bytes including 0-termination." "\n"
+        "Changing the String fields requires special Host" "\n"
+        "drivers.")
+      int8__32 serial_number;
+    };
+  };
+};

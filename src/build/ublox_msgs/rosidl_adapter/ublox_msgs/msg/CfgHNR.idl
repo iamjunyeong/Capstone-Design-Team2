@@ -1,0 +1,37 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/CfgHNR.msg
+// generated code does not contain a copyright notice
+
+
+module ublox_msgs {
+  module msg {
+    typedef uint8 uint8__3[3];
+    module CfgHNR_Constants {
+      const uint8 CLASS_ID = 6;
+      const uint8 MESSAGE_ID = 92;
+    };
+    @verbatim (language="comment", text=
+      "CFG-HNR (0x06 0x5C)" "\n"
+      "High Navigation Rate Settings" "\n"
+      "" "\n"
+      "The u-blox receivers support high rates of navigation update up to 30 Hz." "\n"
+      "The navigation solution output (NAV-HNR) will not be aligned to the top of a" "\n"
+      "second." "\n"
+      "The update rate has a direct influence on the power consumption. The more" "\n"
+      "fixes that are required, the more CPU power and communication resources are" "\n"
+      "required." "\n"
+      "For most applications a 1 Hz update rate would be sufficient." "\n"
+      "" "\n"
+      "(only with ADR or UDR products)")
+    struct CfgHNR {
+      @verbatim (language="comment", text=
+        "Rate of navigation solution output")
+      @unit (value="Hz")
+      uint8 high_nav_rate;
+
+      @verbatim (language="comment", text=
+        "Reserved")
+      uint8__3 reserved0;
+    };
+  };
+};

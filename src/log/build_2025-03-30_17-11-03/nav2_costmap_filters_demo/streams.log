@@ -1,0 +1,48 @@
+[0.389s] Invoking command in '/home/jun/ros2_ws/src/build/nav2_costmap_filters_demo': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/jun/lane_tracking_ws/install/lane_tracking:/home/jun/nav2_ws/install/nav2_simple_commander:/opt/ros/humble /usr/bin/cmake /home/jun/ros2_ws/src/navigation2_tutorials/nav2_costmap_filters_demo -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/jun/ros2_ws/src/install/nav2_costmap_filters_demo
+[0.623s] -- The C compiler identification is GNU 11.4.0
+[0.623s] -- The CXX compiler identification is GNU 11.4.0
+[0.623s] -- Detecting C compiler ABI info
+[0.623s] -- Detecting C compiler ABI info - done
+[0.623s] -- Check for working C compiler: /usr/bin/cc - skipped
+[0.623s] -- Detecting C compile features
+[0.623s] -- Detecting C compile features - done
+[0.623s] -- Detecting CXX compiler ABI info
+[0.667s] -- Detecting CXX compiler ABI info - done
+[0.673s] -- Check for working CXX compiler: /usr/bin/c++ - skipped
+[0.674s] -- Detecting CXX compile features
+[0.674s] -- Detecting CXX compile features - done
+[0.679s] -- Found ament_cmake: 1.3.11 (/opt/ros/humble/share/ament_cmake/cmake)
+[0.814s] -- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter 
+[0.875s] -- Override CMake install command with custom implementation using symlinks instead of copying resources
+[1.047s] -- Configuring done
+[1.050s] -- Generating done
+[1.055s] -- Build files have been written to: /home/jun/ros2_ws/src/build/nav2_costmap_filters_demo
+[1.056s] Invoked command in '/home/jun/ros2_ws/src/build/nav2_costmap_filters_demo' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/jun/lane_tracking_ws/install/lane_tracking:/home/jun/nav2_ws/install/nav2_simple_commander:/opt/ros/humble /usr/bin/cmake /home/jun/ros2_ws/src/navigation2_tutorials/nav2_costmap_filters_demo -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/jun/ros2_ws/src/install/nav2_costmap_filters_demo
+[1.057s] Invoking command in '/home/jun/ros2_ws/src/build/nav2_costmap_filters_demo': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/jun/lane_tracking_ws/install/lane_tracking:/home/jun/nav2_ws/install/nav2_simple_commander:/opt/ros/humble /usr/bin/cmake --build /home/jun/ros2_ws/src/build/nav2_costmap_filters_demo -- -j16 -l16
+[1.121s] Invoked command in '/home/jun/ros2_ws/src/build/nav2_costmap_filters_demo' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/jun/lane_tracking_ws/install/lane_tracking:/home/jun/nav2_ws/install/nav2_simple_commander:/opt/ros/humble /usr/bin/cmake --build /home/jun/ros2_ws/src/build/nav2_costmap_filters_demo -- -j16 -l16
+[1.124s] Invoking command in '/home/jun/ros2_ws/src/build/nav2_costmap_filters_demo': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/jun/lane_tracking_ws/install/lane_tracking:/home/jun/nav2_ws/install/nav2_simple_commander:/opt/ros/humble /usr/bin/cmake --install /home/jun/ros2_ws/src/build/nav2_costmap_filters_demo
+[1.133s] -- Install configuration: ""
+[1.133s] -- Execute custom install script
+[1.134s] -- Symlinking: /home/jun/ros2_ws/src/install/nav2_costmap_filters_demo/share/nav2_costmap_filters_demo/launch/costmap_filter_info.launch.py
+[1.146s] -- Symlinking: /home/jun/ros2_ws/src/install/nav2_costmap_filters_demo/share/nav2_costmap_filters_demo/maps/keepout_mask.pgm
+[1.158s] -- Symlinking: /home/jun/ros2_ws/src/install/nav2_costmap_filters_demo/share/nav2_costmap_filters_demo/maps/keepout_mask.yaml
+[1.169s] -- Symlinking: /home/jun/ros2_ws/src/install/nav2_costmap_filters_demo/share/nav2_costmap_filters_demo/maps/speed_mask.pgm
+[1.182s] -- Symlinking: /home/jun/ros2_ws/src/install/nav2_costmap_filters_demo/share/nav2_costmap_filters_demo/maps/speed_mask.yaml
+[1.194s] -- Symlinking: /home/jun/ros2_ws/src/install/nav2_costmap_filters_demo/share/nav2_costmap_filters_demo/params/keepout_params.yaml
+[1.210s] -- Symlinking: /home/jun/ros2_ws/src/install/nav2_costmap_filters_demo/share/nav2_costmap_filters_demo/params/speed_params.yaml
+[1.222s] -- Symlinking: /home/jun/ros2_ws/src/install/nav2_costmap_filters_demo/share/ament_index/resource_index/package_run_dependencies/nav2_costmap_filters_demo
+[1.235s] -- Symlinking: /home/jun/ros2_ws/src/install/nav2_costmap_filters_demo/share/ament_index/resource_index/parent_prefix_path/nav2_costmap_filters_demo
+[1.249s] -- Symlinking: /home/jun/ros2_ws/src/install/nav2_costmap_filters_demo/share/nav2_costmap_filters_demo/environment/ament_prefix_path.sh
+[1.263s] -- Symlinking: /home/jun/ros2_ws/src/install/nav2_costmap_filters_demo/share/nav2_costmap_filters_demo/environment/ament_prefix_path.dsv
+[1.277s] -- Symlinking: /home/jun/ros2_ws/src/install/nav2_costmap_filters_demo/share/nav2_costmap_filters_demo/environment/path.sh
+[1.290s] -- Symlinking: /home/jun/ros2_ws/src/install/nav2_costmap_filters_demo/share/nav2_costmap_filters_demo/environment/path.dsv
+[1.305s] -- Symlinking: /home/jun/ros2_ws/src/install/nav2_costmap_filters_demo/share/nav2_costmap_filters_demo/local_setup.bash
+[1.318s] -- Symlinking: /home/jun/ros2_ws/src/install/nav2_costmap_filters_demo/share/nav2_costmap_filters_demo/local_setup.sh
+[1.331s] -- Symlinking: /home/jun/ros2_ws/src/install/nav2_costmap_filters_demo/share/nav2_costmap_filters_demo/local_setup.zsh
+[1.346s] -- Symlinking: /home/jun/ros2_ws/src/install/nav2_costmap_filters_demo/share/nav2_costmap_filters_demo/local_setup.dsv
+[1.359s] -- Symlinking: /home/jun/ros2_ws/src/install/nav2_costmap_filters_demo/share/nav2_costmap_filters_demo/package.dsv
+[1.373s] -- Symlinking: /home/jun/ros2_ws/src/install/nav2_costmap_filters_demo/share/ament_index/resource_index/packages/nav2_costmap_filters_demo
+[1.390s] -- Symlinking: /home/jun/ros2_ws/src/install/nav2_costmap_filters_demo/share/nav2_costmap_filters_demo/cmake/nav2_costmap_filters_demoConfig.cmake
+[1.417s] -- Symlinking: /home/jun/ros2_ws/src/install/nav2_costmap_filters_demo/share/nav2_costmap_filters_demo/cmake/nav2_costmap_filters_demoConfig-version.cmake
+[1.441s] -- Symlinking: /home/jun/ros2_ws/src/install/nav2_costmap_filters_demo/share/nav2_costmap_filters_demo/package.xml
+[1.466s] Invoked command in '/home/jun/ros2_ws/src/build/nav2_costmap_filters_demo' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/jun/lane_tracking_ws/install/lane_tracking:/home/jun/nav2_ws/install/nav2_simple_commander:/opt/ros/humble /usr/bin/cmake --install /home/jun/ros2_ws/src/build/nav2_costmap_filters_demo

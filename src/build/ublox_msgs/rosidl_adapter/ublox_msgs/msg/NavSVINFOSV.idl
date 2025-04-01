@@ -1,0 +1,98 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/NavSVINFOSV.msg
+// generated code does not contain a copyright notice
+
+
+module ublox_msgs {
+  module msg {
+    module NavSVINFOSV_Constants {
+      @verbatim (language="comment", text=
+        "SV is used for navigation")
+      const uint8 FLAGS_SV_USED = 1;
+      @verbatim (language="comment", text=
+        "Differential correction data" "\n"        "is available for this SV")
+      const uint8 FLAGS_DIFF_CORR = 2;
+      @verbatim (language="comment", text=
+        "Orbit information is available for" "\n"        "this SV (Ephemeris or Almanach)")
+      const uint8 FLAGS_ORBIT_AVAIL = 4;
+      @verbatim (language="comment", text=
+        "Orbit information is Ephemeris")
+      const uint8 FLAGS_ORBIT_EPH = 8;
+      @verbatim (language="comment", text=
+        "SV is unhealthy / shall not be" "\n"        "used")
+      const uint8 FLAGS_UNHEALTHY = 16;
+      @verbatim (language="comment", text=
+        "Orbit information is Almanac Plus")
+      const uint8 FLAGS_ORBIT_ALM = 32;
+      @verbatim (language="comment", text=
+        "Orbit information is AssistNow" "\n"        "Autonomous")
+      const uint8 FLAGS_ORBIT_AOP = 64;
+      @verbatim (language="comment", text=
+        "Carrier smoothed pseudorange used")
+      const uint8 FLAGS_SMOOTHED = 128;
+      @verbatim (language="comment", text=
+        "qualityInd: Signal Quality indicator (range 0..7). The following list shows" "\n"        "the meaning of the different QI values:" "\n"        "Note: Since IMES signals are not time synchronized, a channel tracking an IMES" "\n"        "signal can never reach a quality indicator value of higher than 3." "\n"        "This channel is idle")
+      const uint8 QUALITY_IDLE = 0;
+      @verbatim (language="comment", text=
+        "Channel is searching")
+      const uint8 QUALITY_SEARCHING = 1;
+      @verbatim (language="comment", text=
+        "Signal acquired")
+      const uint8 QUALITY_ACQUIRED = 2;
+      @verbatim (language="comment", text=
+        "Signal detected but unusable")
+      const uint8 QUALITY_DETECTED = 3;
+      @verbatim (language="comment", text=
+        "Code Lock on Signal")
+      const uint8 QUALITY_CODE_LOCK = 4;
+      @verbatim (language="comment", text=
+        "Code and Carrier locked" "\n"        "and time synchronized")
+      const uint8 QUALITY_CODE_AND_CARRIER_LOCKED1 = 5;
+      @verbatim (language="comment", text=
+        "Code and Carrier locked" "\n"        "and time synchronized")
+      const uint8 QUALITY_CODE_AND_CARRIER_LOCKED2 = 6;
+      @verbatim (language="comment", text=
+        "Code and Carrier locked" "\n"        "and time synchronized")
+      const uint8 QUALITY_CODE_AND_CARRIER_LOCKED3 = 7;
+    };
+    @verbatim (language="comment", text=
+      "see message NavSVINFO")
+    struct NavSVINFOSV {
+      @verbatim (language="comment", text=
+        "Channel number, 255 for SVs not assigned to a channel")
+      uint8 chn;
+
+      @verbatim (language="comment", text=
+        "Satellite ID")
+      uint8 svid;
+
+      @verbatim (language="comment", text=
+        "Bitmask")
+      uint8 flags;
+
+      @verbatim (language="comment", text=
+        "Bitfield")
+      uint8 quality;
+
+      @verbatim (language="comment", text=
+        "Carrier to Noise Ratio (Signal Strength)")
+      @unit (value="dBHz")
+      uint8 cno;
+
+      @verbatim (language="comment", text=
+        "Elevation in integer degrees")
+      @unit (value="deg")
+      int8 elev;
+
+      @verbatim (language="comment", text=
+        "Azimuth in integer degrees")
+      @unit (value="deg")
+      int16 azim;
+
+      @verbatim (language="comment", text=
+        "Pseudo range residual in centimetres")
+      @unit (value="cm")
+      int32 pr_res;
+    };
+  };
+};

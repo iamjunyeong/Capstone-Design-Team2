@@ -1,0 +1,2 @@
+source;share/ublox_serialization/environment/ament_prefix_path.sh
+source;share/ublox_serialization/environment/path.sh

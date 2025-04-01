@@ -1,0 +1,62 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/RxmSFRBX.msg
+// generated code does not contain a copyright notice
+
+
+module ublox_msgs {
+  module msg {
+    module RxmSFRBX_Constants {
+      const uint8 CLASS_ID = 2;
+      const uint8 MESSAGE_ID = 19;
+    };
+    @verbatim (language="comment", text=
+      "RXM-SFRB (0x02 0x13)" "\n"
+      "Subframe Buffer" "\n"
+      "" "\n"
+      "This message reports a complete subframe of broadcast navigation data decoded" "\n"
+      "from a single signal. The number of data words reported in each message" "\n"
+      "depends on the nature of the signal. See the section on Broadcast Navigation" "\n"
+      "Data for further details.")
+    struct RxmSFRBX {
+      @verbatim (language="comment", text=
+        "GNSS identifier (see Cfg GNSS for constants)")
+      uint8 gnss_id;
+
+      @verbatim (language="comment", text=
+        "Satellite identifier within corresponding GNSS system")
+      uint8 sv_id;
+
+      @verbatim (language="comment", text=
+        "Reserved")
+      uint8 reserved0;
+
+      @verbatim (language="comment", text=
+        "Only used for GLONASS: This is the frequency" "\n"
+        "slot + 7 (range from 0 to 13)")
+      uint8 freq_id;
+
+      @verbatim (language="comment", text=
+        "The number of data words contained in this message (up" "\n"
+        "to 10, for currently supported signals)")
+      uint8 num_words;
+
+      @verbatim (language="comment", text=
+        "The tracking channel number the message was received" "\n"
+        "on")
+      uint8 chn;
+
+      @verbatim (language="comment", text=
+        "Message version, (0x02 for this version)")
+      uint8 version;
+
+      @verbatim (language="comment", text=
+        "Reserved")
+      uint8 reserved1;
+
+      @verbatim (language="comment", text=
+        "Start of repeated block (numWords times)" "\n"
+        "The data words")
+      sequence<uint32> dwrd;
+    };
+  };
+};

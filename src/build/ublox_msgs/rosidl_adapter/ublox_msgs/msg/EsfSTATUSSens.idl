@@ -1,0 +1,29 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/EsfSTATUSSens.msg
+// generated code does not contain a copyright notice
+
+
+module ublox_msgs {
+  module msg {
+    @verbatim (language="comment", text=
+      "See Esf-STATUS")
+    struct EsfSTATUSSens {
+      @verbatim (language="comment", text=
+        "Sensor status, part 1 (see graphic below)")
+      uint8 sens_status1;
+
+      @verbatim (language="comment", text=
+        "Sensor status, part 2 (see graphic below)")
+      uint8 sens_status2;
+
+      @verbatim (language="comment", text=
+        "Observation frequency")
+      @unit (value="Hz")
+      uint8 freq;
+
+      @verbatim (language="comment", text=
+        "Sensor faults (see graphic below)")
+      uint8 faults;
+    };
+  };
+};

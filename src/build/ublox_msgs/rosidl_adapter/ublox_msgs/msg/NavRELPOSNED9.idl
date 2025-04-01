@@ -1,0 +1,192 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/NavRELPOSNED9.msg
+// generated code does not contain a copyright notice
+
+
+module ublox_msgs {
+  module msg {
+    typedef uint8 uint8__4[4];
+    module NavRELPOSNED9_Constants {
+      const uint8 CLASS_ID = 1;
+      const uint8 MESSAGE_ID = 60;
+      @verbatim (language="comment", text=
+        "A valid fix (i.e within DOP & accuracy" "\n"        "masks)")
+      const uint32 FLAGS_GNSS_FIX_OK = 1;
+      @verbatim (language="comment", text=
+        "Set if differential corrections were applied")
+      const uint32 FLAGS_DIFF_SOLN = 2;
+      @verbatim (language="comment", text=
+        "Set if relative position components and" "\n"        "accuracies are valid")
+      const uint32 FLAGS_REL_POS_VALID = 4;
+      @verbatim (language="comment", text=
+        "Carrier phase range solution status:")
+      const uint32 FLAGS_CARR_SOLN_MASK = 24;
+      @verbatim (language="comment", text=
+        "No carrier phase range solution")
+      const uint32 FLAGS_CARR_SOLN_NONE = 0;
+      @verbatim (language="comment", text=
+        "Float solution. No fixed integer carrier" "\n"        "phase measurements have been used to" "\n"        "calculate the solution")
+      const uint32 FLAGS_CARR_SOLN_FLOAT = 8;
+      @verbatim (language="comment", text=
+        "Fixed solution. One or more fixed" "\n"        "integer carrier phase range measurements" "\n"        "have been used to calculate the solution")
+      const uint32 FLAGS_CARR_SOLN_FIXED = 16;
+      @verbatim (language="comment", text=
+        "if the receiver is operating in moving" "\n"        "baseline mode (not supported in protocol" "\n"        "versions less than 20.3)")
+      const uint32 FLAGS_IS_MOVING = 32;
+      @verbatim (language="comment", text=
+        "Set if extrapolated reference position was" "\n"        "used to compute moving baseline solution" "\n"        "this epoch (not supported in protocol" "\n"        "versions less than 20.3)")
+      const uint32 FLAGS_REF_POS_MISS = 64;
+      @verbatim (language="comment", text=
+        "Set if extrapolated reference observations" "\n"        "were used to compute moving baseline" "\n"        "solution this epoch (not supported in" "\n"        "protocol versions less than 20.3)")
+      const uint32 FLAGS_REF_OBS_MISS = 128;
+      @verbatim (language="comment", text=
+        "Set if extrapolated reference observations" "\n"        "were used to compute moving baseline" "\n"        "solution this epoch (not supported in" "\n"        "protocol versions less than 20.3)")
+      const uint32 FLAGS_REL_POS_HEAD_VALID = 256;
+      @verbatim (language="comment", text=
+        "Set if extrapolated reference observations" "\n"        "were used to compute moving baseline" "\n"        "solution this epoch (not supported in" "\n"        "protocol versions less than 20.3)")
+      const uint32 FLAGS_REL_POS_NORM = 512;
+    };
+    @verbatim (language="comment", text=
+      "NAV-RELPOSNED (0x01 0x3C)" "\n"
+      "Relative Positioning Information in NED frame" "\n"
+      "" "\n"
+      "The NED frame is defined as the local topological system at the reference" "\n"
+      "station. The relative position vector components in this message, along with" "\n"
+      "their associated accuracies, are given in that local topological system" "\n"
+      "This message contains the relative position vector from the Reference Station" "\n"
+      "to the Rover, including accuracy figures, in the local topological system" "\n"
+      "defined at the reference station" "\n"
+      "" "\n"
+      "Supported on:" "\n"
+      " - u-blox 9 from protocol version 27.11 (only with High Precision GNSS products)")
+    struct NavRELPOSNED9 {
+      @verbatim (language="comment", text=
+        "Message version (0x00 for this version)")
+      uint8 version;
+
+      @verbatim (language="comment", text=
+        "Reserved")
+      uint8 reserved1;
+
+      @verbatim (language="comment", text=
+        "Reference Station ID. Must be in the range" "\n"
+        "0..4095")
+      uint16 ref_station_id;
+
+      @verbatim (language="comment", text=
+        "GPS time of week of the navigation epoch" "\n"
+        "[ms]")
+      @unit (value="ms")
+      uint32 i_tow;
+
+      @verbatim (language="comment", text=
+        "North component of relative position vector" "\n"
+        "[cm]")
+      @unit (value="cm")
+      int32 rel_pos_n;
+
+      @verbatim (language="comment", text=
+        "East component of relative position vector" "\n"
+        "[cm]")
+      @unit (value="cm")
+      int32 rel_pos_e;
+
+      @verbatim (language="comment", text=
+        "Down component of relative position vector" "\n"
+        "[cm]")
+      @unit (value="cm")
+      int32 rel_pos_d;
+
+      @verbatim (language="comment", text=
+        "Length of the relative position vector" "\n"
+        "[cm]")
+      @unit (value="cm")
+      int32 rel_pos_length;
+
+      @verbatim (language="comment", text=
+        "Heading of the relative position vector" "\n"
+        "[1e-5 deg]")
+      @unit (value="1e-5 deg")
+      int32 rel_pos_heading;
+
+      @verbatim (language="comment", text=
+        "Reserved")
+      uint8__4 reserved2;
+
+      @verbatim (language="comment", text=
+        "High-precision North component of relative" "\n"
+        "position vector." "\n"
+        "Must be in the range -99 to +99." "\n"
+        "The full North component of the relative" "\n"
+        "position vector, in units of cm, is given by" "\n"
+        "relPosN + (relPosHPN * 1e-2)")
+      @unit (value="0.1 mm")
+      int8 rel_pos_hpn;
+
+      @verbatim (language="comment", text=
+        "High-precision East component of relative" "\n"
+        "position vector." "\n"
+        "Must be in the range -99 to +99." "\n"
+        "The full East component of the relative" "\n"
+        "position vector, in units of cm, is given by" "\n"
+        "relPosE + (relPosHPE * 1e-2)")
+      @unit (value="0.1 mm")
+      int8 rel_pos_hpe;
+
+      @verbatim (language="comment", text=
+        "High-precision Down component of relative" "\n"
+        "position vector." "\n"
+        "Must be in the range -99 to +99." "\n"
+        "The full Down component of the relative" "\n"
+        "position vector, in units of cm, is given by" "\n"
+        "relPosD + (relPosHPD * 1e-2)")
+      @unit (value="0.1 mm")
+      int8 rel_pos_hpd;
+
+      @verbatim (language="comment", text=
+        "High-precision component of the length of" "\n"
+        "the relative position vector." "\n"
+        "Must be in the range -99 to +99." "\n"
+        "The full length of the relative position" "\n"
+        "vector, in units of cm, is given by" "\n"
+        "relPosLength + (relPosHPLength * 1e-2)")
+      int8 rel_pos_hp_length;
+
+      @verbatim (language="comment", text=
+        "Accuracy of relative position North" "\n"
+        "component")
+      @unit (value="0.1 mm")
+      uint32 acc_n;
+
+      @verbatim (language="comment", text=
+        "Accuracy of relative position East component" "\n"
+        "[0.1 mm]")
+      @unit (value="0.1 mm")
+      uint32 acc_e;
+
+      @verbatim (language="comment", text=
+        "Accuracy of relative position Down component" "\n"
+        "[0.1 mm]")
+      @unit (value="0.1 mm")
+      uint32 acc_d;
+
+      @verbatim (language="comment", text=
+        "Accuracy of length of the relative position" "\n"
+        "vector")
+      @unit (value="0.1 mm")
+      uint32 acc_length;
+
+      @verbatim (language="comment", text=
+        "Accuracy of heading of the relative position" "\n"
+        "vector")
+      @unit (value="1e-5 deg")
+      uint32 acc_heading;
+
+      @verbatim (language="comment", text=
+        "Reserved")
+      uint8__4 reserved3;
+
+      uint32 flags;
+    };
+  };
+};

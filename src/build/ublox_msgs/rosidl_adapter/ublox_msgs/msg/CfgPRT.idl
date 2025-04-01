@@ -1,0 +1,167 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/CfgPRT.msg
+// generated code does not contain a copyright notice
+
+
+module ublox_msgs {
+  module msg {
+    module CfgPRT_Constants {
+      const uint8 CLASS_ID = 6;
+      const uint8 MESSAGE_ID = 0;
+      const uint8 PORT_ID_DDC = 0;
+      const uint8 PORT_ID_UART1 = 1;
+      const uint8 PORT_ID_UART2 = 2;
+      const uint8 PORT_ID_USB = 3;
+      const uint8 PORT_ID_SPI = 4;
+      @verbatim (language="comment", text=
+        "Enable TX ready feature for this" "\n"        "port")
+      const uint16 TX_READY_EN = 1;
+      @verbatim (language="comment", text=
+        "Polarity High-active")
+      const uint16 TX_READY_POLARITY_HIGH_ACTIVE = 0;
+      @verbatim (language="comment", text=
+        "Polarity Low-active")
+      const uint16 TX_READY_POLARITY_LOW_ACTIVE = 2;
+      @verbatim (language="comment", text=
+        "PIO to be used (must not be in use" "\n"        "already by another function)")
+      const uint16 TX_READY_PIN_SHIFT = 2;
+      const uint16 TX_READY_PIN_MASK = 124;
+      @verbatim (language="comment", text=
+        "Threshold")
+      const uint16 TX_READY_THRES_SHIFT = 7;
+      @verbatim (language="comment", text=
+        "The given threshold is multiplied by" "\n"        "8 bytes." "\n"        "The TX ready PIN goes active" "\n"        "after >= thres*8 bytes are pending" "\n"        "for the port and going inactive" "\n"        "after the last pending bytes have" "\n"        "been written to hardware (0-4 bytes" "\n"        "before end of stream).")
+      const uint16 TX_READY_THRES_MASK = 65408;
+      @verbatim (language="comment", text=
+        "DDC Mode Constants")
+      const uint32 MODE_DDC_SLAVE_ADDR_SHIFT = 1;
+      @verbatim (language="comment", text=
+        "Slave address" "\n"        "Range: 0x07 < slaveAddr < 0x78.")
+      const uint32 MODE_DDC_SLAVE_ADDR_MASK = 254;
+      @verbatim (language="comment", text=
+        "UART Mode Constants" "\n"        "Default 1 for compatibility with A4")
+      const uint32 MODE_RESERVED1 = 16;
+      @verbatim (language="comment", text=
+        "Character Length")
+      const uint32 MODE_CHAR_LEN_MASK = 192;
+      @verbatim (language="comment", text=
+        "5bit (not supported)")
+      const uint32 MODE_CHAR_LEN_5BIT = 0;
+      @verbatim (language="comment", text=
+        "6bit (not supported)")
+      const uint32 MODE_CHAR_LEN_6BIT = 64;
+      @verbatim (language="comment", text=
+        "7bit (supported only with parity)")
+      const uint32 MODE_CHAR_LEN_7BIT = 128;
+      @verbatim (language="comment", text=
+        "8bit")
+      const uint32 MODE_CHAR_LEN_8BIT = 192;
+      const uint32 MODE_PARITY_MASK = 3584;
+      @verbatim (language="comment", text=
+        "Even Parity")
+      const uint32 MODE_PARITY_EVEN = 0;
+      @verbatim (language="comment", text=
+        "Odd Parity")
+      const uint32 MODE_PARITY_ODD = 512;
+      @verbatim (language="comment", text=
+        "No Parity (even/odd ignored)")
+      const uint32 MODE_PARITY_NO = 2048;
+      @verbatim (language="comment", text=
+        "Number of Stop Bits")
+      const uint32 MODE_STOP_BITS_MASK = 12288;
+      @verbatim (language="comment", text=
+        "1 Stop Bit")
+      const uint32 MODE_STOP_BITS_1 = 0;
+      @verbatim (language="comment", text=
+        "1.5 Stop Bit")
+      const uint32 MODE_STOP_BITS_15 = 4096;
+      @verbatim (language="comment", text=
+        "2 Stop Bit")
+      const uint32 MODE_STOP_BITS_2 = 8192;
+      @verbatim (language="comment", text=
+        "0.5 Stop Bit")
+      const uint32 MODE_STOP_BITS_05 = 12288;
+      @verbatim (language="comment", text=
+        "SPI Mode Constants" "\n"        "SPI Mode CPOL (0/1)")
+      const uint32 MODE_SPI_SPI_MODE_CPOL = 4;
+      @verbatim (language="comment", text=
+        "SPI Mode CPH (0/1)" "\n"        "(both CPOL/CPHA) can be = 1")
+      const uint32 MODE_SPI_SPI_MODE_CPHA = 2;
+      @verbatim (language="comment", text=
+        "(u-blox 6 only)" "\n"        "0 Flow control disabled" "\n"        "1 Flow control enabled (9-bit mode)")
+      const uint32 MODE_SPI_FLOW_CONTROL = 64;
+      const uint32 MODE_SPI_FF_COUNT_SHIFT = 8;
+      @verbatim (language="comment", text=
+        "Number of bytes containing 0xFF to" "\n"        "receive before switching off" "\n"        "reception." "\n"        "Range: 0(mechanism off)-63")
+      const uint32 MODE_SPI_FF_COUNT_MASK = 16128;
+      const uint16 PROTO_UBX = 1;
+      const uint16 PROTO_NMEA = 2;
+      @verbatim (language="comment", text=
+        "only for inProtoMask")
+      const uint16 PROTO_RTCM = 4;
+      @verbatim (language="comment", text=
+        "(not supported in protocol versions less than 20)")
+      const uint16 PROTO_RTCM3 = 32;
+      @verbatim (language="comment", text=
+        "if set, the port will timeout if" "\n"        "allocated TX memory >=4 kB and no" "\n"        "activity for 1.5s. If not set the port" "\n"        "will timoout if no activity for 1.5s" "\n"        "regardless on the amount of allocated" "\n"        "TX memory.")
+      const uint16 FLAGS_EXTENDED_TX_TIMEOUT = 2;
+    };
+    @verbatim (language="comment", text=
+      "CFG-PRT (0x06 0x00)" "\n"
+      "Port Configuration for DDC, UART, USB, SPI" "\n"
+      "" "\n"
+      "Several configurations can be concatenated to one input message. In this case" "\n"
+      "the payload length can be a multiple of the normal length (see the other" "\n"
+      "versions of CFG-PRT). Output messages from the module contain only one" "\n"
+      "configuration unit.")
+    struct CfgPRT {
+      @verbatim (language="comment", text=
+        "Port Identifier Number")
+      uint8 port_id;
+
+      @verbatim (language="comment", text=
+        "Reserved")
+      uint8 reserved0;
+
+      @verbatim (language="comment", text=
+        "TX ready PIN configuration (since Firmware 7.01)" "\n"
+        "reserved (Always set to zero) up to Firmware 7.01")
+      uint16 tx_ready;
+
+      @verbatim (language="comment", text=
+        "A bit mask describing the DDC, UART or SPI mode" "\n"
+        "Reserved for USB")
+      uint32 mode;
+
+      @verbatim (language="comment", text=
+        "UART Baudrate in bits/second" "\n"
+        "Reserved for USB, SPI, DDC" "\n"
+        "Possible values: 4800, 9600, 19200, 38400, 57600," "\n"
+        "                 115200, 230400, 460800")
+      @unit (value="bits/s")
+      uint32 baud_rate;
+
+      @verbatim (language="comment", text=
+        "A mask describing which input protocols are active." "\n"
+        "Each bit of this mask is used for a protocol." "\n"
+        "Through that, multiple protocols can be defined" "\n"
+        "on a single port.")
+      uint16 in_proto_mask;
+
+      @verbatim (language="comment", text=
+        "A mask describing which output protocols are active." "\n"
+        "Each bit of this mask is used for a protocol." "\n"
+        "Through that, multiple protocols can be defined" "\n"
+        "on a single port.")
+      uint16 out_proto_mask;
+
+      @verbatim (language="comment", text=
+        "Flags for UART & SPI, Reserved for USB")
+      uint16 flags;
+
+      @verbatim (language="comment", text=
+        "Always set to zero")
+      uint16 reserved1;
+    };
+  };
+};

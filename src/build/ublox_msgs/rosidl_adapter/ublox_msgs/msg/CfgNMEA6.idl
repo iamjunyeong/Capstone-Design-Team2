@@ -1,0 +1,75 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/CfgNMEA6.msg
+// generated code does not contain a copyright notice
+
+
+module ublox_msgs {
+  module msg {
+    module CfgNMEA6_Constants {
+      const uint8 CLASS_ID = 6;
+      const uint8 MESSAGE_ID = 23;
+      @verbatim (language="comment", text=
+        "Disable position filtering")
+      const uint8 FILTER_POS = 1;
+      @verbatim (language="comment", text=
+        "Disable masked position filtering")
+      const uint8 FILTER_MSK_POS = 2;
+      @verbatim (language="comment", text=
+        "Disable time filtering")
+      const uint8 FILTER_TIME = 4;
+      @verbatim (language="comment", text=
+        "Disable date filtering")
+      const uint8 FILTER_DATE = 8;
+      @verbatim (language="comment", text=
+        "Enable SBAS filtering")
+      const uint8 FILTER_SBAS_FILT = 16;
+      @verbatim (language="comment", text=
+        "Disable track filtering")
+      const uint8 FILTER_TRACK = 32;
+      @verbatim (language="comment", text=
+        "Version 2.3")
+      const uint8 NMEA_VERSION_2_3 = 35;
+      @verbatim (language="comment", text=
+        "Version 2.1")
+      const uint8 NMEA_VERSION_2_1 = 33;
+      @verbatim (language="comment", text=
+        "enable compatibility mode." "\n"        "This might be needed for certain applications" "\n"        "when customer's NMEA parser expects a fixed" "\n"        "number of  digits in position coordinates")
+      const uint8 FLAGS_COMPAT = 1;
+      @verbatim (language="comment", text=
+        "enable considering mode")
+      const uint8 FLAGS_CONSIDER = 2;
+    };
+    @verbatim (language="comment", text=
+      "CFG-NMEA (0x06 0x17)" "\n"
+      "NMEA protocol configuration" "\n"
+      "" "\n"
+      "Set/Get the NMEA protocol configuration. See section NMEA Protocol" "\n"
+      "Configuration for a detailed description of the configuration effects on" "\n"
+      "NMEA output" "\n"
+      "" "\n"
+      "Supported on u-blox 6 from firmware version 6.00 up to version 7.03.")
+    struct CfgNMEA6 {
+      @verbatim (language="comment", text=
+        "filter flags")
+      uint8 filter;
+
+      @verbatim (language="comment", text=
+        "NMEA version")
+      uint8 version;
+
+      @verbatim (language="comment", text=
+        "Maximum Number of SVs to report in NMEA" "\n"
+        "protocol." "\n"
+        "This does not affect the receiver's operation." "\n"
+        "It only limits the number of SVs reported in" "\n"
+        "NMEA mode (this might be needed with older" "\n"
+        "mapping applications which only support 8- or" "\n"
+        "12-channel receivers)")
+      uint8 num_sv;
+
+      @verbatim (language="comment", text=
+        "flags")
+      uint8 flags;
+    };
+  };
+};

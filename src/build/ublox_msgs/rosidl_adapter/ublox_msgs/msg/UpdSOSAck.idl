@@ -1,0 +1,62 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/UpdSOSAck.msg
+// generated code does not contain a copyright notice
+
+
+module ublox_msgs {
+  module msg {
+    typedef uint8 uint8__3[3];
+    module UpdSOSAck_Constants {
+      const uint8 CLASS_ID = 9;
+      const uint8 MESSAGE_ID = 20;
+      @verbatim (language="comment", text=
+        "Backup File Creation Acknowledge" "\n"        "The message is sent from the device as" "\n"        "confirmation of creation of a backup file" "\n"        "in flash. The host can safely shut down the" "\n"        "device after received this message.")
+      const uint8 CMD_BACKUP_CREATE_ACK = 2;
+      @verbatim (language="comment", text=
+        "System Restored from Backup" "\n"        "The message is sent from the device to" "\n"        "notify the host the BBR has been restored" "\n"        "from a backup file in flash. The host" "\n"        "should clear the backup file after" "\n"        "receiving this message. If the UBX-UPD-SOS" "\n"        "message is polled, this message will be" "\n"        "present.")
+      const uint8 CMD_SYSTEM_RESTORED = 3;
+      @verbatim (language="comment", text=
+        "Not acknowledged")
+      const uint8 BACKUP_CREATE_NACK = 0;
+      @verbatim (language="comment", text=
+        "Acknowledged")
+      const uint8 BACKUP_CREATE_ACK = 1;
+      @verbatim (language="comment", text=
+        "Unknown")
+      const uint8 SYSTEM_RESTORED_RESPONSE_UNKNOWN = 0;
+      @verbatim (language="comment", text=
+        "Failed restoring from backup" "\n"        "file")
+      const uint8 SYSTEM_RESTORED_RESPONSE_FAILED = 1;
+      @verbatim (language="comment", text=
+        "Restored from backup file")
+      const uint8 SYSTEM_RESTORED_RESPONSE_RESTORED = 2;
+      @verbatim (language="comment", text=
+        "Not restored (no backup)")
+      const uint8 SYSTEM_RESTORED_RESPONSE_NOT_RESTORED = 3;
+    };
+    @verbatim (language="comment", text=
+      "UPD-SOS (0x09 0x14)" "\n"
+      "" "\n"
+      "Backup File Creation Acknowledge / System Restored from Backup" "\n"
+      "" "\n"
+      "Firmware Supported on:" "\n"
+      "u-blox 8 / u-blox M8 from protocol version 15 up to version 23.01")
+    struct UpdSOSAck {
+      @verbatim (language="comment", text=
+        "Command")
+      uint8 cmd;
+
+      @verbatim (language="comment", text=
+        "Reserved")
+      uint8__3 reserved0;
+
+      @verbatim (language="comment", text=
+        "Response:")
+      uint8 response;
+
+      @verbatim (language="comment", text=
+        "Reserved")
+      uint8__3 reserved1;
+    };
+  };
+};

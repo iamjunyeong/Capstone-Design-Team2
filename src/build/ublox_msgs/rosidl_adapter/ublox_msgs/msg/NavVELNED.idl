@@ -1,0 +1,65 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/NavVELNED.msg
+// generated code does not contain a copyright notice
+
+
+module ublox_msgs {
+  module msg {
+    module NavVELNED_Constants {
+      const uint8 CLASS_ID = 1;
+      const uint8 MESSAGE_ID = 18;
+    };
+    @verbatim (language="comment", text=
+      "NAV-VELNED (0x01 0x12)" "\n"
+      "Velocity Solution in NED" "\n"
+      "" "\n"
+      "See important comments concerning validity of velocity given in section" "\n"
+      "Navigation Output Filters.")
+    struct NavVELNED {
+      @verbatim (language="comment", text=
+        "GPS Millisecond time of week")
+      @unit (value="ms")
+      uint32 i_tow;
+
+      @verbatim (language="comment", text=
+        "NED north velocity")
+      @unit (value="cm/s")
+      int32 vel_n;
+
+      @verbatim (language="comment", text=
+        "NED east velocity")
+      @unit (value="cm/s")
+      int32 vel_e;
+
+      @verbatim (language="comment", text=
+        "NED down velocity")
+      @unit (value="cm/s")
+      int32 vel_d;
+
+      @verbatim (language="comment", text=
+        "Speed (3-D)")
+      @unit (value="cm/s")
+      uint32 speed;
+
+      @verbatim (language="comment", text=
+        "Ground Speed (2-D)")
+      @unit (value="cm/s")
+      uint32 g_speed;
+
+      @verbatim (language="comment", text=
+        "Heading of motion 2-D")
+      @unit (value="deg / 1e-5")
+      int32 heading;
+
+      @verbatim (language="comment", text=
+        "Speed Accuracy Estimate")
+      @unit (value="cm/s")
+      uint32 s_acc;
+
+      @verbatim (language="comment", text=
+        "Course / Heading Accuracy Estimate")
+      @unit (value="deg / 1e-5")
+      uint32 c_acc;
+    };
+  };
+};

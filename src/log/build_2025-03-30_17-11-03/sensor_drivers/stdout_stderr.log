@@ -1,0 +1,20 @@
+running develop
+running egg_info
+creating sensor_drivers.egg-info
+writing sensor_drivers.egg-info/PKG-INFO
+writing dependency_links to sensor_drivers.egg-info/dependency_links.txt
+writing entry points to sensor_drivers.egg-info/entry_points.txt
+writing requirements to sensor_drivers.egg-info/requires.txt
+writing top-level names to sensor_drivers.egg-info/top_level.txt
+writing manifest file 'sensor_drivers.egg-info/SOURCES.txt'
+reading manifest file 'sensor_drivers.egg-info/SOURCES.txt'
+writing manifest file 'sensor_drivers.egg-info/SOURCES.txt'
+running build_ext
+Creating /home/jun/ros2_ws/src/install/sensor_drivers/lib/python3.10/site-packages/sensor-drivers.egg-link (link to .)
+
+Installed /home/jun/ros2_ws/src/build/sensor_drivers
+running symlink_data
+creating /home/jun/ros2_ws/src/install/sensor_drivers/share/sensor_drivers/launch
+symbolically linking /home/jun/ros2_ws/src/build/sensor_drivers/launch/imu.launch.py -> /home/jun/ros2_ws/src/install/sensor_drivers/share/sensor_drivers/launch
+symbolically linking /home/jun/ros2_ws/src/build/sensor_drivers/launch/rtk_gps.launch.py -> /home/jun/ros2_ws/src/install/sensor_drivers/share/sensor_drivers/launch
+error: can't copy '/home/jun/ros2_ws/src/build/sensor_drivers/launch/sensor_bringup.launch.pylaunch/ublox_gps_node-launch.py': doesn't exist or not a regular file

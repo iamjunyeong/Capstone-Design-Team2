@@ -1,0 +1,3 @@
+/usr/lib/python3/dist-packages/setuptools/dist.py:723: UserWarning: Usage of dash-separated 'script-dir' will not be supported in future versions. Please use the underscore name 'script_dir' instead
+  warnings.warn(
+error: can't copy '/home/jun/ros2_ws/src/build/iahrs_driver/launch/iahrs_driver_launch.py': doesn't exist or not a regular file

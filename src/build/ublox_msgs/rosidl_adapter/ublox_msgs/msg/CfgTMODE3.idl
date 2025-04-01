@@ -1,0 +1,129 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/CfgTMODE3.msg
+// generated code does not contain a copyright notice
+
+
+module ublox_msgs {
+  module msg {
+    typedef uint8 uint8__8[8];
+    module CfgTMODE3_Constants {
+      const uint8 CLASS_ID = 6;
+      const uint8 MESSAGE_ID = 113;
+      @verbatim (language="comment", text=
+        "Receiver Mode:")
+      const uint16 FLAGS_MODE_MASK = 255;
+      @verbatim (language="comment", text=
+        "Disabled")
+      const uint16 FLAGS_MODE_DISABLED = 0;
+      @verbatim (language="comment", text=
+        "Survey In")
+      const uint16 FLAGS_MODE_SURVEY_IN = 1;
+      @verbatim (language="comment", text=
+        "Fixed Mode (true ARP position required)")
+      const uint16 FLAGS_MODE_FIXED = 2;
+      @verbatim (language="comment", text=
+        "Position is given in LAT/LON/ALT" "\n"        "(default is ECEF)")
+      const uint16 FLAGS_LLA = 256;
+    };
+    @verbatim (language="comment", text=
+      "CFG-TMODE3 (0x06, 0x71)" "\n"
+      "Time Mode Settings 3" "\n"
+      "" "\n"
+      "Configures the receiver to be in Time Mode. The position referred to in this" "\n"
+      "message is that of the Antenna Reference Point (ARP). See the Time Mode" "\n"
+      "Description for details." "\n"
+      "" "\n"
+      "Supported on:" "\n"
+      " - u-blox 8 / u-blox M8 with protocol version 20 (only with High Precision" "\n"
+      "   GNSS products)")
+    struct CfgTMODE3 {
+      @verbatim (language="comment", text=
+        "Message version (0x00 for this version)")
+      uint8 version;
+
+      @verbatim (language="comment", text=
+        "Reserved")
+      uint8 reserved1;
+
+      uint16 flags;
+
+      @verbatim (language="comment", text=
+        "WGS84 ECEF X coordinate (or latitude) of" "\n"
+        "the ARP position, depending on flags above" "\n"
+        "[cm] or [deg / 1e-7]")
+      int32 ecef_x_or_lat;
+
+      @verbatim (language="comment", text=
+        "WGS84 ECEF Y coordinate (or longitude) of" "\n"
+        "the ARP position, depending on flags above" "\n"
+        "[cm] or [deg / 1e-7]")
+      int32 ecef_y_or_lon;
+
+      @verbatim (language="comment", text=
+        "WGS84 ECEF Z coordinate (or altitude) of" "\n"
+        "the ARP position, depending on flags above" "\n"
+        "[cm]")
+      @unit (value="cm")
+      int32 ecef_z_or_alt;
+
+      @verbatim (language="comment", text=
+        "High-precision WGS84 ECEF X coordinate (or" "\n"
+        "latitude) of the ARP position, depending on" "\n"
+        "flags above. Must be in the range -99..+99." "\n"
+        "The precise WGS84 ECEF X coordinate in units" "\n"
+        "of cm, or the precise WGS84 ECEF latitude in" "\n"
+        "units of 1e-7 degrees, is given by" "\n"
+        "ecefXOrLat + (ecefXOrLatHP * 1e-2)" "\n"
+        "[0.1 mm] or [deg * 1e-9]")
+      int8 ecef_x_or_lat_hp;
+
+      @verbatim (language="comment", text=
+        "High-precision WGS84 ECEF Y coordinate (or" "\n"
+        "longitude) of the ARP position, depending on" "\n"
+        "flags above. Must be in the range -99..+99." "\n"
+        "The precise WGS84 ECEF Y coordinate in units" "\n"
+        "of cm, or the precise WGS84 ECEF longitude" "\n"
+        "in units of 1e-7 degrees, is given by" "\n"
+        "ecefYOrLon + (ecefYOrLonHP * 1e-2)" "\n"
+        "[0.1 mm] or [deg * 1e-9]")
+      int8 ecef_y_or_lon_hp;
+
+      @verbatim (language="comment", text=
+        "High-precision WGS84 ECEF Z coordinate (or" "\n"
+        "altitude) of the ARP position, depending on" "\n"
+        "flags above. Must be in the range -99..+99." "\n"
+        "The precise WGS84 ECEF Z coordinate, or" "\n"
+        "altitude coordinate, in units of cm is given" "\n"
+        "by ecefZOrAlt + (ecefZOrAltHP * 1e-2)" "\n"
+        "[0.1 mm]")
+      @unit (value="0.1 mm")
+      int8 ecef_z_or_alt_hp;
+
+      @verbatim (language="comment", text=
+        "Reserved")
+      uint8 reserved2;
+
+      @verbatim (language="comment", text=
+        "Fixed position 3D accuracy" "\n"
+        "[0.1 mm]")
+      @unit (value="0.1 mm")
+      uint32 fixed_pos_acc;
+
+      @verbatim (language="comment", text=
+        "Survey-in minimum duration" "\n"
+        "[s]")
+      @unit (value="s")
+      uint32 svin_min_dur;
+
+      @verbatim (language="comment", text=
+        "Survey-in position accuracy limit" "\n"
+        "[0.1 mm]")
+      @unit (value="0.1 mm")
+      uint32 svin_acc_limit;
+
+      @verbatim (language="comment", text=
+        "Reserved")
+      uint8__8 reserved3;
+    };
+  };
+};

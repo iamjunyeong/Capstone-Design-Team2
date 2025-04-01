@@ -1,0 +1,4 @@
+source;share/iahrs_driver_interface/local_setup.bash
+source;share/iahrs_driver_interface/local_setup.dsv
+source;share/iahrs_driver_interface/local_setup.sh
+source;share/iahrs_driver_interface/local_setup.zsh

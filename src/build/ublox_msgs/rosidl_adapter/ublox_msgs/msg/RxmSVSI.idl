@@ -1,0 +1,43 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/RxmSVSI.msg
+// generated code does not contain a copyright notice
+
+#include "ublox_msgs/msg/RxmSVSISV.idl"
+
+module ublox_msgs {
+  module msg {
+    module RxmSVSI_Constants {
+      const uint8 CLASS_ID = 2;
+      const uint8 MESSAGE_ID = 32;
+    };
+    @verbatim (language="comment", text=
+      "RXM-SVSI (0x02 0x20)" "\n"
+      "SV Status Info" "\n"
+      "" "\n"
+      "Status of the receiver manager knowledge about GPS Orbit Validity" "\n"
+      "" "\n"
+      "This message has only been retained for backwards compatibility; users are" "\n"
+      "recommended to use the UBX-NAV-ORB message in preference.")
+    struct RxmSVSI {
+      @verbatim (language="comment", text=
+        "GPS time of week of the navigation epoch")
+      @unit (value="ms")
+      int32 i_tow;
+
+      @verbatim (language="comment", text=
+        "GPS week number of the navigation epoch")
+      @unit (value="weeks")
+      int16 week;
+
+      @verbatim (language="comment", text=
+        "Number of visible satellites")
+      uint8 num_vis;
+
+      @verbatim (language="comment", text=
+        "Number of per-SV data blocks following")
+      uint8 num_sv;
+
+      sequence<ublox_msgs::msg::RxmSVSISV> sv;
+    };
+  };
+};

@@ -1,0 +1,55 @@
+[0.383s] Invoking command in '/home/jun/ros2_ws/src/build/nav2_straightline_planner': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/jun/lane_tracking_ws/install/lane_tracking:/home/jun/nav2_ws/install/nav2_simple_commander:/opt/ros/humble /usr/bin/cmake /home/jun/ros2_ws/src/navigation2_tutorials/nav2_straightline_planner -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/jun/ros2_ws/src/install/nav2_straightline_planner
+[0.609s] -- The C compiler identification is GNU 11.4.0
+[0.609s] -- The CXX compiler identification is GNU 11.4.0
+[0.609s] -- Detecting C compiler ABI info
+[0.609s] -- Detecting C compiler ABI info - done
+[0.609s] -- Check for working C compiler: /usr/bin/cc - skipped
+[0.609s] -- Detecting C compile features
+[0.609s] -- Detecting C compile features - done
+[0.610s] -- Detecting CXX compiler ABI info
+[0.676s] -- Detecting CXX compiler ABI info - done
+[0.682s] -- Check for working CXX compiler: /usr/bin/c++ - skipped
+[0.682s] -- Detecting CXX compile features
+[0.683s] -- Detecting CXX compile features - done
+[0.689s] -- Found ament_cmake: 1.3.11 (/opt/ros/humble/share/ament_cmake/cmake)
+[0.829s] -- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter 
+[0.910s] -- Override CMake install command with custom implementation using symlinks instead of copying resources
+[0.997s] -- Found rclcpp: 16.0.11 (/opt/ros/humble/share/rclcpp/cmake)
+[1.085s] -- Found rosidl_generator_c: 3.1.6 (/opt/ros/humble/share/rosidl_generator_c/cmake)
+[1.098s] -- Found rosidl_adapter: 3.1.6 (/opt/ros/humble/share/rosidl_adapter/cmake)
+[1.113s] -- Found rosidl_generator_cpp: 3.1.6 (/opt/ros/humble/share/rosidl_generator_cpp/cmake)
+[1.132s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[1.161s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[1.245s] -- Found rmw_implementation_cmake: 6.1.2 (/opt/ros/humble/share/rmw_implementation_cmake/cmake)
+[1.256s] -- Found rmw_fastrtps_cpp: 6.2.7 (/opt/ros/humble/share/rmw_fastrtps_cpp/cmake)
+[1.478s] -- Found OpenSSL: /usr/lib/x86_64-linux-gnu/libcrypto.so (found version "3.0.2")  
+[1.521s] -- Found FastRTPS: /opt/ros/humble/include  
+[1.580s] -- Using RMW implementation 'rmw_fastrtps_cpp' as default
+[1.604s] -- Looking for pthread.h
+[1.701s] -- Looking for pthread.h - found
+[1.701s] -- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+[1.784s] -- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+[1.785s] -- Found Threads: TRUE  
+[1.844s] -- Found rclcpp_action: 16.0.11 (/opt/ros/humble/share/rclcpp_action/cmake)
+[1.889s] -- Found rclcpp_lifecycle: 16.0.11 (/opt/ros/humble/share/rclcpp_lifecycle/cmake)
+[1.916s] -- Found visualization_msgs: 4.2.4 (/opt/ros/humble/share/visualization_msgs/cmake)
+[1.963s] -- Found nav2_util: 1.1.17 (/home/jun/nav2_ws/install/nav2_util/share/nav2_util/cmake)
+[2.109s] -- Found eigen3_cmake_module: 0.1.1 (/opt/ros/humble/share/eigen3_cmake_module/cmake)
+[2.110s] -- Found Eigen3: TRUE (found version "3.4.0") 
+[2.110s] -- Ensuring Eigen3 include directory is part of orocos-kdl CMake target
+[2.149s] -- Found nav2_costmap_2d: 1.1.17 (/home/jun/nav2_ws/install/nav2_costmap_2d/share/nav2_costmap_2d/cmake)
+[2.248s] -- Found nav2_core: 1.1.17 (/home/jun/nav2_ws/install/nav2_core/share/nav2_core/cmake)
+[2.318s] -- Found ament_lint_auto: 0.12.11 (/opt/ros/humble/share/ament_lint_auto/cmake)
+[2.411s] -- Added test 'copyright' to check source files copyright and LICENSE
+[2.412s] -- Added test 'cppcheck' to perform static code analysis on C / C++ code
+[2.413s] -- Configured cppcheck include dirs: /home/jun/ros2_ws/src/navigation2_tutorials/nav2_straightline_planner/include
+[2.413s] -- Configured cppcheck exclude dirs and/or files: 
+[2.414s] -- Added test 'cpplint' to check C / C++ code against the Google style
+[2.414s] -- Configured cpplint exclude dirs and/or files: 
+[2.415s] -- Added test 'lint_cmake' to check CMake code style
+[2.416s] -- Added test 'uncrustify' to check C / C++ code style
+[2.416s] -- Configured uncrustify additional arguments: 
+[2.417s] -- Added test 'xmllint' to check XML markup files
+[2.421s] -- Configuring done
+[2.462s] -- Generating done
+[2.467s] -- Build files have been written to: /home/jun/ros2_ws/src/build/nav2_straightline_planner

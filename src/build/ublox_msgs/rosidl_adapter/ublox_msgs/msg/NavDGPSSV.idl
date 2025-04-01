@@ -1,0 +1,43 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/NavDGPSSV.msg
+// generated code does not contain a copyright notice
+
+
+module ublox_msgs {
+  module msg {
+    module NavDGPSSV_Constants {
+      @verbatim (language="comment", text=
+        "Bitmask for channel number, range 0..15" "\n"        "Channel numbers > 15 marked as 15")
+      const uint8 FLAGS_CHANNEL_MASK = 15;
+      @verbatim (language="comment", text=
+        "DGPS Used for this SV")
+      const uint8 FLAGS_DGPS = 16;
+    };
+    @verbatim (language="comment", text=
+      "see message NavDGPS")
+    struct NavDGPSSV {
+      @verbatim (language="comment", text=
+        "Satellite ID")
+      uint8 svid;
+
+      @verbatim (language="comment", text=
+        "Bitmask / Channel Number and Usage:")
+      uint8 flags;
+
+      @verbatim (language="comment", text=
+        "Age of latest correction data")
+      @unit (value="ms")
+      uint16 age_c;
+
+      @verbatim (language="comment", text=
+        "Pseudo Range Correction")
+      @unit (value="m")
+      float prc;
+
+      @verbatim (language="comment", text=
+        "Pseudo Range Rate Correction")
+      @unit (value="m/s")
+      float prrc;
+    };
+  };
+};

@@ -1,0 +1,1 @@
+/home/jun/ros2_ws/build/nav2_gradient_costmap_plugin/ament_cmake_core/nav2_gradient_costmap_pluginConfig-version.cmake

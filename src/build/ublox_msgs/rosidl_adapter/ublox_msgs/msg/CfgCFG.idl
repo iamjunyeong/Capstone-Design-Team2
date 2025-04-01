@@ -1,0 +1,81 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/CfgCFG.msg
+// generated code does not contain a copyright notice
+
+
+module ublox_msgs {
+  module msg {
+    module CfgCFG_Constants {
+      const uint8 CLASS_ID = 6;
+      const uint8 MESSAGE_ID = 9;
+      @verbatim (language="comment", text=
+        "Communications port settings. Modifying this" "\n"        "sub-section results in an IO system reset." "\n"        "Because of this undefined data may be output" "\n"        "for a short period of time after receiving the" "\n"        "message.")
+      const uint32 MASK_IO_PORT = 1;
+      @verbatim (language="comment", text=
+        "Message Configuration")
+      const uint32 MASK_MSG_CONF = 2;
+      @verbatim (language="comment", text=
+        "INF Message Configuration")
+      const uint32 MASK_INF_MSG = 4;
+      @verbatim (language="comment", text=
+        "Navigation Configuration")
+      const uint32 MASK_NAV_CONF = 8;
+      @verbatim (language="comment", text=
+        "Receiver Manager Configuration")
+      const uint32 MASK_RXM_CONF = 16;
+      @verbatim (language="comment", text=
+        "Sensor Interface Configuration, protocol >= 19")
+      const uint32 MASK_SEN_CONF = 256;
+      @verbatim (language="comment", text=
+        "Remote Inventory Configuration")
+      const uint32 MASK_RINV_CONF = 512;
+      @verbatim (language="comment", text=
+        "Antenna Configuration")
+      const uint32 MASK_ANT_CONF = 1024;
+      @verbatim (language="comment", text=
+        "Logging Configuration")
+      const uint32 MASK_LOG_CONF = 2048;
+      @verbatim (language="comment", text=
+        "FTS Configuration. Only applicable to the" "\n"        "FTS product variant.")
+      const uint32 MASK_FTS_CONF = 4096;
+      @verbatim (language="comment", text=
+        "device battery backed RAM")
+      const uint8 DEV_BBR = 1;
+      @verbatim (language="comment", text=
+        "device Flash")
+      const uint8 DEV_FLASH = 2;
+      @verbatim (language="comment", text=
+        "device EEPROM")
+      const uint8 DEV_EEPROM = 4;
+      @verbatim (language="comment", text=
+        "device SPI Flash")
+      const uint8 DEV_SPI_FLASH = 16;
+    };
+    @verbatim (language="comment", text=
+      "CFG-CFG (0x06 0x09)" "\n"
+      "Clear, Save and Load configurations")
+    struct CfgCFG {
+      @verbatim (language="comment", text=
+        "Mask with configuration sub-sections to Clear" "\n"
+        "(=Load Default Configurations to Permanent" "\n"
+        "Configurations in non-volatile memory)")
+      uint32 clear_mask;
+
+      @verbatim (language="comment", text=
+        "Mask with configuration sub-section to Save" "\n"
+        "(=Save Current Configuration to Non-volatile" "\n"
+        "Memory)")
+      uint32 save_mask;
+
+      @verbatim (language="comment", text=
+        "Mask with configuration sub-sections to Load" "\n"
+        "(=Load Permanent Configurations from" "\n"
+        "Non-volatile Memory to Current Configurations)")
+      uint32 load_mask;
+
+      @verbatim (language="comment", text=
+        "Mask which selects the devices for this command")
+      uint8 device_mask;
+    };
+  };
+};

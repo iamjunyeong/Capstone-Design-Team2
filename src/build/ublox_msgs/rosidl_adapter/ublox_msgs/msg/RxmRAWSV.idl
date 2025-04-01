@@ -1,0 +1,48 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/RxmRAWSV.msg
+// generated code does not contain a copyright notice
+
+
+module ublox_msgs {
+  module msg {
+    @verbatim (language="comment", text=
+      "see message RxmRAW")
+    struct RxmRAWSV {
+      @verbatim (language="comment", text=
+        "Carrier phase measurement")
+      @unit (value="L1 cycles")
+      double cp_mes;
+
+      @verbatim (language="comment", text=
+        "Pseudorange measurement")
+      @unit (value="m")
+      double pr_mes;
+
+      @verbatim (language="comment", text=
+        "Doppler measurement")
+      @unit (value="Hz")
+      float do_mes;
+
+      @verbatim (language="comment", text=
+        "Space Vehicle Number")
+      uint8 sv;
+
+      @verbatim (language="comment", text=
+        "Nav Measurements Quality Indicator" "\n"
+        " >=4 : PR+DO OK" "\n"
+        " >=5 : PR+DO+CP OK" "\n"
+        " <6 : likely loss of carrier lock in previous" "\n"
+        "      interval")
+      int8 mes_qi;
+
+      @verbatim (language="comment", text=
+        "Signal strength C/No.")
+      @unit (value="dbHz")
+      int8 cno;
+
+      @verbatim (language="comment", text=
+        "Loss of lock indicator (RINEX definition)")
+      uint8 lli;
+    };
+  };
+};

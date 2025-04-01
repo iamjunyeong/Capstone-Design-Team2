@@ -1,0 +1,55 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/NavTIMEGPS.msg
+// generated code does not contain a copyright notice
+
+
+module ublox_msgs {
+  module msg {
+    module NavTIMEGPS_Constants {
+      const uint8 CLASS_ID = 1;
+      const uint8 MESSAGE_ID = 32;
+      @verbatim (language="comment", text=
+        "Valid Time of Week")
+      const uint8 VALID_TOW = 1;
+      @verbatim (language="comment", text=
+        "Valid Week Number")
+      const uint8 VALID_WEEK = 2;
+      @verbatim (language="comment", text=
+        "Valid Leap Seconds")
+      const uint8 VALID_LEAP_S = 4;
+    };
+    @verbatim (language="comment", text=
+      "NAV-TIMEGPS (0x01 0x20)" "\n"
+      "GPS Time Solution")
+    struct NavTIMEGPS {
+      @verbatim (language="comment", text=
+        "GPS Millisecond time of week")
+      @unit (value="ms")
+      uint32 i_tow;
+
+      @verbatim (language="comment", text=
+        "Fractional Nanoseconds remainder of rounded" "\n"
+        "ms above, range -500000 .. 500000")
+      @unit (value="ns")
+      int32 f_tow;
+
+      @verbatim (language="comment", text=
+        "GPS week (GPS time)")
+      int16 week;
+
+      @verbatim (language="comment", text=
+        "Leap Seconds (GPS-UTC)")
+      @unit (value="s")
+      int8 leap_s;
+
+      @verbatim (language="comment", text=
+        "Validity Flags")
+      uint8 valid;
+
+      @verbatim (language="comment", text=
+        "Time Accuracy Estimate")
+      @unit (value="ns")
+      uint32 t_acc;
+    };
+  };
+};

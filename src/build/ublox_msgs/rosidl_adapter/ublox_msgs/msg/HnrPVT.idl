@@ -1,0 +1,181 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/HnrPVT.msg
+// generated code does not contain a copyright notice
+
+
+module ublox_msgs {
+  module msg {
+    typedef uint8 uint8__2[2];
+    typedef uint8 uint8__4[4];
+    module HnrPVT_Constants {
+      const uint8 CLASS_ID = 40;
+      const uint8 MESSAGE_ID = 0;
+      @verbatim (language="comment", text=
+        "Valid UTC Date")
+      const uint8 VALID_DATE = 1;
+      @verbatim (language="comment", text=
+        "Valid")
+      const uint8 VALID_TIME = 2;
+      @verbatim (language="comment", text=
+        "UTC time of day has been fully resolved" "\n"        "(no seconds uncertainty)")
+      const uint8 VALID_FULLY_RESOLVED = 4;
+      @verbatim (language="comment", text=
+        "Valid Magnetic Declination")
+      const uint8 VALID_MAG = 8;
+      const uint8 FIX_TYPE_NO_FIX = 0;
+      const uint8 FIX_TYPE_DEAD_RECKONING_ONLY = 1;
+      @verbatim (language="comment", text=
+        "Signal from only 3 SVs," "\n"        "constant altitude assumed")
+      const uint8 FIX_TYPE_2D = 2;
+      const uint8 FIX_TYPE_3D = 3;
+      @verbatim (language="comment", text=
+        "GPS + Dead reckoning")
+      const uint8 FIX_TYPE_GPS_DEAD_RECKONING_COMBINED = 4;
+      @verbatim (language="comment", text=
+        "Time only fix")
+      const uint8 FIX_TYPE_TIME_ONLY = 5;
+      @verbatim (language="comment", text=
+        "i.e. within DOP & accuracy masks")
+      const uint8 FLAGS_GNSS_FIX_OK = 1;
+      @verbatim (language="comment", text=
+        "DGPS used")
+      const uint8 FLAGS_DIFF_SOLN = 2;
+      @verbatim (language="comment", text=
+        "Valid GPS week number")
+      const uint8 FLAGS_WKN_SET = 4;
+      @verbatim (language="comment", text=
+        "Valid GPS time of week (iTOW & fTOW)")
+      const uint8 FLAGS_TOW_SET = 8;
+      @verbatim (language="comment", text=
+        "heading of vehicle is valid")
+      const uint8 FLAGS_HEAD_VEH_VALID = 32;
+    };
+    @verbatim (language="comment", text=
+      "HNR-PVT (0x28 0x00)" "\n"
+      "High Rate Output of PVT Solution" "\n"
+      "" "\n"
+      "Note that during a leap second there may be more (or less) than 60 seconds in" "\n"
+      "a minute; see the description of leap seconds for details." "\n"
+      "" "\n"
+      "This message provides the position, velocity and time solution with high" "\n"
+      "output rate." "\n"
+      "" "\n"
+      "Supported on ADR and UDR products.")
+    struct HnrPVT {
+      @verbatim (language="comment", text=
+        "GPS Millisecond time of week")
+      @unit (value="ms")
+      uint32 i_tow;
+
+      @verbatim (language="comment", text=
+        "Year (UTC)")
+      uint16 year;
+
+      @verbatim (language="comment", text=
+        "Month, range 1..12 (UTC)")
+      uint8 month;
+
+      @verbatim (language="comment", text=
+        "Day of month, range 1..31 (UTC)")
+      uint8 day;
+
+      @verbatim (language="comment", text=
+        "Hour of day, range 0..23 (UTC)")
+      uint8 hour;
+
+      @verbatim (language="comment", text=
+        "Minute of hour, range 0..59 (UTC)")
+      uint8 min;
+
+      @verbatim (language="comment", text=
+        "Seconds of minute, range 0..60 (UTC)")
+      uint8 sec;
+
+      @verbatim (language="comment", text=
+        "Validity flags")
+      uint8 valid;
+
+      @verbatim (language="comment", text=
+        "fraction of a second, range -1e9 .. 1e9 (UTC)")
+      @unit (value="ns")
+      int32 nano;
+
+      @verbatim (language="comment", text=
+        "GPS fix Type, range 0..5")
+      uint8 gps_fix;
+
+      @verbatim (language="comment", text=
+        "Fix Status Flags")
+      uint8 flags;
+
+      @verbatim (language="comment", text=
+        "Reserved")
+      uint8__2 reserved0;
+
+      @verbatim (language="comment", text=
+        "Longitude")
+      @unit (value="deg / 1e-7")
+      int32 lon;
+
+      @verbatim (language="comment", text=
+        "Latitude")
+      @unit (value="deg / 1e-7")
+      int32 lat;
+
+      @verbatim (language="comment", text=
+        "Height above Ellipsoid")
+      @unit (value="mm")
+      int32 height;
+
+      @verbatim (language="comment", text=
+        "Height above mean sea level")
+      @unit (value="mm")
+      int32 h_msl;
+
+      @verbatim (language="comment", text=
+        "Ground Speed (2-D)")
+      @unit (value="mm/s")
+      int32 g_speed;
+
+      @verbatim (language="comment", text=
+        "Speed (3-D)")
+      @unit (value="mm/s")
+      int32 speed;
+
+      @verbatim (language="comment", text=
+        "Heading of motion (2-D)")
+      @unit (value="deg / 1e-5")
+      int32 head_mot;
+
+      @verbatim (language="comment", text=
+        "Heading of vehicle (2-D)")
+      @unit (value="deg / 1e-5")
+      int32 head_veh;
+
+      @verbatim (language="comment", text=
+        "Horizontal Accuracy Estimate")
+      @unit (value="mm")
+      uint32 h_acc;
+
+      @verbatim (language="comment", text=
+        "Vertical Accuracy Estimate")
+      @unit (value="mm")
+      uint32 v_acc;
+
+      @verbatim (language="comment", text=
+        "Speed Accuracy Estimate")
+      @unit (value="mm/s")
+      uint32 s_acc;
+
+      @verbatim (language="comment", text=
+        "Heading Accuracy Estimate (both motion & vehicle)" "\n"
+        "[deg / 1e-5]")
+      @unit (value="deg / 1e-5")
+      uint32 head_acc;
+
+      @verbatim (language="comment", text=
+        "Reserved")
+      uint8__4 reserved1;
+    };
+  };
+};

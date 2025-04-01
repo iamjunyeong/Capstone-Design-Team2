@@ -1,0 +1,43 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/NavSAT.msg
+// generated code does not contain a copyright notice
+
+#include "ublox_msgs/msg/NavSATSV.idl"
+
+module ublox_msgs {
+  module msg {
+    typedef uint8 uint8__2[2];
+    module NavSAT_Constants {
+      const uint8 CLASS_ID = 1;
+      const uint8 MESSAGE_ID = 53;
+    };
+    @verbatim (language="comment", text=
+      "NAV-SAT (0x01 0x35)" "\n"
+      "Satellite Information" "\n"
+      "" "\n"
+      "This message displays information about SVs which are either known to be" "\n"
+      "visible or currently tracked by the receiver.")
+    struct NavSAT {
+      @verbatim (language="comment", text=
+        "GPS time of week of the navigation epoch.")
+      @unit (value="ms")
+      uint32 i_tow;
+
+      @verbatim (language="comment", text=
+        "Message version (1 for this version)")
+      uint8 version;
+
+      @verbatim (language="comment", text=
+        "Number of satellites")
+      uint8 num_svs;
+
+      @verbatim (language="comment", text=
+        "Reserved")
+      uint8__2 reserved0;
+
+      @verbatim (language="comment", text=
+        "start of repeated block (numSvs times)")
+      sequence<ublox_msgs::msg::NavSATSV> sv;
+    };
+  };
+};

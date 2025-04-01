@@ -1,0 +1,51 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/CfgINFBlock.msg
+// generated code does not contain a copyright notice
+
+
+module ublox_msgs {
+  module msg {
+    typedef uint8 uint8__3[3];
+    typedef uint8 uint8__6[6];
+    module CfgINFBlock_Constants {
+      const uint8 PROTOCOL_ID_UBX = 0;
+      const uint8 PROTOCOL_ID_NMEA = 1;
+      @verbatim (language="comment", text=
+        "enable ERROR")
+      const uint8 INF_MSG_ERROR = 1;
+      @verbatim (language="comment", text=
+        "enable WARNING")
+      const uint8 INF_MSG_WARNING = 2;
+      @verbatim (language="comment", text=
+        "enable NOTICE")
+      const uint8 INF_MSG_NOTICE = 4;
+      @verbatim (language="comment", text=
+        "enable TEST")
+      const uint8 INF_MSG_TEST = 8;
+      @verbatim (language="comment", text=
+        "enable DEBUG")
+      const uint8 INF_MSG_DEBUG = 16;
+    };
+    @verbatim (language="comment", text=
+      "See CfgINF message")
+    struct CfgINFBlock {
+      @verbatim (language="comment", text=
+        "Protocol Identifier, identifying for which" "\n"
+        "protocol the configuration is set/get. The" "\n"
+        "following are valid Protocol Identifiers:" "\n"
+        "0: UBX Protocol" "\n"
+        "1: NMEA Protocol" "\n"
+        "2-255: Reserved")
+      uint8 protocol_id;
+
+      @verbatim (language="comment", text=
+        "Reserved")
+      uint8__3 reserved1;
+
+      @verbatim (language="comment", text=
+        "A bit mask, saying which information messages" "\n"
+        "are enabled on each I/O port")
+      uint8__6 inf_msg_mask;
+    };
+  };
+};

@@ -1,0 +1,47 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/CfgVALSET.msg
+// generated code does not contain a copyright notice
+
+#include "ublox_msgs/msg/CfgVALSETCfgdata.idl"
+
+module ublox_msgs {
+  module msg {
+    typedef uint8 uint8__2[2];
+    module CfgVALSET_Constants {
+      const uint8 CLASS_ID = 6;
+      const uint8 MESSAGE_ID = 138;
+      @verbatim (language="comment", text=
+        "RAM layer")
+      const uint8 LAYER_RAM = 1;
+      @verbatim (language="comment", text=
+        "BBR layer")
+      const uint8 LAYER_BBR = 2;
+      @verbatim (language="comment", text=
+        "Flash Layer")
+      const uint8 LAYER_FLASH = 4;
+    };
+    @verbatim (language="comment", text=
+      "CFG-VALSET (0x06 0x8a)" "\n"
+      "Set configuration item values" "\n"
+      "" "\n"
+      "This message is used to set a configuration by providing configuration data ( a list of" "\n"
+      "key and value pairs), which identify the configuration items to change, and their new values." "\n"
+      "Maximum of 64 Key IDs.")
+    struct CfgVALSET {
+      @verbatim (language="comment", text=
+        "Message Version (0x00 for this version)")
+      uint8 version;
+
+      @verbatim (language="comment", text=
+        "Bit mask: the layers where the configuration should be applied")
+      uint8 layers;
+
+      uint8__2 reserved0;
+
+      @verbatim (language="comment", text=
+        "Start of repeated block" "\n"
+        "Configuration data (key and value pairs)")
+      sequence<ublox_msgs::msg::CfgVALSETCfgdata> cfgdata;
+    };
+  };
+};

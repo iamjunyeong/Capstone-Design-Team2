@@ -1,0 +1,45 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/RxmRTCM.msg
+// generated code does not contain a copyright notice
+
+
+module ublox_msgs {
+  module msg {
+    typedef uint8 uint8__2[2];
+    module RxmRTCM_Constants {
+      const uint8 CLASS_ID = 2;
+      const uint8 MESSAGE_ID = 50;
+      @verbatim (language="comment", text=
+        "0 when RTCM message received and passed CRC" "\n"        "check, 1 when failed in which case refStation" "\n"        "and msgType might be corrupted and misleading")
+      const uint8 FLAGS_CRC_FAILED = 1;
+    };
+    @verbatim (language="comment", text=
+      "RXM-RTCM (0x02 0x32)" "\n"
+      "RTCM input status" "\n"
+      "" "\n"
+      "Output upon processing of an RTCM input message" "\n"
+      "Supported on:" "\n"
+      "- u-blox 8 / u-blox M8 from protocol version 20.01 up to version 23.01")
+    struct RxmRTCM {
+      @verbatim (language="comment", text=
+        "Message version (0x02 for this version)")
+      uint8 version;
+
+      @verbatim (language="comment", text=
+        "RTCM input status flags")
+      uint8 flags;
+
+      @verbatim (language="comment", text=
+        "Reserved")
+      uint8__2 reserved0;
+
+      @verbatim (language="comment", text=
+        "Reference station ID")
+      uint16 ref_station;
+
+      @verbatim (language="comment", text=
+        "Message type")
+      uint16 msg_type;
+    };
+  };
+};

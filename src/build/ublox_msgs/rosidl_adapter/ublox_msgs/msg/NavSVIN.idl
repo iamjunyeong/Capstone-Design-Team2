@@ -1,0 +1,113 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/NavSVIN.msg
+// generated code does not contain a copyright notice
+
+
+module ublox_msgs {
+  module msg {
+    typedef uint8 uint8__3[3];
+    typedef uint8 uint8__2[2];
+    module NavSVIN_Constants {
+      const uint8 CLASS_ID = 1;
+      const uint8 MESSAGE_ID = 59;
+    };
+    @verbatim (language="comment", text=
+      "NAV-SVIN (0x01 0x3B)" "\n"
+      "Survey-in data" "\n"
+      "" "\n"
+      "This message contains information about survey-in parameters." "\n"
+      "Supported on:" "\n"
+      " - u-blox 8 / u-blox M8 with protocol version 20 (only with High Precision" "\n"
+      "   GNSS products)")
+    struct NavSVIN {
+      @verbatim (language="comment", text=
+        "Message version (0x00 for this version)")
+      uint8 version;
+
+      @verbatim (language="comment", text=
+        "Reserved")
+      uint8__3 reserved0;
+
+      @verbatim (language="comment", text=
+        "GPS time of week of the navigation epoch")
+      @unit (value="ms")
+      uint32 i_tow;
+
+      @verbatim (language="comment", text=
+        "Passed survey-in observation time")
+      @unit (value="s")
+      uint32 dur;
+
+      @verbatim (language="comment", text=
+        "Current survey-in mean position ECEF X coordinate")
+      @unit (value="cm")
+      int32 mean_x;
+
+      @verbatim (language="comment", text=
+        "Current survey-in mean position ECEF Y coordinate")
+      @unit (value="cm")
+      int32 mean_y;
+
+      @verbatim (language="comment", text=
+        "Current survey-in mean position ECEF Z coordinate")
+      @unit (value="cm")
+      int32 mean_z;
+
+      @verbatim (language="comment", text=
+        "Current high-precision survey-in mean position" "\n"
+        "ECEF X coordinate. 0.1_mm" "\n"
+        "Must be in the range -99..+99." "\n"
+        "The current survey-in mean position ECEF X" "\n"
+        "coordinate, in units of cm, is given by" "\n"
+        "meanX + (0.01 * meanXHP)")
+      int8 mean_xhp;
+
+      @verbatim (language="comment", text=
+        "Current high-precision survey-in mean position" "\n"
+        "ECEF Y coordinate." "\n"
+        "Must be in the range -99..+99." "\n"
+        "The current survey-in mean position ECEF Y" "\n"
+        "coordinate, in units of cm, is given by" "\n"
+        "meanY + (0.01 * meanYHP)")
+      @unit (value="0.1 mm")
+      int8 mean_yhp;
+
+      @verbatim (language="comment", text=
+        "Current high-precision survey-in mean position" "\n"
+        "ECEF Z coordinate." "\n"
+        "Must be in the range -99..+99." "\n"
+        "The current survey-in mean position ECEF Z" "\n"
+        "coordinate, in units of cm, is given by" "\n"
+        "meanZ + (0.01 * meanZHP)")
+      @unit (value="0.1 mm")
+      int8 mean_zhp;
+
+      @verbatim (language="comment", text=
+        "Reserved")
+      uint8 reserved1;
+
+      @verbatim (language="comment", text=
+        "Current survey-in mean position accuracy")
+      @unit (value="0.1 mm")
+      uint32 mean_acc;
+
+      @verbatim (language="comment", text=
+        "Number of position observations used during survey-in")
+      uint32 obs;
+
+      @verbatim (language="comment", text=
+        "Survey-in position validity flag, 1 = valid" "\n"
+        "otherwise 0")
+      uint8 valid;
+
+      @verbatim (language="comment", text=
+        "Survey-in in progress flag, 1 = in-progress" "\n"
+        "otherwise 0")
+      uint8 active;
+
+      @verbatim (language="comment", text=
+        "Reserved")
+      uint8__2 reserved3;
+    };
+  };
+};

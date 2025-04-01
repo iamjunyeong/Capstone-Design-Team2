@@ -1,0 +1,143 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/CfgNAVX5.msg
+// generated code does not contain a copyright notice
+
+
+module ublox_msgs {
+  module msg {
+    typedef uint8 uint8__2[2];
+    typedef uint8 uint8__5[5];
+    typedef uint8 uint8__7[7];
+    module CfgNAVX5_Constants {
+      const uint8 CLASS_ID = 6;
+      const uint8 MESSAGE_ID = 35;
+      @verbatim (language="comment", text=
+        "apply min/max SVs settings")
+      const uint16 MASK1_MIN_MAX = 4;
+      @verbatim (language="comment", text=
+        "apply minimum C/N0 setting")
+      const uint16 MASK1_MIN_CNO = 8;
+      @verbatim (language="comment", text=
+        "apply initial 3D fix settings")
+      const uint16 MASK1_INITIAL_FIX_3D = 64;
+      @verbatim (language="comment", text=
+        "apply GPS week number rollover settings")
+      const uint16 MASK1_WKN_ROLL = 512;
+      @verbatim (language="comment", text=
+        "apply assistance acknowledgment" "\n"        "settings")
+      const uint16 MASK1_ACK_AID = 1024;
+      @verbatim (language="comment", text=
+        "apply usePPP flag")
+      const uint16 MASK1_PPP = 8192;
+      @verbatim (language="comment", text=
+        "apply aopCfg (useAOP flag) and" "\n"        "aopOrbMaxErr settings" "\n"        "(AssistNow Autonomous)")
+      const uint16 MASK1_AOP = 16384;
+      @verbatim (language="comment", text=
+        "Apply ADR sensor fusion on/off" "\n"        "setting")
+      const uint32 MASK2_ADR = 64;
+      @verbatim (language="comment", text=
+        "Apply signal attenuation" "\n"        "compensation feature settings")
+      const uint32 MASK2_SIG_ATTEN_COMP_MODE = 128;
+    };
+    @verbatim (language="comment", text=
+      "CFG-NAVX5 (0x06 0x23)" "\n"
+      "Navigation Engine Expert Settings" "\n"
+      "" "\n"
+      "Warning: Refer to u-blox protocol spec before changing these settings.")
+    struct CfgNAVX5 {
+      @verbatim (language="comment", text=
+        "Message version (set to 0)")
+      uint16 version;
+
+      @verbatim (language="comment", text=
+        "First parameters bitmask (possible values below)")
+      uint16 mask1;
+
+      @verbatim (language="comment", text=
+        "Second parameters bitmask (possible values below)" "\n"
+        "Firmware >=8 only")
+      uint32 mask2;
+
+      @verbatim (language="comment", text=
+        "Always set to zero")
+      uint8__2 reserved1;
+
+      @verbatim (language="comment", text=
+        "Minimum number of satellites for navigation")
+      uint8 min_svs;
+
+      @verbatim (language="comment", text=
+        "Maximum number of satellites for navigation")
+      uint8 max_svs;
+
+      @verbatim (language="comment", text=
+        "Minimum satellite signal level for navigation")
+      @unit (value="dBHz")
+      uint8 min_cno;
+
+      @verbatim (language="comment", text=
+        "Always set to zero")
+      uint8 reserved2;
+
+      @verbatim (language="comment", text=
+        "If set to 1, initial fix must be 3D")
+      uint8 ini_fix3d;
+
+      @verbatim (language="comment", text=
+        "Always set to zero")
+      uint8__2 reserved3;
+
+      @verbatim (language="comment", text=
+        "If set to 1, issue acknowledgments for assistance")
+      uint8 ack_aiding;
+
+      @verbatim (language="comment", text=
+        "GPS week rollover number, GPS week numbers will be set" "\n"
+        "correctly from this week up to 1024 weeks after this" "\n"
+        "week")
+      uint16 wkn_rollover;
+
+      @verbatim (language="comment", text=
+        "Permanently attenuated signal compensation" "\n"
+        "0 = disabled, 255 = automatic" "\n"
+        "1..63 = maximum expected C/N0 value" "\n"
+        "Firmware 8 only")
+      @unit (value="dBHz")
+      uint8 sig_atten_comp_mode;
+
+      @verbatim (language="comment", text=
+        "Always set to zero")
+      uint8__5 reserved4;
+
+      @verbatim (language="comment", text=
+        "Enable/disable PPP (on supported units)")
+      uint8 use_ppp;
+
+      @verbatim (language="comment", text=
+        "AssistNow Autonomous configuration, 1: enabled")
+      uint8 aop_cfg;
+
+      @verbatim (language="comment", text=
+        "Always set to zero")
+      uint8__2 reserved5;
+
+      @verbatim (language="comment", text=
+        "Maximum acceptable (modeled) autonomous orbit" "\n"
+        "error" "\n"
+        "valid range = 5..1000" "\n"
+        "0 = reset to firmware default")
+      @unit (value="m")
+      uint16 aop_orb_max_err;
+
+      @verbatim (language="comment", text=
+        "Always set to zero")
+      uint8__7 reserved6;
+
+      @verbatim (language="comment", text=
+        "Enable/disable ADR sensor fusion" "\n"
+        "1: enabled, 0: disabled" "\n"
+        "Only supported on certain products")
+      uint8 use_adr;
+    };
+  };
+};

@@ -1,0 +1,27 @@
+[1.277s] Invoking command in '/home/jun/ros2_ws/src/build/iahrs_driver': PYTHONPATH=/home/jun/ros2_ws/src/build/iahrs_driver/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/jun/ros2_ws/src/install/iahrs_driver/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/jun/ros2_ws/src/build/iahrs_driver/build --no-deps symlink_data
+[1.536s] /usr/lib/python3/dist-packages/setuptools/dist.py:723: UserWarning: Usage of dash-separated 'script-dir' will not be supported in future versions. Please use the underscore name 'script_dir' instead
+[1.536s]   warnings.warn(
+[1.560s] running develop
+[1.680s] running egg_info
+[1.680s] creating iahrs_driver.egg-info
+[1.680s] writing iahrs_driver.egg-info/PKG-INFO
+[1.681s] writing dependency_links to iahrs_driver.egg-info/dependency_links.txt
+[1.681s] writing entry points to iahrs_driver.egg-info/entry_points.txt
+[1.681s] writing requirements to iahrs_driver.egg-info/requires.txt
+[1.682s] writing top-level names to iahrs_driver.egg-info/top_level.txt
+[1.682s] writing manifest file 'iahrs_driver.egg-info/SOURCES.txt'
+[1.684s] reading manifest file 'iahrs_driver.egg-info/SOURCES.txt'
+[1.684s] writing manifest file 'iahrs_driver.egg-info/SOURCES.txt'
+[1.686s] running build_ext
+[1.686s] Creating /home/jun/ros2_ws/src/install/iahrs_driver/lib/python3.10/site-packages/iahrs-driver.egg-link (link to .)
+[1.688s] Installing driver script to /home/jun/ros2_ws/src/install/iahrs_driver/lib/iahrs_driver
+[1.688s] 
+[1.688s] Installed /home/jun/ros2_ws/src/build/iahrs_driver
+[1.688s] running symlink_data
+[1.688s] creating /home/jun/ros2_ws/src/install/iahrs_driver/share/ament_index
+[1.688s] creating /home/jun/ros2_ws/src/install/iahrs_driver/share/ament_index/resource_index
+[1.688s] creating /home/jun/ros2_ws/src/install/iahrs_driver/share/ament_index/resource_index/packages
+[1.689s] symbolically linking /home/jun/ros2_ws/src/build/iahrs_driver/resource/iahrs_driver -> /home/jun/ros2_ws/src/install/iahrs_driver/share/ament_index/resource_index/packages
+[1.689s] symbolically linking /home/jun/ros2_ws/src/build/iahrs_driver/package.xml -> /home/jun/ros2_ws/src/install/iahrs_driver/share/iahrs_driver
+[1.689s] creating /home/jun/ros2_ws/src/install/iahrs_driver/share/iahrs_driver/launch
+[1.689s] error: can't copy '/home/jun/ros2_ws/src/build/iahrs_driver/launch/iahrs_driver_launch.py': doesn't exist or not a regular file

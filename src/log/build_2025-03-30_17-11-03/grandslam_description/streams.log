@@ -1,0 +1,28 @@
+[1.283s] Invoking command in '/home/jun/ros2_ws/src/build/grandslam_description': PYTHONPATH=/home/jun/ros2_ws/src/build/grandslam_description/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/jun/ros2_ws/src/install/grandslam_description/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/jun/ros2_ws/src/build/grandslam_description/build --no-deps symlink_data
+[1.515s] /usr/lib/python3/dist-packages/setuptools/dist.py:723: UserWarning: Usage of dash-separated 'script-dir' will not be supported in future versions. Please use the underscore name 'script_dir' instead
+[1.516s]   warnings.warn(
+[1.552s] running develop
+[1.665s] running egg_info
+[1.665s] creating grandslam_description.egg-info
+[1.665s] writing grandslam_description.egg-info/PKG-INFO
+[1.666s] writing dependency_links to grandslam_description.egg-info/dependency_links.txt
+[1.666s] writing entry points to grandslam_description.egg-info/entry_points.txt
+[1.667s] writing requirements to grandslam_description.egg-info/requires.txt
+[1.667s] writing top-level names to grandslam_description.egg-info/top_level.txt
+[1.667s] writing manifest file 'grandslam_description.egg-info/SOURCES.txt'
+[1.668s] reading manifest file 'grandslam_description.egg-info/SOURCES.txt'
+[1.669s] writing manifest file 'grandslam_description.egg-info/SOURCES.txt'
+[1.671s] running build_ext
+[1.671s] Creating /home/jun/ros2_ws/src/install/grandslam_description/lib/python3.10/site-packages/grandslam-description.egg-link (link to .)
+[1.671s] 
+[1.672s] Installed /home/jun/ros2_ws/src/build/grandslam_description
+[1.672s] running symlink_data
+[1.672s] creating /home/jun/ros2_ws/src/install/grandslam_description/share/ament_index
+[1.672s] creating /home/jun/ros2_ws/src/install/grandslam_description/share/ament_index/resource_index
+[1.672s] creating /home/jun/ros2_ws/src/install/grandslam_description/share/ament_index/resource_index/packages
+[1.672s] symbolically linking /home/jun/ros2_ws/src/build/grandslam_description/resource/grandslam_description -> /home/jun/ros2_ws/src/install/grandslam_description/share/ament_index/resource_index/packages
+[1.672s] symbolically linking /home/jun/ros2_ws/src/build/grandslam_description/package.xml -> /home/jun/ros2_ws/src/install/grandslam_description/share/grandslam_description
+[1.672s] creating /home/jun/ros2_ws/src/install/grandslam_description/share/grandslam_description/launch
+[1.672s] symbolically linking /home/jun/ros2_ws/src/build/grandslam_description/launch/grandslam.launch.py -> /home/jun/ros2_ws/src/install/grandslam_description/share/grandslam_description/launch
+[1.672s] creating /home/jun/ros2_ws/src/install/grandslam_description/share/grandslam_description/urdf
+[1.672s] symbolically linking /home/jun/ros2_ws/src/build/grandslam_description/urdf/grandslam.xacro -> /home/jun/ros2_ws/src/install/grandslam_description/share/grandslam_description/urdf

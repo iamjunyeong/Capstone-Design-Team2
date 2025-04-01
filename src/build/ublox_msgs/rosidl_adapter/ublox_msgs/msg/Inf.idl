@@ -1,0 +1,20 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/Inf.msg
+// generated code does not contain a copyright notice
+
+
+module ublox_msgs {
+  module msg {
+    module Inf_Constants {
+      const uint8 CLASS_ID = 4;
+    };
+    @verbatim (language="comment", text=
+      "UBX-INF (0x04, 0x00...0x04)" "\n"
+      "ASCII output" "\n"
+      "" "\n"
+      "This message has a variable length payload, representing an ASCII string.")
+    struct Inf {
+      sequence<uint8> str;
+    };
+  };
+};

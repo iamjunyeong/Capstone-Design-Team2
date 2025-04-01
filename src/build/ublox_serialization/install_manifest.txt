@@ -1,0 +1,1 @@
+/home/jun/ros2_ws/src/install/ublox_serialization/share/ublox_serialization/cmake/export_ublox_serializationExport.cmake

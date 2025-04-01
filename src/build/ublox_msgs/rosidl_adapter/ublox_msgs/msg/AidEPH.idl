@@ -1,0 +1,57 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/AidEPH.msg
+// generated code does not contain a copyright notice
+
+
+module ublox_msgs {
+  module msg {
+    module AidEPH_Constants {
+      const uint8 CLASS_ID = 11;
+      const uint8 MESSAGE_ID = 49;
+    };
+    @verbatim (language="comment", text=
+      "AID-EPH (0x0B 0x31)" "\n"
+      "GPS Aiding Ephemeris Input/Output Message" "\n"
+      "" "\n"
+      "All UBX-AID messages are deprecated; use UBX-MGA messages instead" "\n"
+      "- SF1D0 to SF3D7 is only sent if ephemeris is available for this SV. If not, the payload may" "\n"
+      "  be reduced to 8 Bytes, or all bytes are set to zero, indicating that this SV Number does" "\n"
+      "  not have valid ephemeris for the moment. This may happen even if NAV-SVINFO and" "\n"
+      "  RXM-SVSI are indicating ephemeris availability as the internal data may not represent the" "\n"
+      "  content of an original broadcast ephemeris (or only parts thereof)." "\n"
+      "- SF1D0 to SF3D7 contain the 24 words following the Hand-Over Word ( HOW ) from the" "\n"
+      "  GPS navigation message, subframes 1 to 3. The Truncated TOW Count is not valid and" "\n"
+      "  cannot be used. See IS-GPS-200 for a full description of the contents of the Subframes." "\n"
+      "- In SF1D0 to SF3D7, the parity bits have been removed, and the 24 bits of data are" "\n"
+      "  located in Bits 0 to 23. Bits 24 to 31 shall be ignored." "\n"
+      "- When polled, the data contained in this message does not represent the full original" "\n"
+      "  ephemeris broadcast. Some fields that are irrelevant to u-blox receivers may be missing." "\n"
+      "  The week number in Subframe 1 has already been modified to match the Time Of" "\n"
+      "  Ephemeris (TOE).")
+    struct AidEPH {
+      @verbatim (language="comment", text=
+        "SV ID for which this ephemeris data is" "\n"
+        "(Valid Range: 1 .. 32).")
+      uint32 svid;
+
+      @verbatim (language="comment", text=
+        "Hand-Over Word of first Subframe. This is" "\n"
+        "required if data is sent to the receiver." "\n"
+        "0 indicates that no Ephemeris Data is following.")
+      uint32 how;
+
+      @verbatim (language="comment", text=
+        "Start of optional block" "\n"
+        "Subframe 1 Words 3..10 (SF1D0..SF1D7)")
+      sequence<uint32> sf1d;
+
+      @verbatim (language="comment", text=
+        "Subframe 2 Words 3..10 (SF2D0..SF2D7)")
+      sequence<uint32> sf2d;
+
+      @verbatim (language="comment", text=
+        "Subframe 3 Words 3..10 (SF3D0..SF3D7)")
+      sequence<uint32> sf3d;
+    };
+  };
+};

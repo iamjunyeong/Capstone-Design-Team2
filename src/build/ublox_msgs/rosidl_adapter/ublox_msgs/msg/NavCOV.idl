@@ -1,0 +1,99 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/NavCOV.msg
+// generated code does not contain a copyright notice
+
+
+module ublox_msgs {
+  module msg {
+    typedef uint8 uint8__9[9];
+    module NavCOV_Constants {
+      const uint8 CLASS_ID = 1;
+      const uint8 MESSAGE_ID = 54;
+    };
+    @verbatim (language="comment", text=
+      "NAV-COV (0x01 0x36)" "\n"
+      "Covariance matrices for position and velocity solutions")
+    struct NavCOV {
+      @verbatim (language="comment", text=
+        "GPS Millisecond time of week")
+      @unit (value="ms")
+      uint32 i_tow;
+
+      @verbatim (language="comment", text=
+        "Message version (0x00 for this version)")
+      uint8 version;
+
+      @verbatim (language="comment", text=
+        "Position covariance matrix validity flag")
+      uint8 pos_cov_valid;
+
+      @verbatim (language="comment", text=
+        "Velocity covariance matrix validity flag")
+      uint8 vel_cov_valid;
+
+      @verbatim (language="comment", text=
+        "Reserved")
+      uint8__9 reserved_0;
+
+      @verbatim (language="comment", text=
+        "Position covariance matrix value p_NN")
+      @unit (value="m^2")
+      float pos_cov_nn;
+
+      @verbatim (language="comment", text=
+        "Position covariance matrix value p_NE")
+      @unit (value="m^2")
+      float pos_cov_ne;
+
+      @verbatim (language="comment", text=
+        "Position covariance matrix value p_ND")
+      @unit (value="m^2")
+      float pos_cov_nd;
+
+      @verbatim (language="comment", text=
+        "Position covariance matrix value p_EE")
+      @unit (value="m^2")
+      float pos_cov_ee;
+
+      @verbatim (language="comment", text=
+        "Position covariance matrix value p_ED")
+      @unit (value="m^2")
+      float pos_cov_ed;
+
+      @verbatim (language="comment", text=
+        "Position covariance matrix value p_DD")
+      @unit (value="m^2")
+      float pos_cov_dd;
+
+      @verbatim (language="comment", text=
+        "Velocity covariance matrix value v_NN")
+      @unit (value="m^2/s^2")
+      float vel_cov_nn;
+
+      @verbatim (language="comment", text=
+        "Velocity covariance matrix value v_NE")
+      @unit (value="m^2/s^2")
+      float vel_cov_ne;
+
+      @verbatim (language="comment", text=
+        "Velocity covariance matrix value v_ND")
+      @unit (value="m^2/s^2")
+      float vel_cov_nd;
+
+      @verbatim (language="comment", text=
+        "Velocity covariance matrix value v_EE")
+      @unit (value="m^2/s^2")
+      float vel_cov_ee;
+
+      @verbatim (language="comment", text=
+        "Velocity covariance matrix value v_ED")
+      @unit (value="m^2/s^2")
+      float vel_cov_ed;
+
+      @verbatim (language="comment", text=
+        "Velocity covariance matrix value v_DD")
+      @unit (value="m^2/s^2")
+      float vel_cov_dd;
+    };
+  };
+};

@@ -1,0 +1,50 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/NavSBASSV.msg
+// generated code does not contain a copyright notice
+
+
+module ublox_msgs {
+  module msg {
+    @verbatim (language="comment", text=
+      "see message NavSBAS")
+    struct NavSBASSV {
+      @verbatim (language="comment", text=
+        "SV Id")
+      uint8 svid;
+
+      @verbatim (language="comment", text=
+        "Flags for this SV")
+      uint8 flags;
+
+      @verbatim (language="comment", text=
+        "Monitoring status")
+      uint8 udre;
+
+      @verbatim (language="comment", text=
+        "System (WAAS/EGNOS/...), same as SYS")
+      uint8 sv_sys;
+
+      @verbatim (language="comment", text=
+        "Services available, same as SERVICE")
+      uint8 sv_service;
+
+      @verbatim (language="comment", text=
+        "Reserved")
+      uint8 reserved1;
+
+      @verbatim (language="comment", text=
+        "Pseudo Range correction in")
+      @unit (value="cm")
+      int16 prc;
+
+      @verbatim (language="comment", text=
+        "Reserved")
+      uint16 reserved2;
+
+      @verbatim (language="comment", text=
+        "Ionosphere correction in")
+      @unit (value="cm")
+      int16 ic;
+    };
+  };
+};

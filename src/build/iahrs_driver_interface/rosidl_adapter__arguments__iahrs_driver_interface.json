@@ -1,0 +1,6 @@
+{
+  "package_name": "iahrs_driver_interface",
+  "non_idl_tuples": [
+    "/home/jun/ros2_ws/src/sensor_drivers/iahrs_driver_interface:srv/Set.srv"
+  ]
+}

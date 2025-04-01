@@ -1,0 +1,66 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/NavSBAS.msg
+// generated code does not contain a copyright notice
+
+#include "ublox_msgs/msg/NavSBASSV.idl"
+
+module ublox_msgs {
+  module msg {
+    typedef uint8 uint8__3[3];
+    module NavSBAS_Constants {
+      const uint8 CLASS_ID = 1;
+      const uint8 MESSAGE_ID = 50;
+      const uint8 MODE_DISABLED = 0;
+      const uint8 MODE_ENABLED_INTEGRITY = 1;
+      const uint8 MODE_ENABLED_TESTMODE = 3;
+      const int8 SYS_UNKNOWN = -1;
+      const int8 SYS_WAAS = 0;
+      const int8 SYS_EGNOS = 1;
+      const int8 SYS_MSAS = 2;
+      const int8 SYS_GAGAN = 3;
+      const int8 SYS_GPS = 16;
+      const uint8 SERVICE_RANGING = 1;
+      const uint8 SERVICE_CORRECTIONS = 2;
+      const uint8 SERVICE_INTEGRITY = 4;
+      const uint8 SERVICE_TESTMODE = 8;
+    };
+    @verbatim (language="comment", text=
+      "NAV-SBAS (0x01 0x32)" "\n"
+      "SBAS Status Data" "\n"
+      "" "\n"
+      "This message outputs the status of the SBAS sub system")
+    struct NavSBAS {
+      @verbatim (language="comment", text=
+        "GPS Millisecond time of week")
+      @unit (value="ms")
+      uint32 i_tow;
+
+      @verbatim (language="comment", text=
+        "PRN Number of the GEO where correction and integrity" "\n"
+        "data is used from")
+      uint8 geo;
+
+      @verbatim (language="comment", text=
+        "SBAS Mode")
+      uint8 mode;
+
+      @verbatim (language="comment", text=
+        "SBAS System (WAAS/EGNOS/...)")
+      int8 sys;
+
+      @verbatim (language="comment", text=
+        "SBAS Services available")
+      uint8 service;
+
+      @verbatim (language="comment", text=
+        "Number of SV data following")
+      uint8 cnt;
+
+      @verbatim (language="comment", text=
+        "Reserved")
+      uint8__3 reserved0;
+
+      sequence<ublox_msgs::msg::NavSBASSV> sv;
+    };
+  };
+};

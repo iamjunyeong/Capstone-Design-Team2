@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "ublox_msgs__py",
+		"source" : "/home/jun/ros2_ws/src/build/ublox_msgs/ublox_msgs__py"
+	}
+}

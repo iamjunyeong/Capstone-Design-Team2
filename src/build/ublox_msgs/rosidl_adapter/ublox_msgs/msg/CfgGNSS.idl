@@ -1,0 +1,67 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/CfgGNSS.msg
+// generated code does not contain a copyright notice
+
+#include "ublox_msgs/msg/CfgGNSSBlock.idl"
+
+module ublox_msgs {
+  module msg {
+    module CfgGNSS_Constants {
+      const uint8 CLASS_ID = 6;
+      const uint8 MESSAGE_ID = 62;
+    };
+    @verbatim (language="comment", text=
+      "CFG-GNSS (0x06 0x3E)" "\n"
+      "GNSS Configuration" "\n"
+      "" "\n"
+      "Gets or sets the GNSS system channel sharing configuration." "\n"
+      "If the receiver is sent a valid new configuration, it will respond with a" "\n"
+      "UBX-ACK-ACK message and immediately change to the new configuration. Otherwise" "\n"
+      "the receiver will reject the request, by issuing a UBX-ACK-NAK and continuing" "\n"
+      "operation with the previous configuration." "\n"
+      "Configuration requirements:" "\n"
+      " - It is necessary for at least one major GNSS to be enabled, after applying" "\n"
+      "   the new configuration to the current one." "\n"
+      " - It is also required that at least 4 tracking channels are available to each" "\n"
+      "   enabled major GNSS, i.e. maxTrkCh must have a minimum value of 4 for each" "\n"
+      "   enabled major GNSS." "\n"
+      " - The number of tracking channels in use must not exceed the number of" "\n"
+      "   tracking channels available in hardware, and the sum of all reserved" "\n"
+      "   tracking channels needs to be less than or equal to the number of tracking" "\n"
+      "   channels in use." "\n"
+      "Notes:" "\n"
+      " - To avoid cross-correlation issues, it is recommended that GPS and QZSS are" "\n"
+      "   always both enabled or both disabled." "\n"
+      " - Polling this message returns the configuration of all supported GNSS," "\n"
+      "   whether enabled or not; it may also include GNSS unsupported by the" "\n"
+      "   particular product, but in such cases the enable flag will always be unset." "\n"
+      " - See section GNSS Configuration for a discussion of the use of this message" "\n"
+      "   and section Satellite Numbering for a description of the GNSS IDs available" "\n"
+      " - Configuration specific to the GNSS system can be done via other messages" "\n"
+      "   (e.g. UBX-CFG-SBAS).")
+    struct CfgGNSS {
+      @verbatim (language="comment", text=
+        "Message version (= 0 for this version)")
+      uint8 msg_ver;
+
+      @verbatim (language="comment", text=
+        "Number of tracking channels in hardware (read only)")
+      uint8 num_trk_ch_hw;
+
+      @verbatim (language="comment", text=
+        "(Read only in protocol versions greater than 23)" "\n"
+        "Number of tracking channels to use (<= numTrkChHw)" "\n"
+        "If 0xFF, then number of tracking channels to use will" "\n"
+        "be set to numTrkChHw")
+      uint8 num_trk_ch_use;
+
+      @verbatim (language="comment", text=
+        "Number of configuration blocks following")
+      uint8 num_config_blocks;
+
+      @verbatim (language="comment", text=
+        "Start of repeated block (numConfigBlocks times)")
+      sequence<ublox_msgs::msg::CfgGNSSBlock> blocks;
+    };
+  };
+};

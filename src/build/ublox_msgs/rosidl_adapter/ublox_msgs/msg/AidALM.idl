@@ -1,0 +1,46 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/AidALM.msg
+// generated code does not contain a copyright notice
+
+
+module ublox_msgs {
+  module msg {
+    module AidALM_Constants {
+      const uint8 CLASS_ID = 11;
+      const uint8 MESSAGE_ID = 48;
+    };
+    @verbatim (language="comment", text=
+      "AID-ALM (0x0B 0x30)" "\n"
+      "GPS Aiding Almanach Input/Output Message" "\n"
+      "" "\n"
+      "All UBX-AID messages are deprecated; use UBX-MGA messages instead" "\n"
+      "- If the WEEK Value is 0, DWRD0 to DWRD7 are not sent as the almanach is not" "\n"
+      "  available for the given SV. This may happen even if NAV-SVINFO and RXM-SVSI" "\n"
+      "  are indicating almanac availability as the internal data may not represent" "\n"
+      "  the content of an original broadcast almanac (or only parts thereof)." "\n"
+      "- DWORD0 to DWORD7 contain the 8 words following the Hand-Over Word ( HOW )" "\n"
+      "  from the GPS navigation message, either pages 1 to 24 of sub-frame 5 or" "\n"
+      "  pages 2 to 10 of subframe 4. See IS-GPS-200 for a full description of the" "\n"
+      "  contents of the Almanac pages." "\n"
+      "- In DWORD0 to DWORD7, the parity bits have been removed, and the 24 bits of" "\n"
+      "  data are located in Bits 0 to 23. Bits 24 to 31 shall be ignored." "\n"
+      "- Example: Parameter e (Eccentricity) from Almanach Subframe 4/5, Word 3," "\n"
+      "  Bits 69-84 within the subframe can be found in DWRD0, Bits 15-0 whereas" "\n"
+      "  Bit 0 is the LSB.")
+    struct AidALM {
+      @verbatim (language="comment", text=
+        "SV ID for which the receiver shall return its" "\n"
+        "Almanac Data (Valid Range: 1 .. 32 or 51, 56, 63).")
+      uint32 svid;
+
+      @verbatim (language="comment", text=
+        "Issue Date of Almanach (GPS week number)")
+      uint32 week;
+
+      @verbatim (language="comment", text=
+        "Start of optional block" "\n"
+        "Almanac Words")
+      sequence<uint32> dwrd;
+    };
+  };
+};

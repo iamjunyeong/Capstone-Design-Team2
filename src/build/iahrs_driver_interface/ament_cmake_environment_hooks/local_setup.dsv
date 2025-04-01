@@ -1,0 +1,4 @@
+source;share/iahrs_driver_interface/environment/ament_prefix_path.sh
+source;share/iahrs_driver_interface/environment/library_path.sh
+source;share/iahrs_driver_interface/environment/path.sh
+source;share/iahrs_driver_interface/environment/pythonpath.sh

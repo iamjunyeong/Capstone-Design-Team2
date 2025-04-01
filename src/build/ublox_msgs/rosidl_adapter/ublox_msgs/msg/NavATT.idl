@@ -1,0 +1,66 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/NavATT.msg
+// generated code does not contain a copyright notice
+
+
+module ublox_msgs {
+  module msg {
+    typedef uint8 uint8__3[3];
+    module NavATT_Constants {
+      const uint8 CLASS_ID = 1;
+      const uint8 MESSAGE_ID = 5;
+    };
+    @verbatim (language="comment", text=
+      "NAV-ATT (0x01 0x05)" "\n"
+      "Attitude Solution" "\n"
+      "" "\n"
+      "This message outputs the attitude solution as roll, pitch and heading angles." "\n"
+      "Supported on ADR and UDR products.")
+    struct NavATT {
+      @verbatim (language="comment", text=
+        "GPS time of week of the navigation epoch")
+      @unit (value="ms")
+      uint32 i_tow;
+
+      @verbatim (language="comment", text=
+        "Message version (0 for this version)")
+      uint8 version;
+
+      @verbatim (language="comment", text=
+        "Reserved")
+      uint8__3 reserved0;
+
+      @verbatim (language="comment", text=
+        "Vehicle roll.")
+      @unit (value="deg / 1e-5")
+      int32 roll;
+
+      @verbatim (language="comment", text=
+        "Vehicle pitch.")
+      @unit (value="deg / 1e-5")
+      int32 pitch;
+
+      @verbatim (language="comment", text=
+        "Vehicle heading.")
+      @unit (value="deg / 1e-5")
+      int32 heading;
+
+      @verbatim (language="comment", text=
+        "Vehicle roll accuracy (if null, roll angle is not" "\n"
+        "available).")
+      @unit (value="deg / 1e-5")
+      uint32 acc_roll;
+
+      @verbatim (language="comment", text=
+        "Vehicle pitch accuracy (if null, pitch angle is not" "\n"
+        "available).")
+      @unit (value="deg / 1e-5")
+      uint32 acc_pitch;
+
+      @verbatim (language="comment", text=
+        "Vehicle heading accuracy")
+      @unit (value="deg / 1e-5")
+      uint32 acc_heading;
+    };
+  };
+};

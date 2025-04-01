@@ -1,0 +1,91 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/CfgRST.msg
+// generated code does not contain a copyright notice
+
+
+module ublox_msgs {
+  module msg {
+    module CfgRST_Constants {
+      const uint8 CLASS_ID = 6;
+      const uint8 MESSAGE_ID = 4;
+      @verbatim (language="comment", text=
+        "The following Special Sets apply:" "\n"        "Hot start the device")
+      const uint16 NAV_BBR_HOT_START = 0;
+      @verbatim (language="comment", text=
+        "Warm start the device")
+      const uint16 NAV_BBR_WARM_START = 1;
+      @verbatim (language="comment", text=
+        "Cold start the device")
+      const uint16 NAV_BBR_COLD_START = 65535;
+      @verbatim (language="comment", text=
+        "Ephemeris")
+      const uint16 NAV_BBR_EPH = 1;
+      @verbatim (language="comment", text=
+        "Almanac")
+      const uint16 NAV_BBR_ALM = 2;
+      @verbatim (language="comment", text=
+        "Health")
+      const uint16 NAV_BBR_HEALTH = 4;
+      @verbatim (language="comment", text=
+        "Klobuchar parameters")
+      const uint16 NAV_BBR_KLOB = 8;
+      @verbatim (language="comment", text=
+        "Position")
+      const uint16 NAV_BBR_POS = 16;
+      @verbatim (language="comment", text=
+        "Clock Drift")
+      const uint16 NAV_BBR_CLKD = 32;
+      @verbatim (language="comment", text=
+        "Oscillator Parameter")
+      const uint16 NAV_BBR_OSC = 64;
+      @verbatim (language="comment", text=
+        "UTC Correction + GPS Leap Seconds Parameters")
+      const uint16 NAV_BBR_UTC = 128;
+      @verbatim (language="comment", text=
+        "RTC")
+      const uint16 NAV_BBR_RTC = 256;
+      @verbatim (language="comment", text=
+        "Autonomous Orbit Parameters")
+      const uint16 NAV_BBR_AOP = 32768;
+      @verbatim (language="comment", text=
+        "Hardware reset (Watchdog) immediately")
+      const uint8 RESET_MODE_HW_IMMEDIATE = 0;
+      @verbatim (language="comment", text=
+        "Controlled Software reset")
+      const uint8 RESET_MODE_SW = 1;
+      @verbatim (language="comment", text=
+        "Controlled Software reset (GNSS only)")
+      const uint8 RESET_MODE_GNSS = 2;
+      @verbatim (language="comment", text=
+        "Hardware reset (Watchdog) after" "\n"        "shutdown")
+      const uint8 RESET_MODE_HW_AFTER_SHUTDOWN = 4;
+      @verbatim (language="comment", text=
+        "Controlled GNSS stop")
+      const uint8 RESET_MODE_GNSS_STOP = 8;
+      @verbatim (language="comment", text=
+        "Controlled GNSS start")
+      const uint8 RESET_MODE_GNSS_START = 9;
+    };
+    @verbatim (language="comment", text=
+      "CFG-RST (0x06 0x04)" "\n"
+      "Reset Receiver / Clear Backup Data Structures" "\n"
+      "" "\n"
+      "Don't expect this message to be acknowledged by the receiver." "\n"
+      " - Newer FW version won't acknowledge this message at all." "\n"
+      " - Older FW version will acknowledge this message but the acknowledge may not" "\n"
+      "   be sent completely before the receiver is reset.")
+    struct CfgRST {
+      @verbatim (language="comment", text=
+        "BBR Sections to clear.")
+      uint16 nav_bbr_mask;
+
+      @verbatim (language="comment", text=
+        "Reset Type:")
+      uint8 reset_mode;
+
+      @verbatim (language="comment", text=
+        "Reserved")
+      uint8 reserved1;
+    };
+  };
+};

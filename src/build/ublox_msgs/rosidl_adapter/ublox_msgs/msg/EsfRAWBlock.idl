@@ -1,0 +1,27 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/EsfRAWBlock.msg
+// generated code does not contain a copyright notice
+
+
+module ublox_msgs {
+  module msg {
+    module EsfRAWBlock_Constants {
+      const uint32 DATA_FIELD_MASK = 16777215;
+      @verbatim (language="comment", text=
+        "type of data" "\n"        "(0 = no data; 1..255 = data type)")
+      const uint32 DATA_TYPE_MASK = 4278190080;
+    };
+    @verbatim (language="comment", text=
+      "See ESF-RAW")
+    struct EsfRAWBlock {
+      @verbatim (language="comment", text=
+        "Its scaling and unit depends on the type and is" "\n"
+        "the same as in ESF-MEAS")
+      uint32 data;
+
+      @verbatim (language="comment", text=
+        "sensor time tag")
+      uint32 s_t_tag;
+    };
+  };
+};

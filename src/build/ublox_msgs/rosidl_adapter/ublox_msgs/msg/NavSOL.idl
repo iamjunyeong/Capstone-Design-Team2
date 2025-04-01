@@ -1,0 +1,120 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/NavSOL.msg
+// generated code does not contain a copyright notice
+
+
+module ublox_msgs {
+  module msg {
+    module NavSOL_Constants {
+      const uint8 CLASS_ID = 1;
+      const uint8 MESSAGE_ID = 6;
+      const uint8 GPS_NO_FIX = 0;
+      const uint8 GPS_DEAD_RECKONING_ONLY = 1;
+      const uint8 GPS_2D_FIX = 2;
+      const uint8 GPS_3D_FIX = 3;
+      const uint8 GPS_GPS_DEAD_RECKONING_COMBINED = 4;
+      const uint8 GPS_TIME_ONLY_FIX = 5;
+      @verbatim (language="comment", text=
+        "Fix within limits i.e. within DOP & ACC Masks")
+      const uint8 FLAGS_GPS_FIX_OK = 1;
+      @verbatim (language="comment", text=
+        "DGPS used")
+      const uint8 FLAGS_DIFF_SOLN = 2;
+      @verbatim (language="comment", text=
+        "Week Number valid")
+      const uint8 FLAGS_WKNSET = 4;
+      @verbatim (language="comment", text=
+        "Time of Week valid")
+      const uint8 FLAGS_TOWSET = 8;
+    };
+    @verbatim (language="comment", text=
+      "NAV-SOL (0x01 0x06)" "\n"
+      "Navigation Solution Information" "\n"
+      "" "\n"
+      "This message combines Position, velocity and time solution in ECEF, including" "\n"
+      "accuracy figures" "\n"
+      "This message has only been retained for backwards compatibility; users are" "\n"
+      "recommended to use the UBX-NAV-PVT message in preference.")
+    struct NavSOL {
+      @verbatim (language="comment", text=
+        "GPS Millisecond time of week")
+      @unit (value="ms")
+      uint32 i_tow;
+
+      @verbatim (language="comment", text=
+        "Fractional Nanoseconds remainder of rounded" "\n"
+        "ms above, range -500000 .. 500000")
+      @unit (value="ns")
+      int32 f_tow;
+
+      @verbatim (language="comment", text=
+        "GPS week (GPS time)")
+      int16 week;
+
+      @verbatim (language="comment", text=
+        "GPSfix Type, range 0..5")
+      uint8 gps_fix;
+
+      @verbatim (language="comment", text=
+        "Fix Status Flags")
+      uint8 flags;
+
+      @verbatim (language="comment", text=
+        "ECEF X coordinate")
+      @unit (value="cm")
+      int32 ecef_x;
+
+      @verbatim (language="comment", text=
+        "ECEF Y coordinate")
+      @unit (value="cm")
+      int32 ecef_y;
+
+      @verbatim (language="comment", text=
+        "ECEF Z coordinate")
+      @unit (value="cm")
+      int32 ecef_z;
+
+      @verbatim (language="comment", text=
+        "3D Position Accuracy Estimate")
+      @unit (value="cm")
+      uint32 p_acc;
+
+      @verbatim (language="comment", text=
+        "ECEF X velocity")
+      @unit (value="cm/s")
+      int32 ecef_vx;
+
+      @verbatim (language="comment", text=
+        "ECEF Y velocity")
+      @unit (value="cm/s")
+      int32 ecef_vy;
+
+      @verbatim (language="comment", text=
+        "ECEF Z velocity")
+      @unit (value="cm/s")
+      int32 ecef_vz;
+
+      @verbatim (language="comment", text=
+        "Speed Accuracy Estimate")
+      @unit (value="cm/s")
+      uint32 s_acc;
+
+      @verbatim (language="comment", text=
+        "Position DOP")
+      @unit (value="1 / 0.01")
+      uint16 p_dop;
+
+      @verbatim (language="comment", text=
+        "Reserved")
+      uint8 reserved1;
+
+      @verbatim (language="comment", text=
+        "Number of SVs used in Nav Solution")
+      uint8 num_sv;
+
+      @verbatim (language="comment", text=
+        "Reserved")
+      uint32 reserved2;
+    };
+  };
+};

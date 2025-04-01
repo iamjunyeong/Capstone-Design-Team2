@@ -1,0 +1,47 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/RxmRAW.msg
+// generated code does not contain a copyright notice
+
+#include "ublox_msgs/msg/RxmRAWSV.idl"
+
+module ublox_msgs {
+  module msg {
+    module RxmRAW_Constants {
+      const uint8 CLASS_ID = 2;
+      const uint8 MESSAGE_ID = 16;
+    };
+    @verbatim (language="comment", text=
+      "RXM-RAW (0x02 0x10)" "\n"
+      "Raw Measurement Data" "\n"
+      "" "\n"
+      "Supported up to ublox 7 firmware. See RxmRAWX for ublox 8" "\n"
+      "This message contains all information needed to be able to generate a RINEX" "\n"
+      "observation file." "\n"
+      "This message outputs pseudorange, doppler and carrier phase measurements for" "\n"
+      "GPS satellites once signals have been synchronised. No other GNSS types are" "\n"
+      "currently supported.")
+    struct RxmRAW {
+      @verbatim (language="comment", text=
+        "Measurement time of week in receiver local time")
+      @unit (value="s")
+      int32 rcv_tow;
+
+      @verbatim (language="comment", text=
+        "Measurement week number in receiver local time")
+      @unit (value="weeks")
+      int16 week;
+
+      @verbatim (language="comment", text=
+        "# of satellites following")
+      uint8 num_sv;
+
+      @verbatim (language="comment", text=
+        "Reserved")
+      uint8 reserved1;
+
+      @verbatim (language="comment", text=
+        "numSV times")
+      sequence<ublox_msgs::msg::RxmRAWSV> sv;
+    };
+  };
+};

@@ -1,0 +1,1 @@
+/home/jun/ros2_ws/src/build/grandslam_description/launch/grandslam.launch.py

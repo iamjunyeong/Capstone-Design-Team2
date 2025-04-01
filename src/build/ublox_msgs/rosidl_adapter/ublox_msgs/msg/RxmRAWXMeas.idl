@@ -1,0 +1,106 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/RxmRAWXMeas.msg
+// generated code does not contain a copyright notice
+
+
+module ublox_msgs {
+  module msg {
+    module RxmRAWXMeas_Constants {
+      @verbatim (language="comment", text=
+        "Pseudorange valid")
+      const uint8 TRK_STAT_PR_VALID = 1;
+      @verbatim (language="comment", text=
+        "Carrier phase valid")
+      const uint8 TRK_STAT_CP_VALID = 2;
+      @verbatim (language="comment", text=
+        "Half cycle valid")
+      const uint8 TRK_STAT_HALF_CYC = 4;
+      @verbatim (language="comment", text=
+        "Half cycle subtracted from phase")
+      const uint8 TRK_STAT_SUB_HALF_CYC = 8;
+    };
+    @verbatim (language="comment", text=
+      "see message RxmRAWX")
+    struct RxmRAWXMeas {
+      @verbatim (language="comment", text=
+        "Pseudorange measurement. GLONASS inter frequency" "\n"
+        "channel delays are compensated with an internal" "\n"
+        "calibration table.")
+      @unit (value="m")
+      double pr_mes;
+
+      @verbatim (language="comment", text=
+        "Carrier phase measurement. The carrier" "\n"
+        "phase initial ambiguity is initialized using an" "\n"
+        "approximate value to make the magnitude of" "\n"
+        "the phase close to the pseudorange" "\n"
+        "measurement. Clock resets are applied to both" "\n"
+        "phase and code measurements in accordance" "\n"
+        "with the RINEX specification.")
+      @unit (value="L1 cycles")
+      double cp_mes;
+
+      @verbatim (language="comment", text=
+        "Doppler measurement (positive sign for" "\n"
+        "approaching satellites)")
+      @unit (value="Hz")
+      float do_mes;
+
+      @verbatim (language="comment", text=
+        "GNSS identifier (see CfgGNSS for constants)")
+      uint8 gnss_id;
+
+      @verbatim (language="comment", text=
+        "Satellite identifier (see Satellite Numbering)")
+      uint8 sv_id;
+
+      @verbatim (language="comment", text=
+        "Reserved")
+      uint8 reserved0;
+
+      @verbatim (language="comment", text=
+        "Only used for GLONASS: This is the frequency" "\n"
+        "slot + 7 (range from 0 to 13)")
+      uint8 freq_id;
+
+      @verbatim (language="comment", text=
+        "Carrier phase locktime counter" "\n"
+        "(maximum 64500 ms)")
+      @unit (value="ms")
+      uint16 locktime;
+
+      @verbatim (language="comment", text=
+        "Carrier-to-noise density ratio (signal strength)" "\n"
+        "[dB-Hz]")
+      @unit (value="dB-Hz")
+      int8 cno;
+
+      @verbatim (language="comment", text=
+        "Estimated pseudorange measurement standard" "\n"
+        "deviation")
+      @unit (value="m / 0.01*2^n")
+      uint8 pr_stdev;
+
+      @verbatim (language="comment", text=
+        "Estimated carrier phase measurement standard" "\n"
+        "deviation (note a raw value of 0x0F indicates the" "\n"
+        "value is invalid)")
+      @unit (value="cycles / 0.004")
+      uint8 cp_stdev;
+
+      @verbatim (language="comment", text=
+        "Estimated Doppler measurement standard deviation" "\n"
+        "[Hz / 0.002*2^n]")
+      @unit (value="Hz / 0.002*2^n")
+      uint8 do_stdev;
+
+      @verbatim (language="comment", text=
+        "Tracking status bitfield")
+      uint8 trk_stat;
+
+      @verbatim (language="comment", text=
+        "Reserved")
+      uint8 reserved1;
+    };
+  };
+};

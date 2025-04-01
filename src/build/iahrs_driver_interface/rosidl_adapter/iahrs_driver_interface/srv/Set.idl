@@ -1,0 +1,15 @@
+// generated from rosidl_adapter/resource/srv.idl.em
+// with input from iahrs_driver_interface/srv/Set.srv
+// generated code does not contain a copyright notice
+
+
+module iahrs_driver_interface {
+  module srv {
+    struct Set_Request {
+      uint8 structure_needs_at_least_one_member;
+    };
+    struct Set_Response {
+      boolean result;
+    };
+  };
+};

@@ -1,0 +1,55 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/RxmSVSISV.msg
+// generated code does not contain a copyright notice
+
+
+module ublox_msgs {
+  module msg {
+    module RxmSVSISV_Constants {
+      @verbatim (language="comment", text=
+        "Figure of Merit (URA) range 0..15")
+      const uint8 FLAG_URA_MASK = 15;
+      @verbatim (language="comment", text=
+        "SV healthy flag")
+      const uint8 FLAG_HEALTHY = 16;
+      @verbatim (language="comment", text=
+        "Ephemeris valid")
+      const uint8 FLAG_EPH_VAL = 32;
+      @verbatim (language="comment", text=
+        "Almanac valid")
+      const uint8 FLAG_ALM_VAL = 64;
+      @verbatim (language="comment", text=
+        "SV not available")
+      const uint8 FLAG_NOT_AVAIL = 128;
+      @verbatim (language="comment", text=
+        "Age of ALM in days offset by 4" "\n"        "i.e. the reference time may be in the future:" "\n"        "ageOfAlm = (age & 0x0f) - 4")
+      const uint8 AGE_ALM_MASK = 15;
+      @verbatim (language="comment", text=
+        "Age of EPH in hours offset by 4." "\n"        "i.e. the reference time may be in the future:" "\n"        "ageOfEph = ((age & 0xf0) >> 4) - 4")
+      const uint8 AGE_EPH_MASK = 240;
+    };
+    @verbatim (language="comment", text=
+      "see message RxmSVSI")
+    struct RxmSVSISV {
+      @verbatim (language="comment", text=
+        "Satellite ID")
+      uint8 svid;
+
+      @verbatim (language="comment", text=
+        "Information Flags")
+      uint8 sv_flag;
+
+      @verbatim (language="comment", text=
+        "Azimuth")
+      int16 azim;
+
+      @verbatim (language="comment", text=
+        "Elevation")
+      int8 elev;
+
+      @verbatim (language="comment", text=
+        "Age of Almanac and Ephemeris")
+      uint8 age;
+    };
+  };
+};

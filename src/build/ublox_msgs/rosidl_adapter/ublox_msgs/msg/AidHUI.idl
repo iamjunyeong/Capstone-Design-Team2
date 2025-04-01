@@ -1,0 +1,116 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/AidHUI.msg
+// generated code does not contain a copyright notice
+
+
+module ublox_msgs {
+  module msg {
+    module AidHUI_Constants {
+      const uint8 CLASS_ID = 11;
+      const uint8 MESSAGE_ID = 2;
+      @verbatim (language="comment", text=
+        "Healthmask field in this message is valid")
+      const uint32 FLAGS_HEALTH = 1;
+      @verbatim (language="comment", text=
+        "UTC parameter fields in this message are valid")
+      const uint32 FLAGS_UTC = 2;
+      @verbatim (language="comment", text=
+        "Klobuchar parameter fields in this message are" "\n"        "valid")
+      const uint32 FLAGS_KLOB = 4;
+    };
+    @verbatim (language="comment", text=
+      "AID-HUI (0x0B 0x02)" "\n"
+      "GPS Health, UTC and ionosphere parameters" "\n"
+      "" "\n"
+      "All UBX-AID messages are deprecated; use UBX-MGA messages instead." "\n"
+      "This message contains a health bit mask, UTC time and Klobuchar parameters. For more" "\n"
+      "information on these parameters, please see the ICD-GPS-200 documentation.")
+    struct AidHUI {
+      @verbatim (language="comment", text=
+        "Bitmask, every bit represents a GPS SV (1-32)." "\n"
+        "If the bit is set the SV is healthy.")
+      uint32 health;
+
+      @verbatim (language="comment", text=
+        "UTC - parameter A0")
+      double utc_a0;
+
+      @verbatim (language="comment", text=
+        "UTC - parameter A1")
+      double utc_a1;
+
+      @verbatim (language="comment", text=
+        "UTC - reference time of week")
+      int32 utc_tow;
+
+      @verbatim (language="comment", text=
+        "UTC - reference week number")
+      int16 utc_wnt;
+
+      @verbatim (language="comment", text=
+        "UTC - time difference due to leap seconds before event")
+      int16 utc_ls;
+
+      @verbatim (language="comment", text=
+        "UTC - week number when next leap second event occurs")
+      int16 utc_wnf;
+
+      @verbatim (language="comment", text=
+        "UTC - day of week when next leap second event occurs")
+      int16 utc_dn;
+
+      @verbatim (language="comment", text=
+        "UTC - time difference due to leap seconds after event")
+      int16 utc_lsf;
+
+      @verbatim (language="comment", text=
+        "UTC - Spare to ensure structure is a multiple of 4" "\n"
+        "bytes")
+      int16 utc_spare;
+
+      @verbatim (language="comment", text=
+        "Klobuchar - alpha 0")
+      @unit (value="s")
+      float klob_a0;
+
+      @verbatim (language="comment", text=
+        "Klobuchar - alpha 1")
+      @unit (value="s/semicircle")
+      float klob_a1;
+
+      @verbatim (language="comment", text=
+        "Klobuchar - alpha 2")
+      @unit (value="s/semicircle^2")
+      float klob_a2;
+
+      @verbatim (language="comment", text=
+        "Klobuchar - alpha 3")
+      @unit (value="s/semicircle^3")
+      float klob_a3;
+
+      @verbatim (language="comment", text=
+        "Klobuchar - beta 0")
+      @unit (value="s")
+      float klob_b0;
+
+      @verbatim (language="comment", text=
+        "Klobuchar - beta 1")
+      @unit (value="s/semicircle")
+      float klob_b1;
+
+      @verbatim (language="comment", text=
+        "Klobuchar - beta 2")
+      @unit (value="s/semicircle^2")
+      float klob_b2;
+
+      @verbatim (language="comment", text=
+        "Klobuchar - beta 3")
+      @unit (value="s/semicircle^3")
+      float klob_b3;
+
+      @verbatim (language="comment", text=
+        "flags")
+      uint32 flags;
+    };
+  };
+};

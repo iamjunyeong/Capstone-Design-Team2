@@ -1,0 +1,56 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/MonGNSS.msg
+// generated code does not contain a copyright notice
+
+
+module ublox_msgs {
+  module msg {
+    typedef uint8 uint8__3[3];
+    module MonGNSS_Constants {
+      const uint8 CLASS_ID = 10;
+      const uint8 MESSAGE_ID = 40;
+      const uint8 BIT_MASK_GPS = 1;
+      const uint8 BIT_MASK_GLONASS = 2;
+      const uint8 BIT_MASK_BEIDOU = 4;
+      const uint8 BIT_MASK_GALILEO = 8;
+    };
+    @verbatim (language="comment", text=
+      "MON-GNSS (0x0A 0x28)" "\n"
+      "Information message major GNSS selection" "\n"
+      "" "\n"
+      "This message reports major GNSS selection. Augmentation systems are not" "\n"
+      "reported.")
+    struct MonGNSS {
+      @verbatim (language="comment", text=
+        "Message version (0x01 for this version)")
+      uint8 version;
+
+      @verbatim (language="comment", text=
+        "The major GNSS that can be supported by this receiver")
+      uint8 supported;
+
+      @verbatim (language="comment", text=
+        "Default major GNSS selection. If the default major GNSS" "\n"
+        "selection is currently configured in the efuse for this" "\n"
+        "receiver, it takes precedence over the default major" "\n"
+        "GNSS selection configured in the executing firmware of" "\n"
+        "this receiver." "\n"
+        "see bit mask constants")
+      uint8 default_gnss;
+
+      @verbatim (language="comment", text=
+        "Current major GNSS selection enabled for this receiver" "\n"
+        "see bit mask constants")
+      uint8 enabled;
+
+      @verbatim (language="comment", text=
+        "Maximum number of concurrent major GNSS that can be" "\n"
+        "supported by this receiver")
+      uint8 simultaneous;
+
+      @verbatim (language="comment", text=
+        "Reserved")
+      uint8__3 reserved1;
+    };
+  };
+};

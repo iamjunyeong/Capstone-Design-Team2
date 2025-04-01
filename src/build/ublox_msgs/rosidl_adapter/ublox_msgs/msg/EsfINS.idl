@@ -1,0 +1,89 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/EsfINS.msg
+// generated code does not contain a copyright notice
+
+
+module ublox_msgs {
+  module msg {
+    typedef uint8 uint8__4[4];
+    module EsfINS_Constants {
+      const uint8 CLASS_ID = 16;
+      const uint8 MESSAGE_ID = 21;
+      @verbatim (language="comment", text=
+        "Message version (1 for this version).")
+      const uint32 BITFIELD0_VERSION = 255;
+      @verbatim (language="comment", text=
+        "Compensated x-axis angular rate data" "\n"        "validity flag")
+      const uint32 BITFIELD0_X_ANG_RATE_VALID = 256;
+      @verbatim (language="comment", text=
+        "Compensated y-axis angular rate data" "\n"        "validity flag")
+      const uint32 BITFIELD0_Y_ANG_RATE_VALID = 512;
+      @verbatim (language="comment", text=
+        "Compensated z-axis angular rate data" "\n"        "validity flag")
+      const uint32 BITFIELD0_Z_ANG_RATE_VALID = 1024;
+      @verbatim (language="comment", text=
+        "Compensated x-axis acceleration data" "\n"        "validity flag")
+      const uint32 BITFIELD0_X_ACCEL_VALID = 2048;
+      @verbatim (language="comment", text=
+        "Compensated y-axis acceleration data" "\n"        "validity flag")
+      const uint32 BITFIELD0_Y_ACCEL_VALID = 4096;
+      @verbatim (language="comment", text=
+        "Compensated z-axis acceleration data" "\n"        "validity flag")
+      const uint32 BITFIELD0_Z_ACCEL_VALID = 8192;
+    };
+    @verbatim (language="comment", text=
+      "ESF-INS (0x10 0x15)" "\n"
+      "Vehicle dynamics information" "\n"
+      "" "\n"
+      "This message outputs information about vehicle dynamics computed by the" "\n"
+      "Inertial Navigation System (INS) during ESF-based navigation." "\n"
+      "For ADR products, the output dynamics information (angular rates and" "\n"
+      "accelerations) is expressed with respect to the vehicle-frame." "\n"
+      "For UDR products, the output dynamics information (angular rates and" "\n"
+      "accelerations) is expressed with respect to the body-frame.")
+    struct EsfINS {
+      @verbatim (language="comment", text=
+        "Bitfield (see graphic below)")
+      uint32 bitfield0;
+
+      @verbatim (language="comment", text=
+        "Reserved")
+      uint8__4 reserved1;
+
+      @verbatim (language="comment", text=
+        "GPS time of week of the navigation epoch")
+      @unit (value="ms")
+      uint32 i_tow;
+
+      @verbatim (language="comment", text=
+        "Compensated x-axis angular rate")
+      @unit (value="deg/s / 1e-3")
+      int32 x_ang_rate;
+
+      @verbatim (language="comment", text=
+        "Compensated y-axis angular rate")
+      @unit (value="deg/s / 1e-3")
+      int32 y_ang_rate;
+
+      @verbatim (language="comment", text=
+        "Compensated z-axis angular rate")
+      @unit (value="deg/s / 1e-3")
+      int32 z_ang_rate;
+
+      @verbatim (language="comment", text=
+        "Compensated x-axis acceleration (gravity-free)")
+      @unit (value="mg")
+      int32 x_accel;
+
+      @verbatim (language="comment", text=
+        "Compensated y-axis acceleration (gravity-free)")
+      @unit (value="mg")
+      int32 y_accel;
+
+      @verbatim (language="comment", text=
+        "Compensated z-axis acceleration (gravity-free)")
+      @unit (value="mg")
+      int32 z_accel;
+    };
+  };
+};

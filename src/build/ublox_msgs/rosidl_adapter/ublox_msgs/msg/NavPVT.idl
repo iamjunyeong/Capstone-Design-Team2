@@ -1,0 +1,250 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/NavPVT.msg
+// generated code does not contain a copyright notice
+
+
+module ublox_msgs {
+  module msg {
+    typedef uint8 uint8__6[6];
+    module NavPVT_Constants {
+      const uint8 CLASS_ID = 1;
+      const uint8 MESSAGE_ID = 7;
+      @verbatim (language="comment", text=
+        "Valid UTC Date")
+      const uint8 VALID_DATE = 1;
+      @verbatim (language="comment", text=
+        "Valid")
+      const uint8 VALID_TIME = 2;
+      @verbatim (language="comment", text=
+        "UTC time of day has been fully resolved" "\n"        "(no seconds uncertainty)")
+      const uint8 VALID_FULLY_RESOLVED = 4;
+      @verbatim (language="comment", text=
+        "Valid Magnetic Declination")
+      const uint8 VALID_MAG = 8;
+      const uint8 FIX_TYPE_NO_FIX = 0;
+      const uint8 FIX_TYPE_DEAD_RECKONING_ONLY = 1;
+      @verbatim (language="comment", text=
+        "Signal from only 3 SVs," "\n"        "constant altitude assumed")
+      const uint8 FIX_TYPE_2D = 2;
+      const uint8 FIX_TYPE_3D = 3;
+      @verbatim (language="comment", text=
+        "GNSS + Dead reckoning")
+      const uint8 FIX_TYPE_GNSS_DEAD_RECKONING_COMBINED = 4;
+      @verbatim (language="comment", text=
+        "Time only fix (High precision" "\n"        "devices)")
+      const uint8 FIX_TYPE_TIME_ONLY = 5;
+      @verbatim (language="comment", text=
+        "i.e. within DOP & accuracy masks")
+      const uint8 FLAGS_GNSS_FIX_OK = 1;
+      @verbatim (language="comment", text=
+        "DGPS used")
+      const uint8 FLAGS_DIFF_SOLN = 2;
+      @verbatim (language="comment", text=
+        "Power Save Mode")
+      const uint8 FLAGS_PSM_MASK = 28;
+      @verbatim (language="comment", text=
+        "PSM is off")
+      const uint8 PSM_OFF = 0;
+      @verbatim (language="comment", text=
+        "Enabled (state before acquisition)")
+      const uint8 PSM_ENABLED = 4;
+      @verbatim (language="comment", text=
+        "Acquisition")
+      const uint8 PSM_ACQUIRED = 8;
+      @verbatim (language="comment", text=
+        "Tracking")
+      const uint8 PSM_TRACKING = 12;
+      @verbatim (language="comment", text=
+        "Power Optimized Tracking")
+      const uint8 PSM_POWER_OPTIMIZED_TRACKING = 16;
+      @verbatim (language="comment", text=
+        "Inactive")
+      const uint8 PSM_INACTIVE = 20;
+      @verbatim (language="comment", text=
+        "heading of vehicle is valid")
+      const uint8 FLAGS_HEAD_VEH_VALID = 32;
+      @verbatim (language="comment", text=
+        "Carrier Phase Range Solution Status")
+      const uint8 FLAGS_CARRIER_PHASE_MASK = 192;
+      @verbatim (language="comment", text=
+        "no carrier phase range solution")
+      const uint8 CARRIER_PHASE_NO_SOLUTION = 0;
+      @verbatim (language="comment", text=
+        "carrier phase float solution (no fixed" "\n"        "integer measurements have been used to" "\n"        "calculate the solution)")
+      const uint8 CARRIER_PHASE_FLOAT = 64;
+      @verbatim (language="comment", text=
+        "fixed solution (>=1 fixed integer" "\n"        "carrier phase range measurements have" "\n"        "been used to calculate  the solution)")
+      const uint8 CARRIER_PHASE_FIXED = 128;
+      @verbatim (language="comment", text=
+        "information about UTC Date and Time of" "\n"        "Day validity confirmation is available")
+      const uint8 FLAGS2_CONFIRMED_AVAILABLE = 32;
+      @verbatim (language="comment", text=
+        "UTC Date validity could be confirmed")
+      const uint8 FLAGS2_CONFIRMED_DATE = 64;
+      @verbatim (language="comment", text=
+        "UTC Time of Day could be confirmed")
+      const uint8 FLAGS2_CONFIRMED_TIME = 128;
+    };
+    @verbatim (language="comment", text=
+      "NAV-PVT (0x01 0x07)" "\n"
+      "Navigation Position Velocity Time Solution" "\n"
+      "" "\n"
+      "Note that during a leap second there may be more (or less) than 60 seconds in" "\n"
+      "a minute; see the description of leap seconds for details." "\n"
+      "" "\n"
+      "This message combines Position, velocity and time solution in LLH," "\n"
+      "including accuracy figures" "\n"
+      "" "\n"
+      "WARNING: For firmware version 7, this message is a different length.")
+    struct NavPVT {
+      @verbatim (language="comment", text=
+        "GPS Millisecond time of week")
+      @unit (value="ms")
+      uint32 i_tow;
+
+      @verbatim (language="comment", text=
+        "Year (UTC)")
+      uint16 year;
+
+      @verbatim (language="comment", text=
+        "Month, range 1..12 (UTC)")
+      uint8 month;
+
+      @verbatim (language="comment", text=
+        "Day of month, range 1..31 (UTC)")
+      uint8 day;
+
+      @verbatim (language="comment", text=
+        "Hour of day, range 0..23 (UTC)")
+      uint8 hour;
+
+      @verbatim (language="comment", text=
+        "Minute of hour, range 0..59 (UTC)")
+      uint8 min;
+
+      @verbatim (language="comment", text=
+        "Seconds of minute, range 0..60 (UTC)")
+      uint8 sec;
+
+      @verbatim (language="comment", text=
+        "Validity flags")
+      uint8 valid;
+
+      @verbatim (language="comment", text=
+        "time accuracy estimate (UTC)")
+      @unit (value="ns")
+      uint32 t_acc;
+
+      @verbatim (language="comment", text=
+        "fraction of a second, range -1e9 .. 1e9 (UTC)")
+      @unit (value="ns")
+      int32 nano;
+
+      @verbatim (language="comment", text=
+        "GNSS fix Type, range 0..5")
+      uint8 fix_type;
+
+      @verbatim (language="comment", text=
+        "Fix Status Flags")
+      uint8 flags;
+
+      @verbatim (language="comment", text=
+        "Additional Flags")
+      uint8 flags2;
+
+      @verbatim (language="comment", text=
+        "Number of SVs used in Nav Solution")
+      uint8 num_sv;
+
+      @verbatim (language="comment", text=
+        "Longitude")
+      @unit (value="deg / 1e-7")
+      int32 lon;
+
+      @verbatim (language="comment", text=
+        "Latitude")
+      @unit (value="deg / 1e-7")
+      int32 lat;
+
+      @verbatim (language="comment", text=
+        "Height above Ellipsoid")
+      @unit (value="mm")
+      int32 height;
+
+      @verbatim (language="comment", text=
+        "Height above mean sea level")
+      @unit (value="mm")
+      int32 h_msl;
+
+      @verbatim (language="comment", text=
+        "Horizontal Accuracy Estimate")
+      @unit (value="mm")
+      uint32 h_acc;
+
+      @verbatim (language="comment", text=
+        "Vertical Accuracy Estimate")
+      @unit (value="mm")
+      uint32 v_acc;
+
+      @verbatim (language="comment", text=
+        "NED north velocity")
+      @unit (value="mm/s")
+      int32 vel_n;
+
+      @verbatim (language="comment", text=
+        "NED east velocity")
+      @unit (value="mm/s")
+      int32 vel_e;
+
+      @verbatim (language="comment", text=
+        "NED down velocity")
+      @unit (value="mm/s")
+      int32 vel_d;
+
+      @verbatim (language="comment", text=
+        "Ground Speed (2-D)")
+      @unit (value="mm/s")
+      int32 g_speed;
+
+      @verbatim (language="comment", text=
+        "Heading of motion 2-D")
+      @unit (value="deg / 1e-5")
+      int32 heading;
+
+      @verbatim (language="comment", text=
+        "Speed Accuracy Estimate")
+      @unit (value="mm/s")
+      uint32 s_acc;
+
+      @verbatim (language="comment", text=
+        "Heading Accuracy Estimate (both motion & vehicle)" "\n"
+        "[deg / 1e-5]")
+      @unit (value="deg / 1e-5")
+      uint32 head_acc;
+
+      @verbatim (language="comment", text=
+        "Position DOP")
+      @unit (value="1 / 0.01")
+      uint16 p_dop;
+
+      @verbatim (language="comment", text=
+        "Reserved")
+      uint8__6 reserved1;
+
+      @verbatim (language="comment", text=
+        "Heading of vehicle (2-D)")
+      @unit (value="deg / 1e-5")
+      int32 head_veh;
+
+      @verbatim (language="comment", text=
+        "Magnetic declination")
+      @unit (value="deg / 1e-2")
+      int16 mag_dec;
+
+      @verbatim (language="comment", text=
+        "Magnetic declination accuracy")
+      @unit (value="deg / 1e-2")
+      uint16 mag_acc;
+    };
+  };
+};

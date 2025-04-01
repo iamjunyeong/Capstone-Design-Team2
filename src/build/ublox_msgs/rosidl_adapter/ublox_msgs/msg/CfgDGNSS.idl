@@ -1,0 +1,38 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/CfgDGNSS.msg
+// generated code does not contain a copyright notice
+
+
+module ublox_msgs {
+  module msg {
+    typedef uint8 uint8__3[3];
+    module CfgDGNSS_Constants {
+      const uint8 CLASS_ID = 6;
+      const uint8 MESSAGE_ID = 112;
+      @verbatim (language="comment", text=
+        "RTK float: No attempts are made to fix" "\n"        "ambiguities.")
+      const uint8 DGNSS_MODE_RTK_FLOAT = 2;
+      @verbatim (language="comment", text=
+        "RTK fixed: Ambiguities are fixed whenever" "\n"        "possible.")
+      const uint8 DGNSS_MODE_RTK_FIXED = 3;
+    };
+    @verbatim (language="comment", text=
+      "CFG-DGNSS (0x06 0x70)" "\n"
+      "DGNSS configuration" "\n"
+      "" "\n"
+      "This message allows the user to configure the DGNSS configuration of the" "\n"
+      "receiver." "\n"
+      "Supported on:" "\n"
+      " - u-blox 8 / u-blox M8 from protocol version 20.01 up to version 23.01 (only" "\n"
+      "   with High Precision GNSS products)")
+    struct CfgDGNSS {
+      @verbatim (language="comment", text=
+        "Specifies differential mode:")
+      uint8 dgnss_mode;
+
+      @verbatim (language="comment", text=
+        "Reserved")
+      uint8__3 reserved0;
+    };
+  };
+};

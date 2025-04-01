@@ -1,0 +1,31 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/CfgINF.msg
+// generated code does not contain a copyright notice
+
+#include "ublox_msgs/msg/CfgINFBlock.idl"
+
+module ublox_msgs {
+  module msg {
+    module CfgINF_Constants {
+      const uint8 CLASS_ID = 6;
+      const uint8 MESSAGE_ID = 2;
+    };
+    @verbatim (language="comment", text=
+      "CFG-INF  (0x06 0x02)" "\n"
+      "Information message configuration" "\n"
+      "" "\n"
+      "The value of infMsgMask below are that each bit represents one of the INF" "\n"
+      "class messages (Bit 0 for ERROR, Bit 1 for WARNING and so on.). For a complete" "\n"
+      "list, see the Message Class INF. Several configurations can be concatenated to" "\n"
+      "one input message." "\n"
+      "In this case the payload length can be a multiple of the normal length. Output" "\n"
+      "messages from the module contain only one configuration unit. Note that I/O" "\n"
+      "Ports 1 and 2 correspond to serial ports 1 and 2. I/O port 0 is DDC. I/O port" "\n"
+      "3 is USB. I/O port 4 is SPI. I/O port 5 is reserved for future use")
+    struct CfgINF {
+      @verbatim (language="comment", text=
+        "start of repeated block")
+      sequence<ublox_msgs::msg::CfgINFBlock> blocks;
+    };
+  };
+};

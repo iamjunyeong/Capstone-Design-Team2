@@ -1,0 +1,28 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/Ack.msg
+// generated code does not contain a copyright notice
+
+
+module ublox_msgs {
+  module msg {
+    module Ack_Constants {
+      const uint8 CLASS_ID = 5;
+      const uint8 NACK_MESSAGE_ID = 0;
+      const uint8 ACK_MESSAGE_ID = 1;
+    };
+    @verbatim (language="comment", text=
+      "ACK (0x05)" "\n"
+      "Message Acknowledged / Not-Acknowledged" "\n"
+      "" "\n"
+      "Output upon processing of an input message")
+    struct Ack {
+      @verbatim (language="comment", text=
+        "Class ID of the (Not-)Acknowledged Message")
+      uint8 cls_id;
+
+      @verbatim (language="comment", text=
+        "Message ID of the (Not-)Acknowledged Message")
+      uint8 msg_id;
+    };
+  };
+};

@@ -1,0 +1,33 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/CfgMSG.msg
+// generated code does not contain a copyright notice
+
+
+module ublox_msgs {
+  module msg {
+    module CfgMSG_Constants {
+      const uint8 CLASS_ID = 6;
+      const uint8 MESSAGE_ID = 1;
+    };
+    @verbatim (language="comment", text=
+      "CFG-MSG (0x06 0x01)" "\n"
+      "Message Rate(s)" "\n"
+      "" "\n"
+      "Set message rate for the current port")
+    struct CfgMSG {
+      @verbatim (language="comment", text=
+        "Message Class")
+      uint8 msg_class;
+
+      @verbatim (language="comment", text=
+        "Message Identifier")
+      uint8 msg_id;
+
+      @verbatim (language="comment", text=
+        "Send rate on current port" "\n"
+        "[number of navigation solutions]")
+      @unit (value="number of navigation solutions")
+      uint8 rate;
+    };
+  };
+};

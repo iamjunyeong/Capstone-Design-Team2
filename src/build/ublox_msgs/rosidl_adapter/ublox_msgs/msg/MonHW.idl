@@ -1,0 +1,136 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/MonHW.msg
+// generated code does not contain a copyright notice
+
+
+module ublox_msgs {
+  module msg {
+    typedef uint8 uint8__17[17];
+    typedef uint8 uint8__2[2];
+    module MonHW_Constants {
+      const uint8 CLASS_ID = 10;
+      const uint8 MESSAGE_ID = 9;
+      const uint8 A_STATUS_INIT = 0;
+      const uint8 A_STATUS_UNKNOWN = 1;
+      const uint8 A_STATUS_OK = 2;
+      const uint8 A_STATUS_SHORT = 3;
+      const uint8 A_STATUS_OPEN = 4;
+      const uint8 A_POWER_OFF = 0;
+      const uint8 A_POWER_ON = 1;
+      const uint8 A_POWER_UNKNOWN = 2;
+      @verbatim (language="comment", text=
+        "RTC is calibrated")
+      const uint8 FLAGS_RTC_CALIB = 1;
+      @verbatim (language="comment", text=
+        "Safe boot mode (0 = inactive, 1 = active)")
+      const uint8 FLAGS_SAFE_BOOT = 2;
+      @verbatim (language="comment", text=
+        "output from Jamming/Interference Monitor:")
+      const uint8 FLAGS_JAMMING_STATE_MASK = 12;
+      @verbatim (language="comment", text=
+        "unknown or feature disabled")
+      const uint8 JAMMING_STATE_UNKNOWN_OR_DISABLED = 0;
+      @verbatim (language="comment", text=
+        "ok - no significant jamming")
+      const uint8 JAMMING_STATE_OK = 4;
+      @verbatim (language="comment", text=
+        "interference visible but fix OK")
+      const uint8 JAMMING_STATE_WARNING = 8;
+      @verbatim (language="comment", text=
+        "interference visible and no fix")
+      const uint8 JAMMING_STATE_CRITICAL = 12;
+      @verbatim (language="comment", text=
+        "RTC XTAL is absent" "\n"        "(not supported in protocol versions < 18)")
+      const uint8 FLAGS_XTAL_ABSENT = 16;
+      @verbatim (language="comment", text=
+        "No CW Jamming")
+      const uint8 JAM_IND_NONE = 0;
+      @verbatim (language="comment", text=
+        "Strong CW Jamming")
+      const uint8 JAM_IND_STRONG = 255;
+    };
+    @verbatim (language="comment", text=
+      "MON-HW (0x0A 0x09)" "\n"
+      "Hardware Status" "\n"
+      "" "\n"
+      "Status of different aspect of the hardware, such as Antenna, PIO/Peripheral" "\n"
+      "Pins, Noise Level, Automatic Gain Control (AGC)" "\n"
+      "" "\n"
+      "WARNING: this message is a different length than the MonHW message for" "\n"
+      "firmware version 6")
+    struct MonHW {
+      @verbatim (language="comment", text=
+        "Mask of Pins Set as Peripheral/PIO")
+      uint32 pin_sel;
+
+      @verbatim (language="comment", text=
+        "Mask of Pins Set as Bank A/B")
+      uint32 pin_bank;
+
+      @verbatim (language="comment", text=
+        "Mask of Pins Set as Input/Output")
+      uint32 pin_dir;
+
+      @verbatim (language="comment", text=
+        "Mask of Pins Value Low/High")
+      uint32 pin_val;
+
+      @verbatim (language="comment", text=
+        "Noise Level as measured by the GPS Core")
+      uint16 noise_per_ms;
+
+      @verbatim (language="comment", text=
+        "AGC Monitor (counts SIGHI xor SIGLO," "\n"
+        "range 0 to 8191)")
+      uint16 agc_cnt;
+
+      @verbatim (language="comment", text=
+        "Status of the Antenna Supervisor State Machine")
+      uint8 a_status;
+
+      @verbatim (language="comment", text=
+        "Current PowerStatus of Antenna")
+      uint8 a_power;
+
+      @verbatim (language="comment", text=
+        "Flags:")
+      uint8 flags;
+
+      @verbatim (language="comment", text=
+        "Reserved")
+      uint8 reserved0;
+
+      @verbatim (language="comment", text=
+        "Mask of Pins that are used by the Virtual Pin" "\n"
+        "Manager")
+      uint32 used_mask;
+
+      @verbatim (language="comment", text=
+        "Array of Pin Mappings for each of the 17" "\n"
+        "Physical Pins")
+      uint8__17 vp;
+
+      @verbatim (language="comment", text=
+        "CW Jamming indicator, scaled:")
+      uint8 jam_ind;
+
+      @verbatim (language="comment", text=
+        "Reserved")
+      uint8__2 reserved1;
+
+      @verbatim (language="comment", text=
+        "Mask of Pins Value using the PIO Irq")
+      uint32 pin_irq;
+
+      @verbatim (language="comment", text=
+        "Mask of Pins Value using the PIO Pull High" "\n"
+        "Resistor")
+      uint32 pull_h;
+
+      @verbatim (language="comment", text=
+        "Mask of Pins Value using the PIO Pull Low" "\n"
+        "Resistor")
+      uint32 pull_l;
+    };
+  };
+};

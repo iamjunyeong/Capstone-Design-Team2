@@ -1,0 +1,84 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/CfgDAT.msg
+// generated code does not contain a copyright notice
+
+
+module ublox_msgs {
+  module msg {
+    typedef uint8 uint8__6[6];
+    module CfgDAT_Constants {
+      const uint8 CLASS_ID = 6;
+      const uint8 MESSAGE_ID = 6;
+      const uint16 DATUM_NUM_WGS84 = 0;
+      const uint16 DATUM_NUM_USER = 65535;
+    };
+    @verbatim (language="comment", text=
+      "CFG-DAT (0x06 0x06)" "\n"
+      "Set User-defined Datum" "\n"
+      "" "\n"
+      "For more information see the description of Geodetic Systems and Frames.")
+    struct CfgDAT {
+      @verbatim (language="comment", text=
+        "Only for GET, these values are not used for write" "\n"
+        "Datum Number: 0 = WGS84, 0xFFFF = user-defined")
+      uint16 datum_num;
+
+      @verbatim (language="comment", text=
+        "ASCII String: WGS84 or USER")
+      uint8__6 datum_name;
+
+      @verbatim (language="comment", text=
+        "Semi-major Axis" "\n"
+        "accepted range = 6,300,000.0 to 6,500,000.0 meters")
+      @unit (value="m")
+      double maj_a;
+
+      @verbatim (language="comment", text=
+        "1.0 / Flattening" "\n"
+        "accepted range is 0.0 to 500.0")
+      double flat;
+
+      @verbatim (language="comment", text=
+        "X Axis shift at the origin" "\n"
+        "accepted range is +/- 5000.0 meters")
+      @unit (value="m")
+      float d_x;
+
+      @verbatim (language="comment", text=
+        "Y Axis shift at the origin" "\n"
+        "accepted range is +/- 5000.0 meters")
+      @unit (value="m")
+      float d_y;
+
+      @verbatim (language="comment", text=
+        "Z Axis shift at the origin" "\n"
+        "accepted range is +/- 5000.0 meters")
+      @unit (value="m")
+      float d_z;
+
+      @verbatim (language="comment", text=
+        "Rotation about the X Axis" "\n"
+        "accepted range is +/- 20.0 milli-arc seconds")
+      @unit (value="s")
+      float rot_x;
+
+      @verbatim (language="comment", text=
+        "Rotation about the Y Axis" "\n"
+        "accepted range is +/- 20.0 milli-arc seconds")
+      @unit (value="s")
+      float rot_y;
+
+      @verbatim (language="comment", text=
+        "Rotation about the Z Axis" "\n"
+        "accepted range is +/- 20.0 milli-arc seconds")
+      @unit (value="s")
+      float rot_z;
+
+      @verbatim (language="comment", text=
+        "Scale change" "\n"
+        "accepted range is 0.0 to 50.0 parts per million")
+      @unit (value="ppm")
+      float scale;
+    };
+  };
+};

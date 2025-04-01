@@ -1,0 +1,86 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/TimTM2.msg
+// generated code does not contain a copyright notice
+
+
+module ublox_msgs {
+  module msg {
+    module TimTM2_Constants {
+      const uint8 CLASS_ID = 13;
+      const uint8 MESSAGE_ID = 3;
+      @verbatim (language="comment", text=
+        "single = 0, running = 1")
+      const uint8 FLAGS_MODE_RUNNING = 1;
+      @verbatim (language="comment", text=
+        "armed = 0, stopped = 1")
+      const uint8 FLAGS_RUN = 2;
+      @verbatim (language="comment", text=
+        "new falling edge detected")
+      const uint8 FLAGS_NEWFALLINGEDGE = 4;
+      @verbatim (language="comment", text=
+        "0 = time base is receiver time, 1 = time base is GNSS Time (according to the configuration in CFG-TP5 for tpldx= 0)")
+      const uint8 FLAGS_TIMEBASE_GNSS = 8;
+      @verbatim (language="comment", text=
+        "Time Base is UTC (the variant according to the configuration in CFG-NAV5")
+      const uint8 FLAGS_TIMEBASE_UTC = 16;
+      @verbatim (language="comment", text=
+        "0 = utc not available, 1 = utc available")
+      const uint8 FLAGS_UTC_AVAIL = 32;
+      @verbatim (language="comment", text=
+        "0 = time is not valid, 1 time is valid")
+      const uint8 FLAGS_TIME_VALID = 64;
+      @verbatim (language="comment", text=
+        "new rising edge detected")
+      const uint8 FLAGS_NEWRISINGEDGE = 128;
+    };
+    @verbatim (language="comment", text=
+      "TIM-TM2 (0x0D, 0x03)" "\n"
+      "Time mark data" "\n"
+      "" "\n"
+      "Description for details." "\n"
+      "" "\n"
+      "Supported on:" "\n"
+      " - u-blox 8 / u-blox M8 with protocol version 22 (only with Timing Products)")
+    struct TimTM2 {
+      @verbatim (language="comment", text=
+        "Channel (i.e. EXTINT) upon which the pulse was measured")
+      uint8 ch;
+
+      @verbatim (language="comment", text=
+        "Bitmask [newRisingEdge, time, utc, timeBase, , newFallingEdge, run, mode]")
+      uint8 flags;
+
+      @verbatim (language="comment", text=
+        "rising edge count")
+      uint16 rising_edge_count;
+
+      @verbatim (language="comment", text=
+        "week number of last rising edge")
+      uint16 wn_r;
+
+      @verbatim (language="comment", text=
+        "week number of last falling edge")
+      uint16 wn_f;
+
+      @verbatim (language="comment", text=
+        "Tow of rising edge")
+      uint32 tow_ms_r;
+
+      @verbatim (language="comment", text=
+        "Millisecond Fraction of Tow of rising edge in nanoseconds")
+      uint32 tow_sub_ms_r;
+
+      @verbatim (language="comment", text=
+        "tow of falling edge")
+      uint32 tow_ms_f;
+
+      @verbatim (language="comment", text=
+        "millisecond fraction of tow of falling edge in nanoseconds")
+      uint32 tow_sub_ms_f;
+
+      @verbatim (language="comment", text=
+        "Accuracy estimate")
+      uint32 acc_est;
+    };
+  };
+};

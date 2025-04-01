@@ -1,0 +1,19 @@
+Metadata-Version: 2.1
+Name: ntrip-client
+Version: 1.4.0
+Summary: NTRIP client that will publish RTCM corrections to a ROS topic, and optionally subscribe to NMEA messages to send to an NTRIP server
+Home-page: UNKNOWN
+Author: Rob Fisher
+Author-email: rob.fisher@parker.com
+Maintainer: Rob Fisher
+Maintainer-email: rob.fisher@parker.com
+License: MIT License
+Keywords: ROS
+Platform: UNKNOWN
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT Software License
+Classifier: Programming Language :: Python
+Classifier: Topic :: Software Development
+
+UNKNOWN
+

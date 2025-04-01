@@ -1,0 +1,22 @@
+[1.234s] Invoking command in '/home/jun/ros2_ws/src/build/sensor_drivers': PYTHONPATH=/home/jun/ros2_ws/src/build/sensor_drivers/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/jun/ros2_ws/src/install/sensor_drivers/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/jun/ros2_ws/src/build/sensor_drivers/build --no-deps symlink_data
+[1.474s] running develop
+[1.589s] running egg_info
+[1.589s] creating sensor_drivers.egg-info
+[1.589s] writing sensor_drivers.egg-info/PKG-INFO
+[1.589s] writing dependency_links to sensor_drivers.egg-info/dependency_links.txt
+[1.589s] writing entry points to sensor_drivers.egg-info/entry_points.txt
+[1.589s] writing requirements to sensor_drivers.egg-info/requires.txt
+[1.590s] writing top-level names to sensor_drivers.egg-info/top_level.txt
+[1.590s] writing manifest file 'sensor_drivers.egg-info/SOURCES.txt'
+[1.592s] reading manifest file 'sensor_drivers.egg-info/SOURCES.txt'
+[1.592s] writing manifest file 'sensor_drivers.egg-info/SOURCES.txt'
+[1.593s] running build_ext
+[1.593s] Creating /home/jun/ros2_ws/src/install/sensor_drivers/lib/python3.10/site-packages/sensor-drivers.egg-link (link to .)
+[1.594s] 
+[1.594s] Installed /home/jun/ros2_ws/src/build/sensor_drivers
+[1.594s] running symlink_data
+[1.594s] creating /home/jun/ros2_ws/src/install/sensor_drivers/share/sensor_drivers/launch
+[1.594s] symbolically linking /home/jun/ros2_ws/src/build/sensor_drivers/launch/imu.launch.py -> /home/jun/ros2_ws/src/install/sensor_drivers/share/sensor_drivers/launch
+[1.594s] symbolically linking /home/jun/ros2_ws/src/build/sensor_drivers/launch/rtk_gps.launch.py -> /home/jun/ros2_ws/src/install/sensor_drivers/share/sensor_drivers/launch
+[1.594s] error: can't copy '/home/jun/ros2_ws/src/build/sensor_drivers/launch/sensor_bringup.launch.pylaunch/ublox_gps_node-launch.py': doesn't exist or not a regular file
+[1.660s] Invoked command in '/home/jun/ros2_ws/src/build/sensor_drivers' returned '1': PYTHONPATH=/home/jun/ros2_ws/src/build/sensor_drivers/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/jun/ros2_ws/src/install/sensor_drivers/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/jun/ros2_ws/src/build/sensor_drivers/build --no-deps symlink_data

@@ -1,0 +1,13 @@
+package.xml
+setup.cfg
+setup.py
+iahrs_driver/__init__.py
+iahrs_driver/driver.py
+iahrs_driver.egg-info/PKG-INFO
+iahrs_driver.egg-info/SOURCES.txt
+iahrs_driver.egg-info/dependency_links.txt
+iahrs_driver.egg-info/entry_points.txt
+iahrs_driver.egg-info/requires.txt
+iahrs_driver.egg-info/top_level.txt
+iahrs_driver.egg-info/zip-safe
+resource/iahrs_driver

@@ -1,0 +1,64 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from ublox_msgs/msg/CfgSBAS.msg
+// generated code does not contain a copyright notice
+
+
+module ublox_msgs {
+  module msg {
+    module CfgSBAS_Constants {
+      const uint8 CLASS_ID = 6;
+      const uint8 MESSAGE_ID = 22;
+      @verbatim (language="comment", text=
+        "SBAS Enabled (1) / Disabled (0)" "\n"        " This field is deprecated; use UBX-CFG-GNSS to" "\n"        "enable/disable SBAS operation")
+      const uint8 MODE_ENABLED = 1;
+      @verbatim (language="comment", text=
+        "SBAS Testbed: Use data anyhow (1) / Ignore data when" "\n"        "in Test Mode (SBAS Msg 0)")
+      const uint8 MODE_TEST = 2;
+      @verbatim (language="comment", text=
+        "Use SBAS GEOs as a ranging source (for navigation)")
+      const uint8 USAGE_RANGE = 1;
+      @verbatim (language="comment", text=
+        "Use SBAS Differential Corrections")
+      const uint8 USAGE_DIFF_CORR = 2;
+      @verbatim (language="comment", text=
+        "Use SBAS Integrity Information")
+      const uint8 USAGE_INTEGRITY = 4;
+    };
+    @verbatim (language="comment", text=
+      "CFG-SBAS (0x06 0x16)" "\n"
+      "SBAS Configuration" "\n"
+      "" "\n"
+      "This message configures the SBAS receiver subsystem (i.e. WAAS, EGNOS, MSAS)." "\n"
+      "See the SBAS Configuration Settings Description for a detailed description of" "\n"
+      "how these settings affect receiver operation")
+    struct CfgSBAS {
+      @verbatim (language="comment", text=
+        "SBAS Mode")
+      uint8 mode;
+
+      @verbatim (language="comment", text=
+        "SBAS Usage")
+      uint8 usage;
+
+      @verbatim (language="comment", text=
+        "Maximum Number of SBAS prioritized tracking" "\n"
+        "channels (valid range: 0 - 3) to use" "\n"
+        "(obsolete and superseeded by UBX-CFG-GNSS in protocol" "\n"
+        "versions 14+).")
+      uint8 max_sbas;
+
+      @verbatim (language="comment", text=
+        "Continuation of scanmode bitmask below" "\n"
+        "PRN 152...158")
+      uint8 scanmode2;
+
+      @verbatim (language="comment", text=
+        "Which SBAS PRN numbers to search for (Bitmask)" "\n"
+        "If all Bits are set to zero, auto-scan (i.e. all valid" "\n"
+        "PRNs) are searched. Every bit corresponds to a PRN" "\n"
+        "number." "\n"
+        "PRN 120..151")
+      uint32 scanmode1;
+    };
+  };
+};

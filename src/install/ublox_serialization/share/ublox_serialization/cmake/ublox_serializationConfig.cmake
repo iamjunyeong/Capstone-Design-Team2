@@ -1,0 +1,1 @@
+/home/jun/ros2_ws/src/build/ublox_serialization/ament_cmake_core/ublox_serializationConfig.cmake

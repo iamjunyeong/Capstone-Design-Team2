@@ -1,0 +1,1 @@
+/home/jun/ros2_ws/src/sensor_bringup/launch/sensor_bringup.launch.pylaunch/ublox_gps_node-launch.py
