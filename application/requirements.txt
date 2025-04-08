@@ -1,0 +1,6 @@
+gtts==2.5.4
+pydub==0.25.1
+grpcio==1.71.0
+webrtcvad==2.0.10
+sounddevice==0.5.1
+protobuf==5.29.4
