@@ -11,20 +11,33 @@ class TTSNode(Node):
         super().__init__('tts_node')
         self.subscription = self.create_subscription(
             String,
-            '/tts_text',
+            '/intent',
             self.listener_callback,
             10
         )
-        self.get_logger().info('✅ TTS Node has started. Listening to /tts_text')
+        self.get_logger().info('✅ TTS Node has started. Listening to /intent')
 
     def listener_callback(self, msg):
-        text = msg.data
-        self.get_logger().info(f'🔈 TTS 요청: "{text}"')
-        self.speak(text)
+        intent = msg.data
+        self.get_logger().info(f'🔈 의도 수령: "{intent}"')
+        self.speak(intent)
 
-    def speak(self, text):
+    def speak(self, intent):
+        if intent.startswith("set_destination:"):
+            destination = intent.split(":")[1]
+            response = f"목적지를 {destination}로 설정하였습니다."
+        elif intent == "get_eta":
+            response = "남은 시간은 <플래닝 시간 변수> 분입니다."
+        elif intent == "get_location":
+            response = "현재 위치는 <플래닝 위치 변수> 앞입니다."
+        else:
+            response = "알 수 없는 요청입니다."
+
+        # 터미널에 출력
+        self.get_logger().info(f"응답: {response}")
+
         try:
-            tts = gTTS(text=text, lang='ko')
+            tts = gTTS(text=response, lang='ko')
             fp = io.BytesIO()
             tts.write_to_fp(fp)
             fp.seek(0)
@@ -32,15 +45,6 @@ class TTSNode(Node):
             play(audio)
         except Exception as e:
             self.get_logger().error(f'TTS 오류: {e}')
-
-    def speak_remaining_time(self, minutes):
-        self.speak(f"남은 시간은 {minutes}분입니다.")
-
-    def speak_current_location(self, place):
-        self.speak(f"현재 위치는 {place} 앞입니다.")
-
-    def speak_destination_set(self, destination):
-        self.speak(f"목적지를 {destination}로 설정하였습니다.")
 
 def main(args=None):
     rclpy.init(args=args)
@@ -51,3 +55,4 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
+

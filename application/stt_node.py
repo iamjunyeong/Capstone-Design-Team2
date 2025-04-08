@@ -23,7 +23,7 @@ ENCODING = pb.DecoderConfig.AudioEncoding.LINEAR16
 CHANNELS = 1
 FRAME_DURATION_MS = 30
 FRAME_SIZE = int(SAMPLE_RATE * FRAME_DURATION_MS / 1000)
-MAX_SILENCE_DURATION = 0.6
+MAX_SILENCE_DURATION = 600
 
 boosted_keywords = [
     "공학관", "신공학관", "새천년관", "학생회관", "법학관",
@@ -136,4 +136,3 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
-

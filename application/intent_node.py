@@ -12,7 +12,7 @@ class IntentNode(Node):
             self.listener_callback,
             10
         )
-        self.publisher_ = self.create_publisher(String, '/tts_text', 10)
+        self.publisher_ = self.create_publisher(String, '/intent', 10)  # /intent 토픽으로 의도만 전송
         self.get_logger().info('🧠 Intent Node started. Waiting for STT input...')
 
         # 키워드 목록
@@ -28,15 +28,7 @@ class IntentNode(Node):
         self.get_logger().info(f'👂 STT로부터 받은 텍스트: "{user_text}"')
 
         intent_info = self.classify_intent(user_text)
-        response = self.generate_response(intent_info)
-
-        if response:
-            self.get_logger().info(f'📤 TTS 응답: "{response}"')
-            tts_msg = String()
-            tts_msg.data = response
-            self.publisher_.publish(tts_msg)
-        else:
-            self.get_logger().warn("❓ 의도를 파악하지 못했습니다.")
+        self.generate_response(intent_info)
 
     def classify_intent(self, user_text):
         intent_keywords = {
@@ -72,14 +64,21 @@ class IntentNode(Node):
         intent = intent_info["intent"]
         destination = intent_info["destination"]
 
+        # 의도에 맞는 텍스트가 아닌 의도만 /intent 토픽으로 전송
         if intent == "set_destination" and destination:
-            return f"목적지를 {destination}로 설정하였습니다."
+            self.send_intent_message(f"set_destination: {destination}")
         elif intent == "get_eta":
-            return "남은 시간은 5분입니다."  # 임시 값
+            self.send_intent_message("get_eta")
         elif intent == "get_location":
-            return "현재 위치는 공학관 앞입니다."  # 임시 값
+            self.send_intent_message("get_location")
         else:
-            return None
+            self.get_logger().warn("❓ 의도를 파악하지 못했습니다.")
+
+    def send_intent_message(self, intent_message):
+        intent_msg = String()
+        intent_msg.data = intent_message
+        self.publisher_.publish(intent_msg)
+        self.get_logger().info(f'📤 의도 전송: "{intent_message}"')
 
 
 def main(args=None):
