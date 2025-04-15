@@ -2,19 +2,19 @@
 
 import rclpy
 from rclpy.node import Node
-
+from rclpy.qos import QoSProfile, HistoryPolicy
 from sensor_msgs.msg import PointCloud2, PointField
 from std_msgs.msg import Header
 import sensor_msgs_py.point_cloud2 as pc2
 import numpy as np
 import struct
-
 import open3d as o3d  # pip install open3d
 # 기존 scikit-learn 대신 cuML DBSCAN 사용 (CUDA 환경 필요)
 from cuml.cluster import DBSCAN as cuDBSCAN
 import cupy as cp
-
 import os
+
+
 
 def rgb_to_float(r, g, b):
     """Convert 8-bit r, g, b values (0–255) to a packed float32 value."""
@@ -27,14 +27,25 @@ class PlaneClusterNode(Node):
         
         # 비동기 처리를 위해 처리중 여부 플래그 초기화
         self.processing_flag = False
-        
+        self.voxel_size = 0.1
+        self.distance_threshold=0.3
+        self.eps = 0.18
+        self.min_samples = 13
+        self.num_cluster = 15
+        self.qos = QoSProfile(
+            history=HistoryPolicy.KEEP_LAST,
+            depth=1,
+            reliability=1  # 기본으로 Reliable 설정
+        )
+
         # 구독할 PointCloud2 토픽 (예: /camera/camera/depth/color/points)
         self.subscription = self.create_subscription(
             PointCloud2,
             '/camera/camera/depth/color/points',
             self.pointcloud_callback,
-            10  # 큐 크기가 10: 최대 10개의 메시지를 버퍼링
+            self.qos # 큐 크기가 10: 최대 10개의 메시지를 버퍼링
         )
+
         
         # 처리된 결과 (색상 정보 포함)를 퍼블리시할 토픽
         self.publisher_ = self.create_publisher(PointCloud2, '/obstacle_clusters_colored', 10)
@@ -56,24 +67,24 @@ class PlaneClusterNode(Node):
         self.get_logger().info(f"Input points: {points.shape[0]}")
         
         # 1a) 다운샘플링: 전체 포인트 수를 줄임 (voxel 크기: 2cm)
-        voxel_size = 0.02
+        
         pcd_orig = o3d.geometry.PointCloud()
         pcd_orig.points = o3d.utility.Vector3dVector(points[:, :3])
-        pcd = pcd_orig.voxel_down_sample(voxel_size=voxel_size)
+        pcd = pcd_orig.voxel_down_sample(voxel_size=self.voxel_size)
         points_ds = np.asarray(pcd.points)
         self.get_logger().info(f"Downsampled points: {points_ds.shape[0]}")
         
         # 2) 여러 평면 후보 추출 (예시로 2회 반복)
         candidate_planes = []  # 각 원소: (inlier_indices, avg_z)
         pcd_remaining = pcd  # 점들을 계속 업데이트
-        num_candidates = 2
+        num_candidates = 3
         for i in range(num_candidates):
             if np.asarray(pcd_remaining.points).shape[0] < 100:
                 break
             plane_model, inlier_indices = pcd_remaining.segment_plane(
-                distance_threshold=0.1,  # 평면 판단 임계값
+                distance_threshold=self.distance_threshold,  # 평면 판단 임계값
                 ransac_n=3,
-                num_iterations=200
+                num_iterations=3000
             )
             inlier_indices = np.asarray(inlier_indices)
             if len(inlier_indices) < 50:  # 후보로 보기 어려우면 중단
@@ -81,32 +92,49 @@ class PlaneClusterNode(Node):
             candidate = pcd_remaining.select_by_index(inlier_indices)
             candidate_np = np.asarray(candidate.points)
             avg_z = np.mean(candidate_np[:,2])
-            candidate_planes.append((inlier_indices, avg_z))
+            candidate_planes.append((inlier_indices, avg_z, len(inlier_indices)))
             # 제거하여 남은 점으로 업데이트
             pcd_remaining = pcd_remaining.select_by_index(inlier_indices, invert=True)
             self.get_logger().info(f"Candidate {i}: {len(inlier_indices)} points, avg_z={avg_z:.3f}")
         
-        # 2a) 바닥면으로 간주할 후보 선택: inlier 포인트의 평균 z값이 가장 낮은 평면
         if candidate_planes:
-            floor_candidate = min(candidate_planes, key=lambda x: x[1])
-            floor_inliers = floor_candidate[0]
-            self.get_logger().info(f"Selected floor candidate with avg_z={floor_candidate[1]:.3f}")
+            # 먼저, 후보들을 평균 z 값(내림차순)과 inlier count(내림차순)로 정렬
+            # 여기서는 우선순위를 평균 z 값에 두되, inlier 수도 고려합니다.
+            candidate_planes_sorted = sorted(candidate_planes, key=lambda x: (x[1]), reverse=True)
+            red_candidate = candidate_planes_sorted[0]
+            red_inliers = red_candidate[0]
+            red_avg_z = red_candidate[1]
+            self.get_logger().info(f"Selected red candidate: {len(red_inliers)} inliers, avg_z={red_avg_z:.3f}")
+            
+            # 두 번째 후보: red_candidate의 avg_z보다 낮은 후보 중에서 inlier 수가 가장 많은 후보 선택
+            green_candidates = [cand for cand in candidate_planes_sorted if cand[1] < red_avg_z]
+            if green_candidates:
+                green_candidate = max(green_candidates, key=lambda x: x[2])
+                green_inliers = green_candidate[0]
+                green_avg_z = green_candidate[1]
+                self.get_logger().info(f"Selected green candidate: {len(green_inliers)} inliers, avg_z={green_avg_z:.3f}")
+            else:
+                green_inliers = np.array([], dtype=int)
+                self.get_logger().warn("No green candidate found (no candidate with lower avg_z than red).")
+            combined_inliers = np.unique(np.concatenate((green_inliers, red_inliers)))
+
         else:
-            floor_inliers = np.array([], dtype=int)
+            red_inliers = np.array([], dtype=int)
+            green_inliers = np.array([], dtype=int)
             self.get_logger().warn("No candidate floor plane detected.")
         
-        # 2b) 원본 다운샘플링 데이터(points_ds)에서 바닥 평면 제거:
+        # 2b) 원본 다운샘플링 데이터(points_ds)에서 선택된 평면 후보들의 inlier 점 제거
         mask = np.ones(len(points_ds), dtype=bool)
-        if floor_inliers.size > 0:
-            mask[floor_inliers] = False
+        if combined_inliers.size > 0:
+            mask[combined_inliers] = False
         remaining_points = points_ds[mask]
-        self.get_logger().info(f"After floor removal: {remaining_points.shape[0]} points")
+        self.get_logger().info(f"After plane removal: {remaining_points.shape[0]} points")
         
         # 3) cuML DBSCAN을 이용하여 남은 점들 군집화
         # 먼저, GPU 배열(CuPy)로 변환
         
         remaining_points_gpu = cp.asarray(remaining_points[:, :3])
-        clustering = cuDBSCAN(eps=0.05, min_samples=20)
+        clustering = cuDBSCAN(eps=self.eps, min_samples=self.min_samples)
         clustering.fit(remaining_points_gpu)
         labels_gpu = clustering.labels_
         labels = cp.asnumpy(labels_gpu)
@@ -123,7 +151,7 @@ class PlaneClusterNode(Node):
             cluster_size = cluster_pts.shape[0]
             clusters_info.append((lab, avg_distance, cluster_size))
         clusters_info.sort(key=lambda x: x[2], reverse=True)
-        top_clusters = clusters_info[:10]
+        top_clusters = clusters_info[:self.num_cluster]
         top_labels = [lab for lab, _, _ in top_clusters]
         self.get_logger().info(f"Top clusters (by size): {top_clusters}")
         
