@@ -1,6 +1,6 @@
 import rclpy
 from rclpy.node import Node
-from std_msgs.msg import String
+from std_msgs.msg import String, Bool
 
 import logging
 import time
@@ -38,7 +38,7 @@ class VADMicStreamer:
         self.q = queue.Queue()
         self.vad = webrtcvad.Vad(2)
         self.max_silence_frames = int(MAX_SILENCE_DURATION * 1000 / FRAME_DURATION_MS)
-
+        
     def __enter__(self):
         self.stream = sd.InputStream(
             samplerate=SAMPLE_RATE,
@@ -59,9 +59,12 @@ class VADMicStreamer:
         self.stream.stop()
         self.stream.close()
 
-    def read_stream(self):
+    def read_stream(self, stop_condition_fn):
         silence = 0
         while True:
+            if stop_condition_fn():  # 외부 종료 조건 검사
+                print("버튼 off")
+                break
             frame = self.q.get()
             if len(frame) < 2:
                 continue
@@ -73,16 +76,30 @@ class VADMicStreamer:
                 silence += 1
                 if silence > self.max_silence_frames:
                     break
-
 # === STT 노드 ===
 class STTNode(Node):
     def __init__(self):
         super().__init__('stt_node')
         self.publisher_ = self.create_publisher(String, '/stt_text', 10)
-        self.get_logger().info('🎤 STT Node has started.')
+        self.subscription = self.create_subscription(Bool,'/talkbutton_pressed',self.talk_button_callback,10)
+        self.get_logger().info('STT Node has started.')
         self.token = None
         self._sess = Session()
-        self.run_stt()
+        self.is_processing = False  # 중복 실행 방지용
+        self.talkbutton_pressed = False
+    
+    def talk_button_callback(self, msg):
+        self.talkbutton_pressed = msg.data
+        self.get_logger().info(f"Talk button 상태: {self.talkbutton_pressed}")
+        if msg.data and not self.is_processing:
+            self.get_logger().info("버튼 눌림 감지됨. STT 실행 시작.")
+            self.is_processing = True
+            try:
+                self.run_stt()
+            finally:
+                self.is_processing = False
+        elif not msg.data:
+            self.get_logger().info("버튼 떨어짐, STT정지요청")
 
     def get_token(self):
         if self.token is None or self.token["expire_at"] < time.time():
@@ -111,17 +128,17 @@ class STTNode(Node):
             def req_iterator():
                 yield pb.DecoderRequest(streaming_config=config)
                 with VADMicStreamer() as mic:
-                    for chunk in mic.read_stream():
+                    for chunk in mic.read_stream(lambda: not self.talkbutton_pressed):  # 종료 조건
                         yield pb.DecoderRequest(audio_content=chunk)
 
-            self.get_logger().info("🗣️ 음성 인식 대기 중...")
+            self.get_logger().info("음성 인식 대기 중...")
             for resp in stub.Decode(req_iterator(), credentials=cred):
                 for result in resp.results:
                     text = result.alternatives[0].text
                     if not text.strip():
                         continue
                     if result.is_final:
-                        self.get_logger().info(f"✅ 최종 인식: {text}")
+                        self.get_logger().info(f"최종 인식: {text}")
                         msg = String()
                         msg.data = text
                         self.publisher_.publish(msg)
