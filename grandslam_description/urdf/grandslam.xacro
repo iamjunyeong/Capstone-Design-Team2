@@ -229,6 +229,14 @@
   <origin xyz="0.18 0 0" rpy="0 0 0"/>
 </joint>
 
+<!--imu-->
+<link name="imu">
+</link>
+<joint name="imu_joint" type="fixed">
+  <parent link="base_link"/>
+  <child link ="imu"/>
+  <origin xyz="-0.2 0 0" rpy="0 0 0"/>
+</joint>
 
   <!-- 바퀴 4개 -->
   <xacro:wheel name="wheel_fl" xyz=" 0.18  0.14 0.0"/>
