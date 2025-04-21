@@ -1,0 +1,239 @@
+<?xml version="1.0"?>
+<robot name="simple_car" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- 색상 -->
+  <material name="red">
+    <color rgba="1 0 0 1"/>
+  </material>
+  <material name="green">
+    <color rgba="0 1 0 1"/>
+  </material>
+  <material name="blue">
+    <color rgba="0 0 1 1"/>
+  </material>
+  <material name="black">
+    <color rgba="0 0 0 1"/>
+  </material>
+  <material name="gray">
+    <color rgba="0.5 0.5 0.5 1"/>
+  </material>
+  <material name="white">
+    <color rgba="1 1 1 1"/>
+  </material>
+  <material name="yellow">
+    <color rgba="1 1 0 1"/>
+  </material>
+  <material name="orange">
+    <color rgba="1 0.5 0 1"/>
+  </material>
+
+  <!-- 바퀴 매크로 -->
+  <xacro:macro name="wheel" params="name xyz">
+    <link name="${name}">
+      <visual>
+        <origin xyz="0 0 0" rpy="1.5708 0 0"/> 
+        <geometry>
+          <cylinder radius="0.08" length="0.05"/>
+        </geometry>
+        <material name="black"/>
+      </visual>
+    </link>
+    <joint name="${name}_joint" type="fixed">
+      <parent link="base_link"/>
+      <child link="${name}"/>
+      <origin xyz="${xyz}" rpy="0 0 0"/>
+    </joint>
+  </xacro:macro>
+
+  <!-- 차체 -->
+  <link name="base_link">
+    <visual>
+      <origin xyz="0 0 0.075" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.6 0.3 0.15"/>
+      </geometry>
+      <material name="blue"/>
+    </visual>
+  </link>
+
+  <!-- 앞 범퍼  -->
+  <link name="front_bumper">
+    <visual>
+      <origin xyz="0.024 0 0.03" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.08 0.3 0.15"/>
+      </geometry>
+      <material name="black"/>
+    </visual>
+  </link>
+  <joint name="front_bumper_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="front_bumper"/>
+    <origin xyz="0.315 0 0.05" rpy="0 0 0"/>
+  </joint>
+
+<!-- 원통형 박스 -->
+<link name="sensor_box">
+  <visual>
+    <origin xyz="0 0 0.1" rpy="0 0 0"/> 
+    <geometry>
+      <cylinder radius="0.05" length="0.3"/> 
+    </geometry>
+    <material name="gray"/>
+  </visual>
+</link>
+
+<joint name="sensor_box_joint" type="fixed">
+  <parent link="base_link"/>
+  <child link="sensor_box"/>
+  <origin xyz="0.25 0 0.075" rpy="0 0 0"/> 
+</joint>
+
+<!-- 2D Lidar -->
+<link name="sensor_tip">
+  <visual>
+    <origin xyz="0 0 0.175" rpy="0 0 0"/> 
+    <geometry>
+      <cylinder radius="0.02" length="0.05"/>
+    </geometry>
+    <material name="yellow"/>
+  </visual>
+</link>
+
+<joint name="sensor_tip_joint" type="fixed">
+  <parent link="sensor_box"/>
+  <child link="sensor_tip"/>
+  <origin xyz="0 0 0.1" rpy="0 0 0"/> 
+</joint>
+
+
+  <!--  뒷 상자 박스 -->
+<link name="rear_box">
+  <visual>
+    <origin xyz="0 0 0.05" rpy="0 0 0"/>
+    <geometry>
+      <box size="0.3 0.3 0.22"/>
+    </geometry>
+    <material name="gray"/>
+  </visual>
+</link>
+<joint name="rear_box_joint" type="fixed">
+  <parent link="base_link"/>
+  <child link="rear_box"/>
+  <origin xyz="-0.15 0 0.20" rpy="0 0 0"/>
+</joint>
+
+<!-- 수직 막대 -->
+<link name="handle_vertical">
+  <visual>
+    <origin xyz="-0.15 0 0.04" rpy="0 0 0"/>
+    <geometry>
+      <box size="0.02 0.02 0.4"/>
+    </geometry>
+    <material name="black"/>
+  </visual>
+</link>
+<joint name="handle_vertical_joint" type="fixed">
+  <parent link="rear_box"/>
+  <child link="handle_vertical"/>
+  <origin xyz="0 0 0.11" rpy="0 0 0"/> 
+</joint>
+
+<!-- 손잡이 -->
+<link name="handle_horizontal">
+  <visual>
+    <origin xyz="-0.15 0 0.2" rpy="1.5708 0 0"/> 
+    <geometry>
+      <cylinder length="0.2" radius="0.01"/> 
+    </geometry>
+    <material name="black"/>
+  </visual>
+</link>
+
+<joint name="handle_horizontal_joint" type="fixed">
+  <parent link="handle_vertical"/>
+  <child link="handle_horizontal"/>
+  <origin xyz="0 0 0.04" rpy="0 0 0"/>
+</joint>
+
+<!-- Mono Camera 3개 -->
+
+<link name="front_bumper_ball_left">
+  <visual>
+    <origin xyz="0.06 0.1 0.005" rpy="0 0 0"/>
+    <geometry>
+      <sphere radius="0.02"/>
+    </geometry>
+    <material name="red"/>
+  </visual>
+</link>
+<joint name="front_bumper_ball_left_joint" type="fixed">
+  <parent link="front_bumper"/>
+  <child link="front_bumper_ball_left"/>
+  <origin xyz="0 0 0" rpy="0 0 0"/>
+</joint>
+
+<link name="front_bumper_ball_center">
+  <visual>
+    <origin xyz="0.06 0 0.005" rpy="0 0 0"/>
+    <geometry>
+      <sphere radius="0.02"/>
+    </geometry>
+    <material name="red"/>
+  </visual>
+</link>
+<joint name="front_bumper_ball_center_joint" type="fixed">
+  <parent link="front_bumper"/>
+  <child link="front_bumper_ball_center"/>
+  <origin xyz="0 0 0" rpy="0 0 0"/>
+</joint>
+
+<link name="front_bumper_ball_right">
+  <visual>
+    <origin xyz="0.06 -0.1 0.005" rpy="0 0 0"/>
+    <geometry>
+      <sphere radius="0.02"/>
+    </geometry>
+    <material name="red"/>
+  </visual>
+</link>
+<joint name="front_bumper_ball_right_joint" type="fixed">
+  <parent link="front_bumper"/>
+  <child link="front_bumper_ball_right"/>
+  <origin xyz="0 0 0" rpy="0 0 0"/>
+</joint>
+
+
+<!-- Depth Camera-->
+<link name="front_bumper_top_box">
+  <visual>
+    <origin xyz="0.06 0 0.08" rpy="0 0 0"/>
+    <geometry>
+      <box size="0.04 0.1 0.02"/>
+    </geometry>
+    <material name="green"/>
+  </visual>
+</link>
+<joint name="front_bumper_top_box_joint" type="fixed">
+  <parent link="front_bumper"/>
+  <child link="front_bumper_top_box"/>
+  <origin xyz="0 0 0" rpy="0 0 0"/>
+</joint>
+
+<!--Encoder-->
+<link name="encoder">
+</link>
+<joint name="encoder_joint" type="fixed">
+  <parent link="base_link"/>
+  <child link ="encoder"/>
+  <origin xyz="0.18 0 0" rpy="0 0 0"/>
+</joint>
+
+
+  <!-- 바퀴 4개 -->
+  <xacro:wheel name="wheel_fl" xyz=" 0.18  0.14 0.0"/>
+  <xacro:wheel name="wheel_fr" xyz=" 0.18 -0.14 0.0"/>
+  <xacro:wheel name="wheel_rl" xyz="-0.2  0.14 0.0"/>
+  <xacro:wheel name="wheel_rr" xyz="-0.2 -0.14 0.0"/>
+
+</robot>
