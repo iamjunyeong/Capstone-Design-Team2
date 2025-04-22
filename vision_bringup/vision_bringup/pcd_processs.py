@@ -1,236 +1,251 @@
 #!/usr/bin/env python3
-
-import rclpy
-from rclpy.node import Node
-from rclpy.qos import QoSProfile, HistoryPolicy
-from sensor_msgs.msg import PointCloud2, PointField
-from std_msgs.msg import Header
+"""
+pcd_processs.py
+RGB‑D ⇒ sparse point cloud (OpenCV‑SLIC) ⇒ RANSAC ⇒ DBSCAN
+Publishes coloured clusters on /obstacle_clusters_colored
+"""
+from hdbscan import HDBSCAN
+import rclpy, time, struct, cv2, open3d as o3d, numpy as np
 import sensor_msgs_py.point_cloud2 as pc2
-import numpy as np
-import struct
-import open3d as o3d  # pip install open3d
-# 기존 scikit-learn 대신 cuML DBSCAN 사용 (CUDA 환경 필요)
-from cuml.cluster import DBSCAN as cuDBSCAN
-import cupy as cp
-import os
+from rclpy.node import Node
+from rclpy.qos  import QoSProfile, HistoryPolicy
+from sensor_msgs.msg import Image, PointCloud2, PointField, CameraInfo
+from std_msgs.msg    import Header
+from cv_bridge       import CvBridge
+from sklearn.cluster import DBSCAN
+from message_filters import Subscriber, ApproximateTimeSynchronizer
 
 
+# ───── OpenCV SLIC 래퍼 ────────────────────────────────
+def slic_opencv_bgr(bgr: np.ndarray,
+                    region_size: int = 12,
+                    ruler      : float = 8.0,
+                    iterate    : int   = 5) -> np.ndarray:
+    if not hasattr(cv2, 'ximgproc'):
+        raise RuntimeError('cv2.ximgproc 모듈이 없습니다. '
+                           'opencv‑contrib‑python 설치 필요')
+    slicer = cv2.ximgproc.createSuperpixelSLIC(
+        bgr, algorithm=cv2.ximgproc.SLICO,
+        region_size=region_size, ruler=ruler)
+    slicer.iterate(iterate)
+    return slicer.getLabels()
 
+
+# ───── 헬퍼 ────────────────────────────────────────────
 def rgb_to_float(r, g, b):
-    """Convert 8-bit r, g, b values (0–255) to a packed float32 value."""
-    rgb_int = (int(r) << 16) | (int(g) << 8) | int(b)
-    return struct.unpack('f', struct.pack('I', rgb_int))[0]
+    return struct.unpack('f', struct.pack('I', (r << 16) | (g << 8) | b))[0]
 
-class PlaneClusterNode(Node):
+
+def build_sparse_cloud(color_bgr: np.ndarray,
+                       depth_mm : np.ndarray,
+                       K        : np.ndarray,
+                       scale    : float = 0.4,
+                       reg_size : int   = 12,
+                       ruler    : float = 8.0):
+    """Down‑scale → SLIC → super‑pixel centroids → Nx6 array"""
+    if scale != 1.0:
+        color_bgr = cv2.resize(color_bgr,None,fx=scale,fy=scale,
+                               interpolation=cv2.INTER_LINEAR)
+        depth_mm  = cv2.resize(depth_mm ,None,fx=scale,fy=scale,
+                               interpolation=cv2.INTER_NEAREST)
+        fx, fy, cx, cy = K[0,0]*scale, K[1,1]*scale, K[0,2]*scale, K[1,2]*scale
+    else:
+        fx, fy, cx, cy = K[0,0], K[1,1], K[0,2], K[1,2]
+
+    labels = slic_opencv_bgr(color_bgr, reg_size, ruler, iterate=3)
+
+    pts = []
+    for lab in np.unique(labels):
+        m = labels == lab
+        if m.sum() < 30:            # 작은 super‑pixel 무시
+            continue
+
+        zs = depth_mm[m].astype(np.float32)
+        if zs.std() > 120:          # → 12 cm 이상 흔들리면 신뢰 낮음
+            continue
+        z = np.median(zs) * 1e-3    # ★ 평균 → 중앙값
+
+        if z <= 0.05:               # too close / invalid
+            continue
+        ys, xs = np.nonzero(m)
+        u, v   = xs.mean(), ys.mean()
+        X, Y   = (u-cx)*z/fx , (v-cy)*z/fy
+        b, g, r = [int(color_bgr[:,:,c][m].mean()) for c in range(3)]
+        pts.append([X, Y, z, r, g, b])
+
+    return np.asarray(pts, np.float32)
+
+
+def process_cloud(cloud_rgb: np.ndarray,
+                  voxel=0.01, ransac_dist=0.10,
+                  eps=1.0, min_samples=3, top_k=20):
+    """
+    Parameters
+    ----------
+    cloud_rgb : (N,6)  x,y,z,r,g,b  float32
+    Returns
+    -------
+    pcd_out      : open3d.geometry.PointCloud  (None if nothing to publish)
+    ransac_info  : [{'eq':(a,b,c,d), 'inliers':N}, ...]
+    db_info      : [{'label':ℓ, 'size':N}, ...]   (top_k by size)
+    """
+    if cloud_rgb.size == 0:
+        return None, [], []
+
+    # ── ①  voxel down‑sample & 바닥(평면) 제거 ─────────────────
+    xyz_in, rgb_in = cloud_rgb[:, :3], cloud_rgb[:, 3:] / 255.0
+    pcd  = o3d.geometry.PointCloud(o3d.utility.Vector3dVector(xyz_in))
+    pcd.colors = o3d.utility.Vector3dVector(rgb_in)
+    pcd  = pcd.voxel_down_sample(voxel)
+
+    keep = np.ones(len(pcd.points), bool)
+    ransac_info = []
+    tmp = pcd
+    for _ in range(1):                           # <― 평면 1개만 제거
+        if len(tmp.points) < 100:
+            break
+        plane_eq, inliers = tmp.segment_plane(ransac_dist, 3, 300)
+        if len(inliers) < 50:
+            break
+        ransac_info.append({'eq': plane_eq, 'inliers': len(inliers)})
+        keep[inliers] = False
+        tmp = tmp.select_by_index(inliers, invert=True)
+
+    xyz = np.asarray(pcd.points)[keep]
+    if xyz.size == 0:
+        return None, ransac_info, []
+
+    # ── ②  DBSCAN  ───────────────────────────────────────────
+    labels = DBSCAN(eps=eps, min_samples=min_samples).fit_predict(xyz)
+
+    # 노이즈 제거 ──>
+    mask   = labels >= 0
+    xyz    = xyz[mask]
+    labels = labels[mask]
+    if xyz.size == 0:
+        return None, ransac_info, []
+
+    # 각 클러스터 크기 계산
+    uniq, cnts = np.unique(labels, return_counts=True)
+    # 내림차순 정렬 후 top‑k
+    order   = uniq[np.argsort(cnts)[::-1]][:top_k]
+    sizes   = dict(zip(uniq, cnts))
+    db_info = [{'label': int(l), 'size': int(sizes[l])} for l in order]
+
+    if not db_info:                # 실제 클러스터가 1개도 없으면 종료
+        return None, ransac_info, db_info
+
+    # ── ③  거리 기반 R‑B 그라데이션 색 입히기 ────────────────
+    d     = np.linalg.norm(xyz, axis=1)
+    d_min = d.min();  d_max = d.max() + 1e-6
+    rgb   = np.zeros_like(xyz)                      # (N,3) all zeros
+    for lab in order:                               # top_k 만 색칠
+        m        = labels == lab
+        alpha    = (d[m] - d_min) / (d_max - d_min) # 0(가까움)→1(멀리)
+        rgb[m, 0] = alpha                           # R : 멀수록 ↑
+        rgb[m, 2] = 1 - alpha                       # B : 가까울수록 ↑
+
+    # ── ④  open3d PointCloud 생성 & 반환 ─────────────────────
+    pcd_out = o3d.geometry.PointCloud()
+    pcd_out.points = o3d.utility.Vector3dVector(xyz)
+    pcd_out.colors = o3d.utility.Vector3dVector(rgb)
+
+    return pcd_out, ransac_info, db_info
+
+
+def pcd_to_cloud_msg(pcd: o3d.geometry.PointCloud,
+                     header_src: Header) -> PointCloud2:
+    xyz  = np.asarray(pcd.points)
+    rgbf = np.vectorize(rgb_to_float)(
+             *(np.asarray(pcd.colors)[:, ::-1]*255).astype(np.uint8).T)
+    data = np.hstack([xyz, rgbf[:, None]]).astype(np.float32)
+
+    header          = Header()
+    header.stamp    = header_src.stamp
+    header.frame_id = header_src.frame_id
+
+    # ─── 여기! keyword 인자로 작성 ─────────────────────
+    fields = [
+        PointField(name='x',   offset=0,  datatype=PointField.FLOAT32, count=1),
+        PointField(name='y',   offset=4,  datatype=PointField.FLOAT32, count=1),
+        PointField(name='z',   offset=8,  datatype=PointField.FLOAT32, count=1),
+        PointField(name='rgb', offset=12, datatype=PointField.FLOAT32, count=1),
+    ]
+    # ──────────────────────────────────────────────────
+    return pc2.create_cloud(header, fields, data.tolist())
+
+
+# ───── ROS2 노드 ──────────────────────────────────────
+class SparseObstacleNode(Node):
     def __init__(self):
-        super().__init__('plane_cluster_node')
-        
-        # 비동기 처리를 위해 처리중 여부 플래그 초기화
-        self.processing_flag = False
-        self.voxel_size = 0.1
-        self.distance_threshold=0.3
-        self.eps = 0.18
-        self.min_samples = 13
-        self.num_cluster = 15
-        self.qos = QoSProfile(
-            history=HistoryPolicy.KEEP_LAST,
-            depth=1,
-            reliability=1  # 기본으로 Reliable 설정
-        )
+        super().__init__('sparse_obstacle_node')
+        self.bridge, self.K = CvBridge(), None
+        qos = QoSProfile(history=HistoryPolicy.KEEP_LAST, depth=5)
 
-        # 구독할 PointCloud2 토픽 (예: /camera/camera/depth/color/points)
-        self.subscription = self.create_subscription(
-            PointCloud2,
-            '/camera/camera/depth/color/points',
-            self.pointcloud_callback,
-            self.qos # 큐 크기가 10: 최대 10개의 메시지를 버퍼링
-        )
+        c = Subscriber(self, Image , '/camera/camera/color/image_raw', qos_profile=qos)
+        d = Subscriber(self, Image , '/camera/camera/aligned_depth_to_color/image_raw', qos_profile=qos)
+        i = Subscriber(self, CameraInfo, '/camera/camera/color/camera_info', qos_profile=qos)
 
-        
-        # 처리된 결과 (색상 정보 포함)를 퍼블리시할 토픽
-        self.publisher_ = self.create_publisher(PointCloud2, '/obstacle_clusters_colored', 10)
-        self.get_logger().info("PlaneClusterNode initialized and subscribed to point cloud topic.")
-    
-    def pointcloud_callback(self, msg: PointCloud2):
-        # 만약 이전 메시지 처리가 아직 진행 중이면 드롭
-        if self.processing_flag:
-            self.get_logger().info("Previous processing not finished; dropping this message.")
+        ats = ApproximateTimeSynchronizer([c,d,i], 5, 0.03)
+        ats.registerCallback(self.synced_cb)
+
+        self.pub = self.create_publisher(PointCloud2,'/obstacle_clusters_colored',10)
+        self.get_logger().info('SparseObstacleNode ready.')
+
+    # ───────── callback ─────────
+    def synced_cb(self, img_msg, depth_msg, info_msg):
+        t0 = time.perf_counter()
+        if self.K is None:
+            self.K = np.asarray(info_msg.k, np.float32).reshape(3,3)
+            self.get_logger().info('Intrinsic K initialised.')
+
+        color = self.bridge.imgmsg_to_cv2(img_msg,'bgr8')
+        depth = self.bridge.imgmsg_to_cv2(depth_msg,'16UC1')
+
+        cloud6 = build_sparse_cloud(color, depth, self.K)
+        self.get_logger().info(f'SLIC→cloud: {cloud6.shape[0]} pts ({time.perf_counter()-t0:.3f}s)')
+
+        t1 = time.perf_counter()
+        pcd, rinfo, dinfo = process_cloud(cloud6)
+        self._log_ransac(rinfo)
+        self._log_dbscan(dinfo)
+        self.get_logger().info(f'Processing time: {time.perf_counter()-t1:.3f}s')
+
+        if pcd is None:
             return
-        
-        self.processing_flag = True  # 처리 시작
-        
-        # 1) ROS2 PointCloud2 메시지를 NumPy 배열로 변환 (XYZ만 추출)
-        points = self.convert_cloud_to_numpy(msg)
-        if points.shape[0] < 3:
-            self.processing_flag = False
+        self.pub.publish(pcd_to_cloud_msg(pcd, img_msg.header))
+        self.get_logger().info(f'Published PCD ({time.perf_counter()-t0:.3f}s total)')
+
+    # ───── helper logs ─────────
+    def _log_ransac(self, rinfo):
+        if not rinfo:
+            self.get_logger().info('RANSAC: no plane removed')
             return
-        self.get_logger().info(f"Input points: {points.shape[0]}")
-        
-        # 1a) 다운샘플링: 전체 포인트 수를 줄임 (voxel 크기: 2cm)
-        
-        pcd_orig = o3d.geometry.PointCloud()
-        pcd_orig.points = o3d.utility.Vector3dVector(points[:, :3])
-        pcd = pcd_orig.voxel_down_sample(voxel_size=self.voxel_size)
-        points_ds = np.asarray(pcd.points)
-        self.get_logger().info(f"Downsampled points: {points_ds.shape[0]}")
-        
-        # 2) 여러 평면 후보 추출 (예시로 2회 반복)
-        candidate_planes = []  # 각 원소: (inlier_indices, avg_z)
-        pcd_remaining = pcd  # 점들을 계속 업데이트
-        num_candidates = 3
-        for i in range(num_candidates):
-            if np.asarray(pcd_remaining.points).shape[0] < 100:
-                break
-            plane_model, inlier_indices = pcd_remaining.segment_plane(
-                distance_threshold=self.distance_threshold,  # 평면 판단 임계값
-                ransac_n=3,
-                num_iterations=3000
-            )
-            inlier_indices = np.asarray(inlier_indices)
-            if len(inlier_indices) < 50:  # 후보로 보기 어려우면 중단
-                break
-            candidate = pcd_remaining.select_by_index(inlier_indices)
-            candidate_np = np.asarray(candidate.points)
-            avg_z = np.mean(candidate_np[:,2])
-            candidate_planes.append((inlier_indices, avg_z, len(inlier_indices)))
-            # 제거하여 남은 점으로 업데이트
-            pcd_remaining = pcd_remaining.select_by_index(inlier_indices, invert=True)
-            self.get_logger().info(f"Candidate {i}: {len(inlier_indices)} points, avg_z={avg_z:.3f}")
-        
-        if candidate_planes:
-            # 먼저, 후보들을 평균 z 값(내림차순)과 inlier count(내림차순)로 정렬
-            # 여기서는 우선순위를 평균 z 값에 두되, inlier 수도 고려합니다.
-            candidate_planes_sorted = sorted(candidate_planes, key=lambda x: (x[1]), reverse=True)
-            red_candidate = candidate_planes_sorted[0]
-            red_inliers = red_candidate[0]
-            red_avg_z = red_candidate[1]
-            self.get_logger().info(f"Selected red candidate: {len(red_inliers)} inliers, avg_z={red_avg_z:.3f}")
-            
-            # 두 번째 후보: red_candidate의 avg_z보다 낮은 후보 중에서 inlier 수가 가장 많은 후보 선택
-            green_candidates = [cand for cand in candidate_planes_sorted if cand[1] < red_avg_z]
-            if green_candidates:
-                green_candidate = max(green_candidates, key=lambda x: x[2])
-                green_inliers = green_candidate[0]
-                green_avg_z = green_candidate[1]
-                self.get_logger().info(f"Selected green candidate: {len(green_inliers)} inliers, avg_z={green_avg_z:.3f}")
-            else:
-                green_inliers = np.array([], dtype=int)
-                self.get_logger().warn("No green candidate found (no candidate with lower avg_z than red).")
-            combined_inliers = np.unique(np.concatenate((green_inliers, red_inliers)))
+        for k,pl in enumerate(rinfo):
+            a,b,c,d = pl["eq"]
+            self.get_logger().info(
+                f'RANSAC[{k}] inliers={pl["inliers"]:4d}  '
+                f'plane:{a:+.3f}x {b:+.3f}y {c:+.3f}z {d:+.3f}=0')
 
-        else:
-            red_inliers = np.array([], dtype=int)
-            green_inliers = np.array([], dtype=int)
-            self.get_logger().warn("No candidate floor plane detected.")
-        
-        # 2b) 원본 다운샘플링 데이터(points_ds)에서 선택된 평면 후보들의 inlier 점 제거
-        mask = np.ones(len(points_ds), dtype=bool)
-        if combined_inliers.size > 0:
-            mask[combined_inliers] = False
-        remaining_points = points_ds[mask]
-        self.get_logger().info(f"After plane removal: {remaining_points.shape[0]} points")
-        
-        # 3) cuML DBSCAN을 이용하여 남은 점들 군집화
-        # 먼저, GPU 배열(CuPy)로 변환
-        
-        remaining_points_gpu = cp.asarray(remaining_points[:, :3])
-        clustering = cuDBSCAN(eps=self.eps, min_samples=self.min_samples)
-        clustering.fit(remaining_points_gpu)
-        labels_gpu = clustering.labels_
-        labels = cp.asnumpy(labels_gpu)
-        unique_labels, counts = np.unique(labels, return_counts=True)
-        self.get_logger().info(f"Initial clusters: {dict(zip(unique_labels, counts))}")
-        
-        # 4) 클러스터 필터링 및 정렬: 노이즈(-1) 제외, 군집 크기를 기준으로 내림차순 정렬 후 상위 10개 선택
-        clusters_info = []  # 각 튜플: (label, avg_distance, cluster_size)
-        for lab in unique_labels:
-            if lab == -1:
-                continue
-            cluster_pts = remaining_points[labels == lab]
-            avg_distance = np.mean(np.linalg.norm(cluster_pts, axis=1))
-            cluster_size = cluster_pts.shape[0]
-            clusters_info.append((lab, avg_distance, cluster_size))
-        clusters_info.sort(key=lambda x: x[2], reverse=True)
-        top_clusters = clusters_info[:self.num_cluster]
-        top_labels = [lab for lab, _, _ in top_clusters]
-        self.get_logger().info(f"Top clusters (by size): {top_clusters}")
-        
-        # 5) 선택한 클러스터에 대해 평균 거리 범위를 기준으로 색상 그라데이션 결정
-        if top_clusters:
-            distances = [avg for _, avg, _ in top_clusters]
-            min_distance = min(distances)
-            max_distance = max(distances)
-        else:
-            min_distance, max_distance = 0, 1
-            
-        cluster_color_map = {}  # {label: (r, g, b)}
-        for lab, avg_distance, _ in top_clusters:
-            if max_distance > min_distance:
-                alpha = (avg_distance - min_distance) / (max_distance - min_distance)
-            else:
-                alpha = 0.0
-            # 가까울수록 파랑 (0,0,255), 멀수록 빨강 (255,0,0)
-            r = int(alpha * 255)
-            g = 0
-            b = int((1 - alpha) * 255)
-            cluster_color_map[lab] = (r, g, b)
-        self.get_logger().info(f"Cluster color map: {cluster_color_map}")
-        
-        # 6) 선택된 클러스터에 속한 점들에 대해 색상 정보 추가 → (x, y, z, rgb)
-        colored_points_list = []
-        for lab in top_labels:
-            pts = remaining_points[labels == lab]
-            color = cluster_color_map[lab]
-            for pt in pts:
-                rgb_float = rgb_to_float(*color)
-                colored_points_list.append((pt[0], pt[1], pt[2], rgb_float))
-        if not colored_points_list:
-            self.get_logger().warn("No colored points generated after filtering top clusters.")
-            self.processing_flag = False
+    def _log_dbscan(self, dinfo):
+        if not dinfo:
+            self.get_logger().info('DBSCAN: no clusters')
             return
-        colored_points = np.array(colored_points_list, dtype=np.float32)
-        
-        # 7) 색상 정보를 포함한 PointCloud2 메시지 생성 후 퍼블리시
-        out_msg = self.convert_numpy_to_cloud_colored(colored_points, msg.header)
-        self.publisher_.publish(out_msg)
-        
-        self.processing_flag = False  # 처리 끝 플래그 해제
+        summary = ', '.join([f'ℓ={d["label"]}({d["size"]})' for d in dinfo])
+        self.get_logger().info(f'DBSCAN clusters: {summary}')
 
-    def convert_cloud_to_numpy(self, ros_cloud: PointCloud2) -> np.ndarray:
-        point_list = []
-        for point in pc2.read_points(ros_cloud, field_names=("x", "y", "z"), skip_nans=True):
-            point_list.append([point[0], point[1], point[2]])
-        if not point_list:
-            return np.array([])
-        return np.array(point_list, dtype=np.float32)
-    
-    def convert_numpy_to_cloud_colored(self, colored_points: np.ndarray, header: Header) -> PointCloud2:
-        """
-        Convert a NumPy array of colored points (N, 4) where columns 0-2 are x, y, z and column 3 is a packed rgb float,
-        into a ROS2 PointCloud2 message with an rgb field.
-        """
-        new_header = Header()
-        new_header.stamp = header.stamp
-        new_header.frame_id = header.frame_id
-        fields = [
-            PointField(name='x', offset=0, datatype=PointField.FLOAT32, count=1),
-            PointField(name='y', offset=4, datatype=PointField.FLOAT32, count=1),
-            PointField(name='z', offset=8, datatype=PointField.FLOAT32, count=1),
-            PointField(name='rgb', offset=12, datatype=PointField.FLOAT32, count=1),
-        ]
-        cloud_msg = pc2.create_cloud(new_header, fields, colored_points.tolist())
-        return cloud_msg
 
+# ───── main ──────────────────────────────────────────
 def main(args=None):
     rclpy.init(args=args)
-    node = PlaneClusterNode()
+    node = SparseObstacleNode()
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:
         pass
     finally:
-        node.destroy_node()
-        rclpy.shutdown()
+        node.destroy_node(); rclpy.shutdown()
+
 
 if __name__ == '__main__':
     main()
