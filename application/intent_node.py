@@ -49,7 +49,8 @@ class IntentNode(Node):
 
         if intent == "set_destination":
             destination = self.find_closest_destination(user_text)
-
+        if intent == "get_eta":
+            print("get_eta logic 필요, action 호출 필요")
         return {
             "intent": intent,
             "destination": destination

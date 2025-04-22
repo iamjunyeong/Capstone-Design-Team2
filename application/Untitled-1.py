@@ -31,19 +31,22 @@ class KeyboardButtonPublisher(Node):
         # handlebutton 상태를 받아서 처리하는 콜백 (필요시 구현)
         self.handlebutton_status = msg.data
         if self.handlebutton_status == 0:
+            self.stdscr.addstr(4, 0, "핸들 버튼 눌리지 않음")
             self.handlebutton_pub.publish(0)
         elif self.handlebutton_status == 1:
+            self.stdscr.addstr(4, 0, "핸들 버튼 1개 눌림")
             self.handlebutton_pub.publish(1)
         elif self.handlebutton_status == 2:
+            self.stdscr.addstr(4, 0, "핸들 버튼 2개 눌림")
             self.handlebutton_pub.publish(2)
-    
+        self.stdscr.refresh()
     def emergencybutton_callback(self, msg):
         self.emergency_button_pressed = msg.data
         # emergencybutton 상태를 받아서 처리하는 콜백 (필요시 구현)
         
     def run_keyboard_listener(self):
         pygame.init()
-        screen = pygame.display.set_mode((400, 300))
+        screen = pygame.display.set_moade((400, 300))
         pygame.display.set_caption("Keyboard Button Control")
         clock = pygame.time.Clock()
 
