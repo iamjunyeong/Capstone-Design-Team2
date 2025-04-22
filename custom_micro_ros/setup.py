@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'nav2_bringup'
+package_name = 'custom_micro_ros'
 
 setup(
     name=package_name,
@@ -11,15 +11,16 @@ setup(
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
     ],
-    install_requires=['setuptools'],
+    install_requires=['setuptools', 'rclpy', 'std_msgs'],
     zip_safe=True,
-    maintainer='jun',
-    maintainer_email='junyeong4321@gmail.com',
+    maintainer='ain833437',
+    maintainer_email='junwkim@student.42seoul.kr',
     description='TODO: Package description',
     license='TODO: License declaration',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'serial_bridge_node = custom_micro_ros.SerialBridgeNode:main',
         ],
     },
 )

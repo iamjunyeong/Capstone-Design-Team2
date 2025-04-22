@@ -1,0 +1,185 @@
+import rclpy
+from rclpy.node import Node
+from std_msgs.msg import Float32, Int32
+from geometry_msgs.msg import TwistWithCovarianceStamped
+import serial
+import struct
+import threading
+import math
+from ackermann_msgs.msg import AckermannDrive     # ★ 신규
+
+class SerialBridgeNode(Node):
+    def __init__(self):
+        super().__init__('serial_bridge_node')
+        self.get_logger().info("Initializing SerialBridgeNode.")
+
+        # 시리얼 포트 설정 (포트 이름은 환경에 따라 다를 수 있음)
+        try:
+            self.serial_port = serial.Serial('/dev/ttyACM0', 115200, timeout=0.1)
+            self.get_logger().info("Serial port opened successfully.")
+        except Exception as e:
+            self.get_logger().error(f"Failed to open serial port: {e}")
+            return
+
+        # 초기값 설정
+        self.speed = 0.0
+        self.angle = 0.0
+
+        self.create_subscription(
+            AckermannDrive,
+            '/ackermann_cmd',                      # 토픽 이름에 맞춰 수정
+            self.ackermann_callback,
+            10)
+        
+        # 퍼블리셔 설정
+        self.twist_msgs_pub = self.create_publisher(TwistWithCovarianceStamped, '/encoder/twist', 10)
+        self.mode_pub = self.create_publisher(Int32, '/vehicle/mode', 10)
+
+        # 주기적으로 아두이노에 데이터 전송 (10Hz)
+        self.timer = self.create_timer(0.1, self.send_serial_data)
+
+        # 시리얼 수신 스레드 시작
+        self.serial_thread = threading.Thread(target=self.read_serial_loop, daemon=True)
+        self.serial_thread.start()
+
+    # ──────────────────────────────
+    #  Ackermann 콜백
+    # ──────────────────────────────
+    def ackermann_callback(self, msg):       # ★
+        self.angle = msg.steering_angle
+        self.speed = msg.speed
+    
+    def convert_to_nav_msgs(self, speed, angle):
+        linear_x = speed
+        angular_z = speed * math.tan(math.radians(angle)) / 0.72
+
+        twist_stamped = TwistWithCovarianceStamped()
+        twist_stamped.header.stamp = self.get_clock().now().to_msg()
+        twist_stamped.header.frame_id = 'encoder'  # 또는 'odom', 사용 목적에 따라
+        twist_stamped.twist.twist.linear.x = speed
+        twist_stamped.twist.twist.linear.y = 0.0        
+        twist_stamped.twist.twist.linear.z = 0.0
+        twist_stamped.twist.twist.angular.x = 0.0
+        twist_stamped.twist.twist.angular.y = 0.0
+        twist_stamped.twist.twist.angular.z = angular_z
+        twist_stamped.twist.covariance = [
+            0.01, 0.0,    0.0,    0.0,    0.0,    0.0,
+            0.0,    0.01, 0.0,    0.0,    0.0,    0.0,
+            0.0,    0.0,    0.01, 0.0,    0.0,    0.0,
+            0.0,    0.0,    0.0,    0.01, 0.0,    0.0,
+            0.0,    0.0,    0.0,    0.0,    0.01, 0.0,
+            0.0,    0.0,    0.0,    0.0,    0.0,    0.05  # yaw만 약간 더 신뢰 낮음
+        ]   
+
+        self.twist_msgs_pub.publish(twist_stamped)
+        self.get_logger().debug(f'Published Odometry: v={speed:.2f} m/s, omega={angular_z:.2f} rad/s')
+
+    def send_serial_data(self):
+        try:
+            header = b'\xAA\x55'
+            payload = struct.pack('<ff', self.speed, self.angle)
+
+            # CRC: XOR-based
+            crc = 0
+            for b in payload:
+                crc ^= b
+
+            packet = header + payload + bytes([crc])
+            self.serial_port.write(packet)
+            self.get_logger().debug(f"[TX] Sent: speed={self.speed}, angle={self.angle}, crc={crc}")
+        except Exception as e:
+            self.get_logger().warn(f"Serial write failed: {e}")
+
+    def read_serial_loop(self):
+        HEADER = b'\xAA\x55'
+        PACKET_SIZE = 115  # header(2) + payload(64) + crc(1)
+
+        buffer = bytearray()
+
+        while rclpy.ok():
+            try:
+                if self.serial_port.in_waiting:
+                    data = self.serial_port.read(self.serial_port.in_waiting)
+                    buffer.extend(data)
+                    self.get_logger().debug(f"[Serial] Received {len(data)} bytes. Buffer length: {len(buffer)}")
+
+                while len(buffer) >= PACKET_SIZE:
+                    header_index = buffer.find(HEADER)
+                    if header_index == -1:
+                        self.get_logger().warn("[Sync] Header not found. Clearing buffer.")
+                        buffer.clear()
+                        break
+                    elif header_index > 0:
+                        self.get_logger().warn(f"[Sync] Header found at offset {header_index}. Dropping {header_index} bytes.")
+                        del buffer[:header_index]
+
+                    if len(buffer) < PACKET_SIZE:
+                        self.get_logger().debug("[Wait] Incomplete packet. Waiting for more data.")
+                        break
+
+                    # 패킷 준비 완료
+                    payload = buffer[2:PACKET_SIZE-1]
+                    crc_received = buffer[PACKET_SIZE-1]
+                    crc_calculated = 0
+                    for b in payload:
+                        crc_calculated ^= b
+
+                    if crc_received != crc_calculated:
+                        self.get_logger().warn(f"[CRC] Mismatch! Got {crc_received}, expected {crc_calculated}")
+                        del buffer[:PACKET_SIZE]
+                        continue
+
+                    try:
+                        unpacked = struct.unpack('<iiii iffff fffff iffff fffff ff ff', payload)
+                        (
+                            mode, gear, aile, thro,
+                            pot_val, steer_raw_angle, steer_filtered_angle, steer_target_angle, steer_error,
+                            steer_integral, steer_derivative, steer_pid_output, steer_pwm, steer_pwm_filtered,
+                            encoder_count, speed_raw, speed_filtered, speed_target, speed_error,
+                            speed_integral, speed_derivative, speed_pid_output, speed_pwm, speed_pwm_filtered,
+                            remote_speed, remote_angle,
+                            auto_speed, auto_angle,
+                        ) = unpacked
+
+                        mode_str = "AUTONOMOUS" if mode == 1 else "MANUAL"
+
+                        self.get_logger().info(
+                            f"\nROS2 ← Arduino\n"
+                            f"[MODE & REMOTE] MODE: {mode_str} | GEAR: {gear} | AILE: {aile} | THRO: {thro}\n"
+                            f"[POTENTIOMETER] COUNT: {pot_val} | RAW: {steer_raw_angle:.2f}° | FILTERED: {steer_filtered_angle:.2f}° | TARGET: {steer_target_angle:.2f}° | ERROR: {steer_error:.2f}°\n"
+                            f"                ERROR: {steer_error:.2f} | INT: {steer_integral:.2f} | DERIV: {steer_derivative:.2f} | PID: {steer_pid_output:.2f} | PWM: {steer_pwm:.2f} | PWM_LPF: {steer_pwm_filtered:.2f}\n"
+                            f"[ENCODER]       COUNT: {encoder_count} | RAW: {speed_raw:.4f}m/s | FILTERED: {speed_filtered:.4f}m/s | TARGET: {speed_target:.4f}m/s | ERROR: {speed_error:.4f}m/s\n"
+                            f"                ERROR: {speed_error:.4f} | INT: {speed_integral:.4f} | DERIV: {speed_derivative:.4f} | PID: {speed_pid_output:.4f} | PWM: {speed_pwm:.2f} | PWM_LPF: {speed_pwm_filtered:.2f}\n"
+                            f"[REMOTE CMD]    SPEED: {remote_speed:.4f}m/s | ANGLE: {remote_angle:.4f}°\n"
+                            f"[AUTO CMD]      SPEED: {auto_speed:.4f}m/s | ANGLE: {auto_angle:.4f}°\n"
+                            f"[CURRENT STATE] SPEED: {speed_filtered:.4f}m/s | ANGLE: {steer_filtered_angle:.4f}°"
+                        )
+
+                        # angle, speed 변환 및 퍼블리시
+                        self.convert_to_nav_msgs(speed_filtered, steer_filtered_angle)
+
+                        # mode publish
+                        self.mode_pub.publish(Int32(data=mode))
+
+                    except struct.error as e:
+                        self.get_logger().warn(f"[Unpack] Failed to unpack struct: {e}")
+
+                    del buffer[:PACKET_SIZE]
+                    self.get_logger().debug(f"[Buffer] Packet processed. Buffer trimmed to {len(buffer)} bytes.")
+
+            except Exception as e:
+                self.get_logger().warn(f"[Serial Error] Read loop failed: {e}")
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = SerialBridgeNode()
+    try:
+        rclpy.spin(node)
+    except KeyboardInterrupt:
+        node.get_logger().info("Shutting down SerialBridgeNode.")
+    finally:
+        node.destroy_node()
+        rclpy.shutdown()
+
+if __name__ == '__main__':
+    main()
