@@ -56,11 +56,13 @@ def generate_launch_description():
             name='navsat_transform',
 	        output='screen',
             parameters=[parameters_file_path],
-            remappings=[('imu/data', 'imu/data'),
-                        ('gps/fix', 'gps/fix'), 
-                        ('gps/filtered', 'gps/filtered'),
+            remappings=[('imu', 'imu/data'),
+                        ('gps/fix', '/ublox_gps_node/fix'), 
+                        #('gps/filtered', 'gps/filtered'),
                         ('odometry/gps', 'odometry/gps'),
-                        ('odometry/filtered', 'odometry/global')]           
+                        #('odometry/filtered', 'odometry/local'),
+                        ('odometry/filtered', 'odometry/global'),
+                    ]           
 
            )           
 ])
