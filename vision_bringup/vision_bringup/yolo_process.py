@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """
 segmented_cloud_node.py
-YOLO‑Seg  → pixel masks (roadway / caution_zone)
-         → SLIC super‑pixels → sparse coloured cloud
+YOLO‑Seg → pixel masks (roadway / caution_zone / braille_guide_block)
+        → SLIC super‑pixels → sparse coloured cloud
 Publishes:
-  /obstacle_roadway         (red points)
-  /obstacle_caution_zone    (yellow points)
+  /obstacle_roadway          (red points)
+  /obstacle_caution_zone     (yellow points)
+  /obstacle_braille_block    (cyan points)
   /segmented/image_annotated (RGB image with YOLO overlays)
 """
 
@@ -22,8 +23,9 @@ from ultralytics import YOLO
 # ─── assign fixed RGB colours per class ─────────────────────
 # ORDER is (R, G, B)
 CLASS_COLORS = {
-    3: (255, 255,   0),   # caution_zone → yellow
-    4: (255,   0,   0),   # roadway      → red
+    2: (0,   255, 255),   # braille_guide_block → cyan
+    3: (255, 255,   0),   # caution_zone        → yellow
+    4: (255,   0,   0),   # roadway             → red
 }
 
 def rgb_to_float(r, g, b):
@@ -39,12 +41,8 @@ def slic_opencv_bgr(bgr, size=12, ruler=8.0, iters=5):
     return slicer.getLabels()
 
 def build_sparse_class_cloud(color_bgr, depth_mm, K, class_mask, class_id,
-                             scale=0.3, slic_size=8, slic_ruler=7.0,
-                             min_pix=30, max_depth_jitter_mm=120):
-    """
-    One YOLO class → sparse Nx6 array [x,y,z, r,g,b]
-    Uses SLIC + median‑depth + fixed class colour
-    """
+                             scale=0.4, slic_size=8, slic_ruler=7.0,
+                             min_pix=30, max_depth_jitter_mm=3000):
     if not class_mask.any():
         return np.zeros((0,6), np.float32)
 
@@ -61,18 +59,14 @@ def build_sparse_class_cloud(color_bgr, depth_mm, K, class_mask, class_id,
     pts = []
     for lab in np.unique(labels):
         m = labels == lab
-        if m.sum() < min_pix:
-            continue
-        if class_mask[m].mean() < 0.6:
-            continue
+        if m.sum() < min_pix: continue
+        if class_mask[m].mean() < 0.6: continue
         zs = depth_mm[m].astype(np.float32)
-        if zs.std() > max_depth_jitter_mm:
-            continue
+        if zs.std() > max_depth_jitter_mm: continue
         z = np.median(zs) * 1e-3
-        if z <= 0.05:
-            continue
+        if z <= 0.05: continue
         ys, xs = np.nonzero(m)
-        u, v   = xs.mean(), ys.mean()
+        u, v = xs.mean(), ys.mean()
         X = (u - cx) * z / fx
         Y = (v - cy) * z / fy
         r, g, b = CLASS_COLORS[class_id]
@@ -87,17 +81,18 @@ def cloud_rgb_to_msg(cloud_rgb, header_src):
     rgbf = np.vectorize(rgb_to_float)(*(cloud_rgb[:, 3:].astype(np.uint8)[:, ::-1]).T)
     data = np.hstack((xyz, rgbf[:,None])).astype(np.float32)
     fields = [
-    PointField(name='x',   offset=0,  datatype=PointField.FLOAT32, count=1),
-    PointField(name='y',   offset=4,  datatype=PointField.FLOAT32, count=1),
-    PointField(name='z',   offset=8,  datatype=PointField.FLOAT32, count=1),
-    PointField(name='rgb', offset=12, datatype=PointField.FLOAT32, count=1),
-    ]   
+        PointField(name='x',   offset=0,  datatype=PointField.FLOAT32, count=1),
+        PointField(name='y',   offset=4,  datatype=PointField.FLOAT32, count=1),
+        PointField(name='z',   offset=8,  datatype=PointField.FLOAT32, count=1),
+        PointField(name='rgb', offset=12, datatype=PointField.FLOAT32, count=1),
+    ]
     hdr = Header()
     hdr.stamp    = header_src.stamp
     hdr.frame_id = header_src.frame_id
     return pc2.create_cloud(hdr, fields, data.tolist())
 
 class SegmentedCloudNode(Node):
+    ID_BRAILLE = 2
     ID_CAUTION = 3
     ID_ROADWAY = 4
 
@@ -107,7 +102,7 @@ class SegmentedCloudNode(Node):
         self.K = None
 
         self.model = YOLO(
-          '/home/loe/workspace/yolo/surface/ultralytics/train3/weights/best.pt'
+            '/home/loe/workspace/yolo/surface/ultralytics/train3/weights/best.pt'
         )
 
         qos = QoSProfile(history=HistoryPolicy.KEEP_LAST, depth=5)
@@ -120,6 +115,7 @@ class SegmentedCloudNode(Node):
 
         self.pub_road      = self.create_publisher(PointCloud2, '/obstacle_roadway',       10)
         self.pub_caution   = self.create_publisher(PointCloud2, '/obstacle_caution_zone',  10)
+        self.pub_braille   = self.create_publisher(PointCloud2, '/obstacle_braille_block', 10)
         self.pub_annotated = self.create_publisher(Image,       '/segmented/image_annotated', 10)
 
         self.get_logger().info('SegmentedCloudNode ready.')
@@ -138,7 +134,7 @@ class SegmentedCloudNode(Node):
             self.get_logger().warn('No YOLO masks.')
             return
 
-        # Publish annotated image
+        # Annotated image
         annotated = res.plot()
         ann_msg   = self.bridge.cv2_to_imgmsg(annotated, 'bgr8')
         ann_msg.header = img_msg.header
@@ -147,19 +143,27 @@ class SegmentedCloudNode(Node):
         cls_ids = res.boxes.cls.int().cpu().tolist()
         masks   = (res.masks.data.cpu().numpy() > 0.5)
         h, w = color.shape[:2]
-        mask_c = np.zeros((h,w), bool)
-        mask_r = np.zeros((h,w), bool)
+        mask_b = np.zeros((h, w), bool)
+        mask_c = np.zeros((h, w), bool)
+        mask_r = np.zeros((h, w), bool)
 
         for m, cid in zip(masks, cls_ids):
             m_up = cv2.resize(m.astype(np.uint8), (w,h),
                               interpolation=cv2.INTER_NEAREST).astype(bool)
-            if cid == self.ID_CAUTION:
+            if cid == self.ID_BRAILLE:
+                mask_b |= m_up
+            elif cid == self.ID_CAUTION:
                 mask_c |= m_up
             elif cid == self.ID_ROADWAY:
                 mask_r |= m_up
 
+        cloud_b = build_sparse_class_cloud(color, depth, self.K, mask_b, self.ID_BRAILLE)
         cloud_c = build_sparse_class_cloud(color, depth, self.K, mask_c, self.ID_CAUTION)
         cloud_r = build_sparse_class_cloud(color, depth, self.K, mask_r, self.ID_ROADWAY)
+
+        if cloud_b.size:
+            msg = cloud_rgb_to_msg(cloud_b, img_msg.header)
+            if msg: self.pub_braille.publish(msg)
 
         if cloud_c.size:
             msg = cloud_rgb_to_msg(cloud_c, img_msg.header)
@@ -171,7 +175,7 @@ class SegmentedCloudNode(Node):
 
         self.get_logger().info(
             f'proc_time={time.perf_counter()-t0:.3f}s '
-            f'pts: caution={cloud_c.shape[0]}, road={cloud_r.shape[0]}'
+            f'pts: braille={cloud_b.shape[0]}, caution={cloud_c.shape[0]}, road={cloud_r.shape[0]}'
         )
 
 def main(args=None):
