@@ -14,12 +14,14 @@ setup(
     install_requires=['setuptools'],
     zip_safe=True,
     maintainer='loe',
-    maintainer_email='loe@todo.todo',
-    description='TODO: Package description',
+    maintainer_email='ldm92834334@gmail.com',
+    description='This package is about vision module that process vision data',
     license='TODO: License declaration',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'pcd_process = vision_bringup.pcd_processs:main',
+            'yolo_process = vision_bringup.yolo_process:main',
         ],
     },
 )
