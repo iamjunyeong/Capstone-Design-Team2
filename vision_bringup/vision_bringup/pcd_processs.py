@@ -14,6 +14,15 @@ from std_msgs.msg    import Header
 from cv_bridge       import CvBridge
 from sklearn.cluster import DBSCAN
 from message_filters import Subscriber, ApproximateTimeSynchronizer
+from fast_slic.avx2 import SlicAvx2 as Slic
+
+
+
+def fastslic_bgr(bgr: np.ndarray, num_components=1600, compactness=10):
+    """BGR 이미지를 fast-slic으로 슈퍼픽셀 라벨링"""
+    image_rgb = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
+    slic = Slic(num_components=num_components, compactness=compactness)
+    return slic.iterate(image_rgb)
 
 
 # ───── OpenCV SLIC 래퍼 ────────────────────────────────
@@ -35,42 +44,47 @@ def slic_opencv_bgr(bgr: np.ndarray,
 def rgb_to_float(r, g, b):
     return struct.unpack('f', struct.pack('I', (r << 16) | (g << 8) | b))[0]
 
-
 def build_sparse_cloud(color_bgr: np.ndarray,
                        depth_mm : np.ndarray,
                        K        : np.ndarray,
                        scale    : float = 0.4,
-                       reg_size : int   = 12,
-                       ruler    : float = 8.0):
-    """Down‑scale → SLIC → super‑pixel centroids → Nx6 array"""
+                       reg_size : int   = 16,
+                       ruler    : float = 10.0):
+    """Down‑scale → fast-SLIC → superpixel centroids → Nx6 array"""
     if scale != 1.0:
-        color_bgr = cv2.resize(color_bgr,None,fx=scale,fy=scale,
+        color_bgr = cv2.resize(color_bgr, None, fx=scale, fy=scale,
                                interpolation=cv2.INTER_LINEAR)
-        depth_mm  = cv2.resize(depth_mm ,None,fx=scale,fy=scale,
+        depth_mm  = cv2.resize(depth_mm, None, fx=scale, fy=scale,
                                interpolation=cv2.INTER_NEAREST)
         fx, fy, cx, cy = K[0,0]*scale, K[1,1]*scale, K[0,2]*scale, K[1,2]*scale
     else:
         fx, fy, cx, cy = K[0,0], K[1,1], K[0,2], K[1,2]
 
-    labels = slic_opencv_bgr(color_bgr, reg_size, ruler, iterate=3)
+    # Superpixel segmentation using fast-slic
+    h, w = color_bgr.shape[:2]
+    num_components = int((h * w) / (reg_size ** 2))
+    print(f'num_components: {num_components}')
+    labels = fastslic_bgr(color_bgr, num_components=num_components, compactness=ruler)
 
     pts = []
     for lab in np.unique(labels):
         m = labels == lab
-        if m.sum() < 30:            # 작은 super‑pixel 무시
-            continue
+        
 
         zs = depth_mm[m].astype(np.float32)
-        if zs.std() > 120:          # → 12 cm 이상 흔들리면 신뢰 낮음
-            continue
-        z = np.median(zs) * 1e-3    # ★ 평균 → 중앙값
 
-        if z <= 0.05:               # too close / invalid
+        if m.sum() < 30:  # 작은 superpixel 무시
+            continue
+        if zs.std() > 3000:  # 깊이 값이 흔들리면 무시
+            continue
+        z = np.median(zs) * 1e-3  # mm → m
+
+        if z <= 0.05:  # 너무 가까운 거리 무시
             continue
         ys, xs = np.nonzero(m)
         u, v   = xs.mean(), ys.mean()
-        X, Y   = (u-cx)*z/fx , (v-cy)*z/fy
-        b, g, r = [int(color_bgr[:,:,c][m].mean()) for c in range(3)]
+        X, Y   = (u - cx) * z / fx, (v - cy) * z / fy
+        b, g, r = [int(color_bgr[:, :, c][m].mean()) for c in range(3)]
         pts.append([X, Y, z, r, g, b])
 
     return np.asarray(pts, np.float32)
