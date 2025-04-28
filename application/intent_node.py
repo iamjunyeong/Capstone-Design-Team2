@@ -134,7 +134,6 @@ class IntentNode(Node):
         for word in text.split():
             match = difflib.get_close_matches(word, self.boosted_yesno, n=1, cutoff=0.6)
             if match:
-<<<<<<< HEAD
                 return match
         return []
     
@@ -151,20 +150,6 @@ class IntentNode(Node):
             if match:
                 return match
         return []
-=======
-                return match[0]
-        return None
-    def find_closest_togo(self, text):
-        for word in text.split():
-            match = difflib.get_close_matches(word, self.boosted_togo, n=1, cutoff=0.6)
-            if match:
-                return match
-        return None
-
-
-
->>>>>>> 5f6b6056543ba996640afa9c8ea22f66a161d5f5
-
 
     def generate_response(self, intent_info):
         intent = intent_info["intent"]
@@ -172,14 +157,10 @@ class IntentNode(Node):
 
         # 의도에 맞는 텍스트가 아닌 의도만 /intent 토픽으로 전송
         if intent == "set_destination" and destination:
-<<<<<<< HEAD
             self.send_intent_message(f"set_destination: {destination}")
+            #여기서 dst 만 추출해서 정수로 바꿔서 전송하는 함수!! 
         elif intent == "change_dst":
             self.send_intent_message("change_dst")
-=======
-            self.send_intent_message("set_destination") 
-            #여기서 dst 만 추출해서 정수로 바꿔서 전송하는 함수!! 
->>>>>>> 5f6b6056543ba996640afa9c8ea22f66a161d5f5
         elif intent == "get_eta":
             self.send_intent_message("get_eta")
             #여기서는 planning 쪽에 지금 어디인지?? 이거 물어보는 action 만들어야됨(나중)
