@@ -21,11 +21,17 @@ def generate_launch_description():
             name='tts_node',
             output='screen'
         ),
-        # Node(
-        #     package='application',
-        #     executable='button_node',
-        #     name='button_node',
-        #     output='screen'
-        # )
+        Node(
+            package='application',
+            executable='button_node',
+            name='button_node',
+            output='screen'
+        ),
+        Node(
+            package='application',
+            executable='keyboard_node',
+            name='keyboard_node',
+            output='screen'
+        )
     ])
 
