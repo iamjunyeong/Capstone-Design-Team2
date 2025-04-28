@@ -1,6 +1,8 @@
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String, Bool
+import numpy as np
+import noisereduce as nr
 
 import logging
 import time
@@ -26,9 +28,9 @@ FRAME_SIZE = int(SAMPLE_RATE * FRAME_DURATION_MS / 1000)
 MAX_SILENCE_DURATION = 5
 
 boosted_keywords = [
-    "공학관:5.0", "신공학관:5.0", "새천년관:5.0", "학생회관:5.0", "법학관:5.0",
+    "공학관:5.0", "신공학관:5.0", "새천년관:5.0", "학생회관:5.0", "법학관:5.0", "수의대:5.0",
     "가줘:5.0", "가자:5.0", "가고:5.0", "싶어:5.0", "데려다줘:5.0", "이동:5.0", "목적지:5.0",
-    "몇:3.0","분:2.0", "얼마나:5.0", "도착:5.0", "시간5.0", "얼마:5.0", "남았어:5.0",
+    "몇:3.0","분:2.0", "얼마나:5.0", "도착:5.0", "시간:5.0", "얼마:5.0", "남았어:5.0", "걸려:5.0",
     "어디야:5.0", "어디:5.0","현재:5.0", "위치:5.0", "지나:5.0"
 ]
 
@@ -68,6 +70,9 @@ class VADMicStreamer:
             frame = self.q.get()
             if len(frame) < 2:
                 continue
+            
+            frame = self.preprocess_audio(frame) # (지욱) 전처리 추가
+
             is_speech = self.vad.is_speech(frame, SAMPLE_RATE)
             yield frame
             if is_speech:
@@ -76,6 +81,43 @@ class VADMicStreamer:
                 silence += 1
                 if silence > self.max_silence_frames:
                     break
+    
+    def preprocess_audio(self, frame): # 전처리 함수
+        try:
+            if len(frame) < 1024:  # 짧은 건 패스
+                return frame
+
+            # bytes -> numpy array
+            audio_np = np.frombuffer(frame, dtype=np.int16)
+
+            if len(audio_np) < 512:
+                return frame
+
+            # 잡음 제거
+            reduced_noise = nr.reduce_noise(
+                y=audio_np,
+                sr=SAMPLE_RATE,
+                prop_decrease=0.5,
+                n_fft=512,
+                win_length=512,
+                hop_length=256,
+                n_std_thresh=1.5,
+                stationary=True,
+                use_tensorflow=True
+            )
+
+            # [핵심] 항상 int16로 변환해서 다시 bytes로
+            reduced_noise = reduced_noise.astype(np.int16)
+            processed_frame = reduced_noise.tobytes()
+
+            return processed_frame
+
+        except Exception as e:
+            print(f"⚠️ Noise reduction 에러 무시: {e}")
+            return frame
+
+
+    
 # === STT 노드 ===
 class STTNode(Node):
     def __init__(self):
@@ -120,6 +162,7 @@ class STTNode(Node):
             use_profanity_filter=False,
             keywords=boosted_keywords
         )
+
 
         with grpc.secure_channel(GRPC_SERVER_URL, grpc.ssl_channel_credentials()) as channel:
             stub = pb_grpc.OnlineDecoderStub(channel)
