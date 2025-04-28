@@ -103,7 +103,7 @@ class VADMicStreamer:
                 hop_length=256,
                 n_std_thresh=1.5,
                 stationary=True,
-                use_tensorflow=True
+                use_tensorflow=True #기똥차네
             )
 
             # [핵심] 항상 int16로 변환해서 다시 bytes로

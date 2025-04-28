@@ -11,7 +11,8 @@ setup(
 	    'intent_node',
 	    'vito_stt_client_pb2',
 	    'vito_stt_client_pb2_grpc',
-        'button_node'
+        'button_node',
+        'keyboard_node'
 	],
 
     data_files=[
@@ -32,7 +33,8 @@ setup(
 		'stt_node = stt_node:main',
 		'tts_node = tts_node:main',
 		'intent_node = intent_node:main',
-        'button_node = button_node:main'
+        'button_node = button_node:main',
+        'keyboard_node = keyboard_node:main'
         ],
     },
 )

@@ -60,16 +60,21 @@ class IntentNode(Node):
         intent_info = self.classify_intent(user_text)
         self.generate_response(intent_info)
 
+
     def listener_callback(self, msg):
         user_text = msg.data.strip()
         self.get_logger().info(f'STT로부터 받은 텍스트: "{user_text}"')
 
+        
+
         intent_info = self.classify_intent(user_text)
         self.generate_response(intent_info)
- 
 
-            
     def classify_intent(self, user_text):
+        #여기서 전체 문장에 대해서 교정 한번 보고 뭔가 시작 !! 
+        
+        
+        
         intent_keywords = {
             "change_dst" : ["바꿔줘", "바꾸다", "바꿀래", "변경", "변경할","바꿔", "변경해", "다시"],
             "set_destination": ["가줘", "가자", "가고 싶어", "데려다줘", "이동", "갈래", "가고","가고싶어", "출발", "가야돼"],
@@ -88,6 +93,7 @@ class IntentNode(Node):
 
         if intent == "set_destination":
             destination = self.find_closest_destination(user_text)
+
         if intent == "get_eta": # planning 팀과 협업 
             print("get_eta logic 필요, action 호출 필요")
         if intent == "change_dst":
@@ -128,6 +134,7 @@ class IntentNode(Node):
         for word in text.split():
             match = difflib.get_close_matches(word, self.boosted_yesno, n=1, cutoff=0.6)
             if match:
+<<<<<<< HEAD
                 return match
         return []
     
@@ -144,6 +151,19 @@ class IntentNode(Node):
             if match:
                 return match
         return []
+=======
+                return match[0]
+        return None
+    def find_closest_togo(self, text):
+        for word in text.split():
+            match = difflib.get_close_matches(word, self.boosted_togo, n=1, cutoff=0.6)
+            if match:
+                return match
+        return None
+
+
+
+>>>>>>> 5f6b6056543ba996640afa9c8ea22f66a161d5f5
 
 
     def generate_response(self, intent_info):
@@ -152,11 +172,17 @@ class IntentNode(Node):
 
         # 의도에 맞는 텍스트가 아닌 의도만 /intent 토픽으로 전송
         if intent == "set_destination" and destination:
+<<<<<<< HEAD
             self.send_intent_message(f"set_destination: {destination}")
         elif intent == "change_dst":
             self.send_intent_message("change_dst")
+=======
+            self.send_intent_message("set_destination") 
+            #여기서 dst 만 추출해서 정수로 바꿔서 전송하는 함수!! 
+>>>>>>> 5f6b6056543ba996640afa9c8ea22f66a161d5f5
         elif intent == "get_eta":
             self.send_intent_message("get_eta")
+            #여기서는 planning 쪽에 지금 어디인지?? 이거 물어보는 action 만들어야됨(나중)
         elif intent == "get_location":
             self.send_intent_message("get_location")
         elif intent == "confirm":
@@ -168,7 +194,7 @@ class IntentNode(Node):
     def send_intent_message(self, intent_message):
         intent_msg = String()
         intent_msg.data = intent_message
-        self.publisher_.publish(intent_msg)
+        self.intent_to_tts_publisher.publish(intent_msg)
         self.get_logger().info(f'의도 전송: "{intent_message}"')
         
 
