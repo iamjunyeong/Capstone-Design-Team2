@@ -26,8 +26,8 @@ FRAME_SIZE = int(SAMPLE_RATE * FRAME_DURATION_MS / 1000)
 MAX_SILENCE_DURATION = 5
 
 boosted_keywords = [
-    "공학관:5.0", "신공학관:5.0", "새천년관:5.0", "학생회관:5.0", "법학관:5.0",
-    "가줘:5.0", "가자:5.0", "가고:5.0", "싶어:5.0", "데려다줘:5.0", "이동:5.0", "목적지:5.0",
+    "공학관:5.0","공대:5.0", "신공학관:5.0","신공:5.0", "새천년관:5.0", "학생회관:5.0","학관:5.0" "법학관:5.0",
+    "가줘:5.0", "가자:5.0", "가고:5.0", "싶어:5.0", "데려다줘:5.0", "이동:5.0", "목적지:5.0", "으로:3.0", 
     "몇:3.0","분:2.0", "얼마나:5.0", "도착:5.0", "시간5.0", "얼마:5.0", "남았어:5.0",
     "어디야:5.0", "어디:5.0","현재:5.0", "위치:5.0", "지나:5.0"
 ]
@@ -82,12 +82,18 @@ class STTNode(Node):
         super().__init__('stt_node')
         self.publisher_ = self.create_publisher(String, '/stt_text', 10)
         self.talkbutton_sub = self.create_subscription(Bool,'/talkbutton_pressed',self.talk_button_callback,10)
-        self.get_logger().info('STT Node has started.')
+        
         self.token = None
         self._sess = Session()
         self.is_processing = False  # 중복 실행 방지용
         self.talkbutton_pressed = False
+        self.response = False
+        self.get_logger().info('STT Node has started.')
+        
     
+    def response_callback(self,msg): 
+        self.response = msg.data
+            
     def talk_button_callback(self, msg):
         self.talkbutton_pressed = msg.data
         self.get_logger().info(f"Talk button 상태: {self.talkbutton_pressed}")
