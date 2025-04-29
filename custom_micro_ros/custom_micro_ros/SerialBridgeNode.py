@@ -92,7 +92,7 @@ class SerialBridgeNode(Node):
 
     def read_serial_loop(self):
         HEADER = b'\xAA\x55'
-        PACKET_SIZE = 115  # header(2) + payload(64) + crc(1)
+        PACKET_SIZE = 131  # header(2) + payload(64) + crc(1)
 
         buffer = bytearray()
 
@@ -130,13 +130,15 @@ class SerialBridgeNode(Node):
                         continue
 
                     try:
-                        unpacked = struct.unpack('<iiii iffff fffff iffff fffff ff ff', payload)
+                        unpacked = struct.unpack('<iiii ifff ffff ffff ifff ffff ffff ff ff', payload)
                         (
                             mode, gear, aile, thro,
-                            pot_val, steer_raw_angle, steer_filtered_angle, steer_target_angle, steer_error,
-                            steer_integral, steer_derivative, steer_pid_output, steer_pwm, steer_pwm_filtered,
-                            encoder_count, speed_raw, speed_filtered, speed_target, speed_error,
-                            speed_integral, speed_derivative, speed_pid_output, speed_pwm, speed_pwm_filtered,
+                            pot_val, steer_raw_angle, steer_filtered_angle, steer_target_angle, 
+                            steer_error, steer_integral, steer_derivative, steer_pid_output, 
+                            steer_pwm, steer_pwm_filtered,steer_cur_compensation,steer_target_PWM_compensated,
+                            encoder_count, speed_raw, speed_filtered, speed_target, 
+                            speed_error, speed_integral, speed_derivative, speed_pid_output, 
+                            speed_pwm, speed_pwm_filtered,speed_cur_compensation,speed_target_PWM_compensated,
                             remote_speed, remote_angle,
                             auto_speed, auto_angle,
                         ) = unpacked
@@ -145,14 +147,21 @@ class SerialBridgeNode(Node):
 
                         self.get_logger().info(
                             f"\nROS2 ← Arduino\n"
-                            f"[MODE & REMOTE] MODE: {mode_str} | GEAR: {gear} | AILE: {aile} | THRO: {thro}\n"
-                            f"[POTENTIOMETER] COUNT: {pot_val} | RAW: {steer_raw_angle:.2f}° | FILTERED: {steer_filtered_angle:.2f}° | TARGET: {steer_target_angle:.2f}° | ERROR: {steer_error:.2f}°\n"
-                            f"                ERROR: {steer_error:.2f} | INT: {steer_integral:.2f} | DERIV: {steer_derivative:.2f} | PID: {steer_pid_output:.2f} | PWM: {steer_pwm:.2f} | PWM_LPF: {steer_pwm_filtered:.2f}\n"
-                            f"[ENCODER]       COUNT: {encoder_count} | RAW: {speed_raw:.4f}m/s | FILTERED: {speed_filtered:.4f}m/s | TARGET: {speed_target:.4f}m/s | ERROR: {speed_error:.4f}m/s\n"
-                            f"                ERROR: {speed_error:.4f} | INT: {speed_integral:.4f} | DERIV: {speed_derivative:.4f} | PID: {speed_pid_output:.4f} | PWM: {speed_pwm:.2f} | PWM_LPF: {speed_pwm_filtered:.2f}\n"
-                            f"[REMOTE CMD]    SPEED: {remote_speed:.4f}m/s | ANGLE: {remote_angle:.4f}°\n"
-                            f"[AUTO CMD]      SPEED: {auto_speed:.4f}m/s | ANGLE: {auto_angle:.4f}°\n"
-                            f"[CURRENT STATE] SPEED: {speed_filtered:.4f}m/s | ANGLE: {steer_filtered_angle:.4f}°"
+                            f"{'━'*98}\n"
+                            f"[MODE & REMOTE] | MODE: {mode_str:>12} | GEAR: {gear:>5} | AILE: {aile:>5} | THRO: {thro:>5}\n"
+                            f"{'━'*98}\n"
+                            f"[POTENTIOMETER] | COUNT: {pot_val:>8} | ANGLE: {steer_raw_angle:>9.2f}° | ANGLE_LPF: {steer_filtered_angle:>9.2f}° | TARGET: {steer_target_angle:>9.2f}°\n"
+                            f"                | ERROR: {steer_error:>8.2f} | INT: {steer_integral:>12.2f} | DERIV: {steer_derivative:>14.2f} | PID: {steer_pid_output:>13.2f}\n"
+                            f"                | PWM: {steer_pwm:>10.2f} | PWM_LPF: {steer_pwm_filtered:>8.2f} | COMP: {steer_cur_compensation:>15.2f} | COMP_PWM: {steer_target_PWM_compensated:>8.2f}\n"
+                            f"{'━'*98}\n"
+                            f"[ENCODER]       | COUNT: {encoder_count:>8} | SPEED: {speed_raw:>7.4f}m/s | SPEED_LPF: {speed_filtered:>7.4f}m/s | TARGET: {speed_target:>7.4f}m/s\n"
+                            f"                | ERROR: {speed_error:>8.4f} | INT: {speed_integral:>12.4f} | DERIV: {speed_derivative:>14.4f} | PID: {speed_pid_output:>13.4f}\n"
+                            f"                | PWM: {speed_pwm:>10.2f} | PWM_LPF: {speed_pwm_filtered:>8.2f} | COMP: {speed_cur_compensation:>15.2f} | COMP_PWM: {speed_target_PWM_compensated:>8.2f}\n"
+                            f"{'━'*98}\n"
+                            f"[REMOTE CMD]    | SPEED: {remote_speed:>8.4f}m/s | ANGLE: {remote_angle:>8.4f}°\n"
+                            f"[AUTO CMD]      | SPEED: {auto_speed:>8.4f}m/s | ANGLE: {auto_angle:>8.4f}°\n"
+                            f"[CURRENT STATE] | SPEED: {speed_filtered:>8.4f}m/s | ANGLE: {steer_filtered_angle:>8.4f}°\n"
+                            f"{'━'*98}"
                         )
 
                         # angle, speed 변환 및 퍼블리시
