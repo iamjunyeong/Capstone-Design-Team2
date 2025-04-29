@@ -106,7 +106,7 @@ class SegmentedCloudNode(Node):
         self.slic_labels = None
 
         self.model = YOLO(
-            '/home/loe/workspace/yolo/surface/ultralytics/train3/weights/best.pt'
+            '../resource/best.pt'
         )
 
         qos = QoSProfile(history=HistoryPolicy.KEEP_LAST, depth=5)
