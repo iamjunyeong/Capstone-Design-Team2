@@ -15,8 +15,8 @@ def generate_launch_description():
     localization_launch = os.path.join(bringup_pkg, 'launch', 'localization.launch.py')
 
     return LaunchDescription([
-        IncludeLaunchDescription(PythonLaunchDescriptionSource(sensor_launch)),
         IncludeLaunchDescription(PythonLaunchDescriptionSource(control_launch)),
+        IncludeLaunchDescription(PythonLaunchDescriptionSource(sensor_launch)),
         IncludeLaunchDescription(PythonLaunchDescriptionSource(vision_launch)),
         IncludeLaunchDescription(PythonLaunchDescriptionSource(description_launch)),
         IncludeLaunchDescription(PythonLaunchDescriptionSource(localization_launch)),
