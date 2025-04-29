@@ -242,6 +242,10 @@ void NavSatTransform::computeTransform()
   if (!transform_good_ && has_transform_odom_ && use_manual_datum_) {
     setManualDatum();
   }
+ // """ """
+  RCLCPP_INFO(
+    this->get_logger(), "has_transform_gps_ and has_transform_imu_ is (%d, %d)",
+    has_transform_gps_, has_transform_imu_);
 
   // Only do this if:
   // 1. We haven't computed the odom_frame->cartesian_frame transform before
@@ -481,6 +485,7 @@ nav_msgs::msg::Odometry NavSatTransform::cartesianToMap(
   // Set header information stamp because we would like to know the robot's
   // position at that timestamp
   gps_odom.header.frame_id = world_frame_id_;
+  gps_odom.child_frame_id = gps_frame_id_;
   gps_odom.header.stamp = gps_update_time_;
 
   // Now fill out the message. Set the orientation to the identity.
@@ -617,11 +622,18 @@ void NavSatTransform::gpsFixCallback(
       "Will assume navsat device is mounted at robot's origin");
   }
 
+
+
   // Make sure the GPS data is usable
   bool good_gps =
     (msg->status.status != sensor_msgs::msg::NavSatStatus::STATUS_NO_FIX &&
     !std::isnan(msg->altitude) && !std::isnan(msg->latitude) &&
-    !std::isnan(msg->longitude));
+    !std::isnan(msg->longitude)); 
+
+// """ """
+  RCLCPP_INFO(
+    this->get_logger(), "good_gps is (%d)",
+    good_gps);
 
   if (good_gps) {
     // If we haven't computed the transform yet, then
@@ -783,6 +795,10 @@ bool NavSatTransform::prepareFilteredGps(
 bool NavSatTransform::prepareGpsOdometry(nav_msgs::msg::Odometry * gps_odom)
 {
   bool new_data = false;
+// """ """
+  RCLCPP_INFO(
+    this->get_logger(), "transform_good_ && gps_updated_ && odom_updated_ is (%d, %d, %d)",
+    transform_good_, gps_updated_, odom_updated_);
 
   if (transform_good_ && gps_updated_ && odom_updated_) {
     *gps_odom = cartesianToMap(latest_cartesian_pose_);
@@ -792,9 +808,10 @@ bool NavSatTransform::prepareGpsOdometry(nav_msgs::msg::Odometry * gps_odom)
 
     // Want the pose of the vehicle origin, not the GPS
     tf2::Transform transformed_cartesian_robot;
-    rclcpp::Time time(static_cast<double>(gps_odom->header.stamp.sec) +
-      static_cast<double>(gps_odom->header.stamp.nanosec) /
-      1000000000.0);
+    // rclcpp::Time time(static_cast<double>(gps_odom->header.stamp.sec) +
+    //   static_cast<double>(gps_odom->header.stamp.nanosec) /
+    //   1000000000.0);
+    rclcpp::Time time(gps_odom->header.stamp, RCL_ROS_TIME);
     getRobotOriginWorldPose(transformed_cartesian_gps, transformed_cartesian_robot, time);
 
     // Rotate the covariance as well

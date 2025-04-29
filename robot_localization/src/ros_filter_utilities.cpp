@@ -131,10 +131,12 @@ bool lookupTransformSafe(
   const bool silent)
 {
   bool retVal = true;
-  tf2::TimePoint time_tf = tf2::timeFromSec(filter_utilities::toSec(time));
-  tf2::Duration duration_tf =
-    tf2::durationFromSec(filter_utilities::toSec(duration));
+  // tf2::TimePoint time_tf = tf2::timeFromSec(filter_utilities::toSec(time));
+  // tf2::Duration duration_tf =
+  //   tf2::durationFromSec(filter_utilities::toSec(duration));
 
+  tf2::TimePoint time_tf     = tf2::timeFromSec(time.seconds());
+  tf2::Duration  duration_tf = tf2::durationFromSec(duration.seconds());
   // First try to transform the data at the requested time
   try {
     geometry_msgs::msg::TransformStamped stamped = buffer->lookupTransform(

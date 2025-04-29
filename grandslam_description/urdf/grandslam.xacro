@@ -238,6 +238,23 @@
   <origin xyz="-0.2 0 0" rpy="0 0 0"/>
 </joint>
 
+<!-- GPS -->
+<link name="gps">
+  <visual>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <geometry>
+      <sphere radius="0.03"/> <!-- GPS 안테나처럼 작은 구 모양 -->
+    </geometry>
+    <material name="orange"/> <!-- 눈에 띄게 오렌지색 -->
+  </visual>
+</link>
+
+<joint name="gps_joint" type="fixed">
+  <parent link="base_link"/>
+  <child link="gps"/>
+  <origin xyz="0 0 1" rpy="0 0 0"/> <!-- 차체 위쪽, 살짝 앞쪽 -->
+</joint>
+
   <!-- 바퀴 4개 -->
   <xacro:wheel name="wheel_fl" xyz=" 0.18  0.14 0.0"/>
   <xacro:wheel name="wheel_fr" xyz=" 0.18 -0.14 0.0"/>
