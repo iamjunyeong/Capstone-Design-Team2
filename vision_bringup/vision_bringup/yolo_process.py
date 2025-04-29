@@ -41,7 +41,7 @@ def slic_opencv_bgr(bgr, size=12, ruler=8.0, iters=5):
     return slicer.getLabels()
 
 def build_sparse_class_cloud(color_bgr, depth_mm, K, class_mask, class_id,
-                             scale=0.4, slic_size=8, slic_ruler=7.0,
+                             scale=0.3, slic_size=12, slic_ruler=7.0,
                              min_pix=30, max_depth_jitter_mm=3000):
     if not class_mask.any():
         return np.zeros((0,6), np.float32)
@@ -91,15 +91,19 @@ def cloud_rgb_to_msg(cloud_rgb, header_src):
     hdr.frame_id = header_src.frame_id
     return pc2.create_cloud(hdr, fields, data.tolist())
 
+
+
+
 class SegmentedCloudNode(Node):
     ID_BRAILLE = 2
     ID_CAUTION = 3
     ID_ROADWAY = 4
-
+    
     def __init__(self):
         super().__init__('segmented_cloud_node')
         self.bridge = CvBridge()
         self.K = None
+        self.slic_labels = None
 
         self.model = YOLO(
             '/home/loe/workspace/yolo/surface/ultralytics/train3/weights/best.pt'
@@ -109,6 +113,8 @@ class SegmentedCloudNode(Node):
         c = Subscriber(self, Image,      '/camera/camera/color/image_raw', qos_profile=qos)
         d = Subscriber(self, Image,      '/camera/camera/aligned_depth_to_color/image_raw', qos_profile=qos)
         i = Subscriber(self, CameraInfo, '/camera/camera/color/camera_info', qos_profile=qos)
+        l = Subscriber(self, Image, '/slic_labels', qos_profile=qos)
+
 
         sync = ApproximateTimeSynchronizer([c,d,i], queue_size=5, slop=0.03)
         sync.registerCallback(self.cb_synced)
@@ -119,6 +125,19 @@ class SegmentedCloudNode(Node):
         self.pub_annotated = self.create_publisher(Image,       '/segmented/image_annotated', 10)
 
         self.get_logger().info('SegmentedCloudNode ready.')
+
+    def make_empty_cloud(self, header_src):
+        fields = [
+            PointField(name='x',   offset=0, datatype=PointField.FLOAT32, count=1),
+            PointField(name='y',   offset=4, datatype=PointField.FLOAT32, count=1),
+            PointField(name='z',   offset=8, datatype=PointField.FLOAT32, count=1),
+            PointField(name='rgb', offset=12, datatype=PointField.FLOAT32, count=1),
+        ]
+        hdr = Header()
+        hdr.stamp = header_src.stamp
+        hdr.frame_id = header_src.frame_id
+        return pc2.create_cloud(hdr, fields, [])  # 빈 포인트 리스트
+
 
     def cb_synced(self, img_msg, depth_msg, info_msg):
         t0 = time.perf_counter()
@@ -157,21 +176,25 @@ class SegmentedCloudNode(Node):
             elif cid == self.ID_ROADWAY:
                 mask_r |= m_up
 
-        cloud_b = build_sparse_class_cloud(color, depth, self.K, mask_b, self.ID_BRAILLE)
-        cloud_c = build_sparse_class_cloud(color, depth, self.K, mask_c, self.ID_CAUTION)
-        cloud_r = build_sparse_class_cloud(color, depth, self.K, mask_r, self.ID_ROADWAY)
+            cloud_b = build_sparse_class_cloud(color, depth, self.K, mask_b, self.ID_BRAILLE)
+            cloud_c = build_sparse_class_cloud(color, depth, self.K, mask_c, self.ID_CAUTION)
+            cloud_r = build_sparse_class_cloud(color, depth, self.K, mask_r, self.ID_ROADWAY)
 
-        if cloud_b.size:
-            msg = cloud_rgb_to_msg(cloud_b, img_msg.header)
-            if msg: self.pub_braille.publish(msg)
+            msg_b = cloud_rgb_to_msg(cloud_b, img_msg.header)
+            if msg_b is None:
+                msg_b = self.make_empty_cloud(img_msg.header)
+            self.pub_braille.publish(msg_b)
 
-        if cloud_c.size:
-            msg = cloud_rgb_to_msg(cloud_c, img_msg.header)
-            if msg: self.pub_caution.publish(msg)
+            msg_c = cloud_rgb_to_msg(cloud_c, img_msg.header)
+            if msg_c is None:
+                msg_c = self.make_empty_cloud(img_msg.header)
+            self.pub_caution.publish(msg_c)
 
-        if cloud_r.size:
-            msg = cloud_rgb_to_msg(cloud_r, img_msg.header)
-            if msg: self.pub_road.publish(msg)
+            msg_r = cloud_rgb_to_msg(cloud_r, img_msg.header)
+            if msg_r is None:
+                msg_r = self.make_empty_cloud(img_msg.header)
+            self.pub_road.publish(msg_r)
+
 
         self.get_logger().info(
             f'proc_time={time.perf_counter()-t0:.3f}s '

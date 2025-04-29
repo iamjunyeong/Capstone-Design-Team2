@@ -15,6 +15,8 @@ from cv_bridge       import CvBridge
 from sklearn.cluster import DBSCAN
 from message_filters import Subscriber, ApproximateTimeSynchronizer
 from fast_slic.avx2 import SlicAvx2 as Slic
+from cv_bridge import CvBridge
+
 
 
 
@@ -202,7 +204,8 @@ class SparseObstacleNode(Node):
 
         ats = ApproximateTimeSynchronizer([c,d,i], 5, 0.03)
         ats.registerCallback(self.synced_cb)
-
+        self.bridge = CvBridge()
+        self.pub_labels = self.create_publisher(Image, '/slic_labels', 10)
         self.pub = self.create_publisher(PointCloud2,'/obstacle_clusters_colored',10)
         self.get_logger().info('SparseObstacleNode ready.')
 
@@ -217,6 +220,16 @@ class SparseObstacleNode(Node):
         depth = self.bridge.imgmsg_to_cv2(depth_msg,'16UC1')
 
         cloud6 = build_sparse_cloud(color, depth, self.K)
+        h, w = color.shape[:2]
+        num_components = int((h * w) / (16 ** 2))  # reg_size=16 기준
+        compactness = 10.0  # 보통 쓰던 값
+
+        labels = fastslic_bgr(color, num_components=num_components, compactness=compactness)
+
+        label_msg = self.bridge.cv2_to_imgmsg(labels.astype(np.int32), encoding='32SC1')
+        label_msg.header = img_msg.header
+        self.pub_labels.publish(label_msg)
+
         self.get_logger().info(f'SLIC→cloud: {cloud6.shape[0]} pts ({time.perf_counter()-t0:.3f}s)')
 
         t1 = time.perf_counter()
@@ -226,7 +239,20 @@ class SparseObstacleNode(Node):
         self.get_logger().info(f'Processing time: {time.perf_counter()-t1:.3f}s')
 
         if pcd is None:
+            self.get_logger().info('No PCD to publish. Sending empty cloud to clear RViZ.')
+            empty_cloud = pc2.create_cloud(
+                img_msg.header,
+                fields=[
+                    PointField(name='x', offset=0, datatype=PointField.FLOAT32, count=1),
+                    PointField(name='y', offset=4, datatype=PointField.FLOAT32, count=1),
+                    PointField(name='z', offset=8, datatype=PointField.FLOAT32, count=1),
+                    PointField(name='rgb', offset=12, datatype=PointField.FLOAT32, count=1)
+                ],
+                points=[]  # empty list
+            )
+            self.pub.publish(empty_cloud)
             return
+
         self.pub.publish(pcd_to_cloud_msg(pcd, img_msg.header))
         self.get_logger().info(f'Published PCD ({time.perf_counter()-t0:.3f}s total)')
 
