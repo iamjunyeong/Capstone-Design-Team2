@@ -1,4 +1,4 @@
-
+#!/usr/bin/env python3
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Bool, UInt8
@@ -36,7 +36,9 @@ class ButtonNode(Node):
     # talkbutton 상태를 받아서 처리하는 콜백 (필요시 구현)
     def talkbutton_callback(self, msg):
         self.talkbutton_pressed = msg.data
-        self.get_logger().info(f"Talk button 상태: {self.talkbutton_pressed}")
+        #self.get_logger().info(f"Talk button 상태: {self.talkbutton_pressed}")
+        self.talkbutton_pub.publish(Bool(data=self.talkbutton_pressed))
+        
     # handlebutton 상태 콜백   
     def handlebutton_callback(self, msg):
         new_status = msg.data
@@ -54,7 +56,7 @@ class ButtonNode(Node):
             #양 손 잡음. pub
             elif new_status == 2:
                 self.monitoring = False
-                self.get_logger().info("양 손 잡음 → publish(2)")
+                #self.get_logger().info("양 손 잡음 → publish(2)")
                 self.handlebutton_pub.publish(UInt8(data=2))
                 self.hmi_stop_pub.publish(Bool(data=False))
                 
@@ -71,7 +73,7 @@ class ButtonNode(Node):
         while time.time() - start_time < 0.5:
             with self.lock:
                 if self.current_status != 0:
-                    self.get_logger().info("0.5초 내 상태 변화 감지됨 → publish(0) 생략")
+                    #self.get_logger().info("0.5초 내 상태 변화 감지됨 → publish(0) 생략")
                     self.monitoring = False
                     return
             time.sleep(0.05)  # 20Hz 감시
@@ -79,7 +81,7 @@ class ButtonNode(Node):
         with self.lock:
             if self.current_status == 0:
                 self.handlebutton_pub.publish(UInt8(data=0))
-                self.get_logger().info("비상정지")
+                #self.get_logger().info("비상정지")
                 self.hmi_stop_pub.publish(Bool(data=True)) 
             self.monitoring = False
     # 한쪽 손만 잡으면 3초 모니터링 함수

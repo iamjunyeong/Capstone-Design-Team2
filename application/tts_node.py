@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String, Bool, UInt8
@@ -6,6 +7,7 @@ from collections import deque
 import threading
 import pygame
 import time
+
 class TTSNode(Node):
     def __init__(self):
         super().__init__('tts_node')
@@ -15,8 +17,8 @@ class TTSNode(Node):
             0: ', 이해하지 못했습니다. 다시 말씀해주시겠어요?',
             1: ', 안내사항',
             2: ', 버튼을 누르고 목적지를 말씀해주세요',
-            3: f', 목적지를 { self.fin_goal }로 설정할까요? 맞으면 "네", 아니면 "아니요"라고 말씀해주세요.',
-            #4: f', 안내 서비스를 시작합니다. 예상 소요 시간은 약 {self.meter_to_dst/self.speed/60  }분 입니다.',
+            
+            4: f', 안내 서비스를 시작합니다. 손잡이를 잡아주세요',
             5: ', 목적지 변경, 현재 위치 확인, 정지, 중 말씀해주세요',
             #6: f' 현재 위치는 {self.next_node} 의 { self.meter_to_node} 미터 앞 입니다.',
             7: ', 가속하겠습니다.',
@@ -26,17 +28,21 @@ class TTSNode(Node):
             11: ', 잠시 정지하겠습니다. 주행을 시작하려면 손잡이를 바르게 잡아주세요.',
             12: ', 비상정지합니다. 비상 정지합니다.',
             13: ', 주행이 완료되었습니다. 주차구역에서 대기하겠습니다.',
-            14: ', 듣고있어요'
+            14: ', 네'
         }
         #변수 선언
         self.intent = None
-        self.fin_goal = None
+        self.dst = None
         self.dst_dict = {
-            0: "공학관",
-            1: "신공학관",
+            0: "신공학관",
+            1: "공학관",
             2: "새천년관",
             3: "학생회관",
-            4: "법학관"
+            4: "법학관",
+            5: "정문",
+            6: "후문",
+            7: "인문학관",
+            8: "경영관"
         }
         self.talkbutton_pressed = False
         self.is_playing = False  # 현재 음성이 재생 중인지 여부
@@ -44,6 +50,8 @@ class TTSNode(Node):
         self.emergencybutton_pressed = False
         self.handlebutton_code = 0 
         self.lock = threading.Lock()
+        self.response_state = 0   # 0:대기 중, 1: 확인 요청 진행 중, 2:확인 요청 완료 3:재질의 들어가기 
+        
         # pygame mixer 초기화
         try:
             pygame.mixer.init()
@@ -65,24 +73,38 @@ class TTSNode(Node):
 
         # SUB 
         self.subscription = self.create_subscription(String, '/intent_to_tts', self.intent_listener_callback, 10)
-        self.fin_goal_sub = self.create_subscription(UInt8, '/fin_goal', self.fin_goal_callback, 10)
+        self.fin_goal_sub = self.create_subscription(UInt8, '/dst', self.fin_goal_callback, 10)
         self.talkbutton_sub = self.create_subscription(Bool, '/talkbutton_pressed', self.talkbutton_callback,10)
         self.handlebutton_sub = self.create_subscription(Bool, '/handlebutton_state', self.handlebutton_callback,10)
         self.emergencybutton_sub = self.create_subscription(Bool, '/emergency', self.emergency_button_callback,10)
-        self.response = self.create_publisher(Bool, '/need_to_confirm_user_response', 10)
+        
+        self.responsesub = self.create_subscription(UInt8, '/confirm_request', self.confirm_callback, 10)
+
+        self.response = self.create_publisher(UInt8, '/response_state', 10)
+    
+    def confirm_callback(self, msg):
+        self.response_state = msg.data
 
     def intent_listener_callback(self, msg):
         self.intent = msg.data
         self.get_logger().info(f"의도 수령: {self.intent}")
+        if self.intent == "unknown":
+            self.request_queue.append(self.output_text[0])
+        elif self.response_state == 2 and self.intent == "set_destination" :
+            self.request_queue.append(self.output_text[4])
+        else:
+            pass    
 
     def fin_goal_callback(self, msg):
         fin_goal_int = msg.data
         self.fin_goal=self.dst_dict[fin_goal_int] 
         self.get_logger().info(f"목적지 수령: {self.fin_goal}")
-        if self.intent == "set_destination":
+        if self.response_state==1 and self.intent == "set_destination":
+            self.output_text[3] = f', 목적지를 {self.fin_goal} 으로 설정할까요? 맞으면 버튼을 누르고 "네", 아니면 "아니요"라고 말씀해주세요.'
             self.request_queue.append(self.output_text[3])
-            self.response.publish(Bool(data=True))  # 확인 요청 발행
-
+            self.response_state = 2 # 확인 요청 상태로 변경 
+            self.response.publish(UInt8(data=self.response_state))  # 확인 요청 발행
+         
     def handlebutton_callback(self, msg):
         self.handlebutton_code = msg.data
         if self.handlebutton_code == 2:
@@ -92,13 +114,13 @@ class TTSNode(Node):
     def talkbutton_callback(self, msg):
         if msg.data and not self.last_talkbutton_state:
             self.last_talkbutton_state = True  # 눌림 감지
-            self.get_logger().info("듣고있어요!")
+            self.get_logger().info("네")
 
             with self.lock:
                 if self.is_playing:
                     pygame.mixer.music.stop()
                     self.is_playing = False
-                threading.Thread(target=self.text_to_speech, args=("드꼬이써요",)).start()
+                threading.Thread(target=self.text_to_speech, args=("네",)).start()
         elif not msg.data:
             self.last_talkbutton_state = False  # 버튼 떨어짐
     def emergency_button_callback(self, msg):
@@ -112,6 +134,7 @@ class TTSNode(Node):
                     
         elif not msg.data:
             self.emergencybutton_pressed = False  # 버튼 떨어짐     
+        
     def process_queue(self):
         """큐에서 요청을 꺼내 순차적으로 처리"""
         while True:

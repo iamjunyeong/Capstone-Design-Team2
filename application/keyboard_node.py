@@ -1,4 +1,4 @@
-
+#!/usr/bin/env python3
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Bool, UInt8
@@ -86,15 +86,15 @@ class KeyboardNode(Node):
     def publish_talk(self, state: bool):
         self.talkbutton_pub.publish(Bool(data=state))
         status = "음성 상호작용 시작" if state else "음성 상호작용 종료"
-        self.get_logger().info(f"[TALK] {status}")
+        #self.get_logger().info(f"[TALK] {status}")
     def publish_handle(self, state: int):
         self.handlebutton_pub.publish(UInt8(data=state))
-        self.get_logger().info(f"[HANDLE] {state}")
+        #self.get_logger().info(f"[HANDLE] {state}")
     
     def publish_emergency(self, state: bool):
         self.emergency_pub.publish(Bool(data=state))
         status = "비상 정지 시작" if state else "비상 정지 해제"
-        self.get_logger().info(f"[EMERGENCY] {status}")
+        #self.get_logger().info(f"[EMERGENCY] {status}")
 
 
 def main(args=None):

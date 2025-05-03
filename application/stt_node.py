@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String, Bool
@@ -25,21 +27,22 @@ ENCODING = pb.DecoderConfig.AudioEncoding.LINEAR16
 CHANNELS = 1
 FRAME_DURATION_MS = 30
 FRAME_SIZE = int(SAMPLE_RATE * FRAME_DURATION_MS / 1000)
-MAX_SILENCE_DURATION = 5
+MAX_SILENCE_DURATION = 1
 
 boosted_keywords = [
-    "공학관:5.0", "신공학관:5.0", "새천년관:5.0", "학생회관:5.0", "법학관:5.0", "수의대:5.0",
-    "가줘:5.0", "가자:5.0", "가고:5.0", "싶어:5.0", "데려다줘:5.0", "이동:5.0", "목적지:5.0",
+    "공학관:5.0","공대:5.0","신공:5.0", "신공학관:5.0", "새천년관:5.0", "학생회관:5.0","학관:5.0", "법학관:5.0","정문:5.0", "후문:5.0", "문과대:5.0","인문학관:5.0", "경영대:5.0", "경영관:5.0",
+    "가줘:5.0", "가자:5.0", "가고:2.0", "싶어:5.0", "데려다줘:5.0", "이동:5.0", "목적지:5.0",
     "몇:3.0","분:2.0", "얼마나:5.0", "도착:5.0", "시간:5.0", "얼마:5.0", "남았어:5.0", "걸려:5.0",
     "어디야:5.0", "어디:5.0","현재:5.0", "위치:5.0", "지나:5.0"
 ]
 
 # === 마이크 VAD 스트리머 ===
 class VADMicStreamer:
-    def __init__(self):
+    def __init__(self,stt_node):
         self.q = queue.Queue()
         self.vad = webrtcvad.Vad(2)
         self.max_silence_frames = int(MAX_SILENCE_DURATION * 1000 / FRAME_DURATION_MS)
+        self.stt = stt_node
         
     def __enter__(self):
         self.stream = sd.InputStream(
@@ -54,33 +57,37 @@ class VADMicStreamer:
 
     def callback(self, indata, frames, time_info, status):
         if status:
-            print("⚠️", status)
+            print("", status)
         self.q.put(bytes(indata))
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.stream.stop()
         self.stream.close()
 
-    def read_stream(self, stop_condition_fn):
+    def read_stream(self,stt_input):
         silence = 0
         while True:
-            if stop_condition_fn():  # 외부 종료 조건 검사
-                print("버튼 off")
-                break
-            frame = self.q.get()
-            if len(frame) < 2:
-                continue
             
-            frame = self.preprocess_audio(frame) # (지욱) 전처리 추가
-
-            is_speech = self.vad.is_speech(frame, SAMPLE_RATE)
-            yield frame
-            if is_speech:
-                silence = 0
+            if not stt_input:
+                print("버튼 눌리지 않아 cut함")
+                return
             else:
-                silence += 1
-                if silence > self.max_silence_frames:
-                    break
+                frame = self.q.get()
+                if len(frame) < 2:
+                    continue
+                
+                frame = self.preprocess_audio(frame) # (지욱) 전처리 추가
+
+                is_speech = self.vad.is_speech(frame, SAMPLE_RATE)
+                yield frame
+                
+                if is_speech:
+                    silence = 0
+                else:
+                    silence += 1
+                    if silence >= self.max_silence_frames:
+                        print("무음 감지, 스트리밍 종료")
+                        return
     
     def preprocess_audio(self, frame): # 전처리 함수
         try:
@@ -113,7 +120,7 @@ class VADMicStreamer:
             return processed_frame
 
         except Exception as e:
-            print(f"⚠️ Noise reduction 에러 무시: {e}")
+            print(f"Noise reduction 에러 무시: {e}")
             return frame
 
 
@@ -132,7 +139,7 @@ class STTNode(Node):
     
     def talk_button_callback(self, msg):
         self.talkbutton_pressed = msg.data
-        self.get_logger().info(f"Talk button 상태: {self.talkbutton_pressed}")
+        #self.get_logger().info(f"Talk button 상태: {self.talkbutton_pressed}")
         if msg.data and not self.is_processing:
             self.get_logger().info("버튼 눌림 감지됨. STT 실행 시작.")
             self.is_processing = True
@@ -141,7 +148,8 @@ class STTNode(Node):
             finally:
                 self.is_processing = False
         elif not msg.data:
-            self.get_logger().info("버튼 떨어짐, STT정지요청")
+            pass
+            #self.get_logger().info("버튼 떨어짐, STT정지요청")
 
     def get_token(self):
         if self.token is None or self.token["expire_at"] < time.time():
@@ -163,28 +171,49 @@ class STTNode(Node):
             keywords=boosted_keywords
         )
 
-
         with grpc.secure_channel(GRPC_SERVER_URL, grpc.ssl_channel_credentials()) as channel:
             stub = pb_grpc.OnlineDecoderStub(channel)
             cred = grpc.access_token_call_credentials(self.get_token())
 
+            final_result = ""  # 마지막 결과 저장용
+
             def req_iterator():
                 yield pb.DecoderRequest(streaming_config=config)
-                with VADMicStreamer() as mic:
-                    for chunk in mic.read_stream(lambda: not self.talkbutton_pressed):  # 종료 조건
-                        yield pb.DecoderRequest(audio_content=chunk)
+                self.get_logger().info("스트리밍 설정 전송")
 
-            self.get_logger().info("음성 인식 대기 중...")
+                with VADMicStreamer(self) as mic:
+                    try:
+                        for chunk in mic.read_stream(self.talkbutton_pressed):
+                            if not self.talkbutton_pressed:
+                                yield pb.DecoderRequest(audio_content=chunk)
+                                self.get_logger().info("마지막 프레임 전송 후 종료")
+                                break
+                            else:
+                                yield pb.DecoderRequest(audio_content=chunk)
+                    except Exception as e:
+                        self.get_logger().error(f"요청 제너레이터 오류: {e}")
+                    finally:
+                        self.get_logger().info("스트리밍 종료")
+
+            # 음성 인식 응답 수신
             for resp in stub.Decode(req_iterator(), credentials=cred):
                 for result in resp.results:
+                    if not result.alternatives:
+                        continue
                     text = result.alternatives[0].text
                     if not text.strip():
                         continue
                     if result.is_final:
-                        self.get_logger().info(f"최종 인식: {text}")
-                        msg = String()
-                        msg.data = text
-                        self.publisher_.publish(msg)
+                        final_result = text  # 🔑 마지막 결과 저장
+
+            # 요청 루프가 끝났을 때 마지막 결과가 있다면 publish
+            if final_result:
+                self.get_logger().info(f"STT 종료, 최종 인식: {final_result}")
+                msg = String()
+                msg.data = final_result
+                self.publisher_.publish(msg)
+
+            self.is_processing = False
 
 # === main ===
 def main(args=None):

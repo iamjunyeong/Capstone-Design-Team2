@@ -14,7 +14,7 @@ from rclpy.action import ActionClient
 
 # 미리 정의된 건물 좌표 데이터베이스 (건물 ID에 따른 좌표 및 방향 정보)
 BUILDING_DB = {
-    1: {"x": 0.0, "y": 0.0, "orientation": (0.0, 0.0, 0.0, 1.0)}, #신공학관 
+    0: {"x": 0.0, "y": 0.0, "orientation": (0.0, 0.0, 0.0, 1.0)}, #신공학관 
     3: {"x": 1.789409, "y": 45.007426, "orientation": (0.0, 0.0, 0.0, 1.0)}, #공대 c동 
     4: {"x": -60.514286, "y": 126.617229, "orientation": (0.0, 0.0, 0.0, 1.0)}, #공대 A동
     8: {"x": -142.485558, "y": 192.364434, "orientation": (0.0, 0.0, 0.0, 1.0)}, #학생회관
@@ -27,7 +27,7 @@ BUILDING_DB = {
 
 class GoalSender(Node):
     def __init__(self):
-        super().__init__('goal_sender_node')
+        super().__init__('hmi_planning_node')
 
         # /voice/building_id 토픽에서 UInt8 메시지를 구독하여 건물 ID를 수신
         self.subscription = self.create_subscription(
@@ -42,7 +42,7 @@ class GoalSender(Node):
         # "navigate_to_pose"라는 이름의 액션 서버에 연결한다.
         self._action_client = ActionClient(self, NavigateToPose, 'navigate_to_pose')
 
-        self.get_logger().info("GoalSender 노드가 시작되었습니다.")
+        self.get_logger().info("hmi_planning started.")
 
     def building_id_callback(self, msg: UInt8):
         """
