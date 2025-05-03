@@ -20,7 +20,7 @@ class TTSNode(Node):
             
             4: f', 안내 서비스를 시작합니다. 손잡이를 잡아주세요',
             5: ', 목적지 변경, 현재 위치 확인, 정지, 중 말씀해주세요',
-            #6: f' 현재 위치는 {self.next_node} 의 { self.meter_to_node} 미터 앞 입니다.',
+            
             7: ', 가속하겠습니다.',
             8: ', 감속하겠습니다.',
             9: ', 보행 중입니다. 주의하여주세요.',
@@ -55,9 +55,9 @@ class TTSNode(Node):
         # pygame mixer 초기화
         try:
             pygame.mixer.init()
-            self.get_logger().info("🔊 pygame mixer 초기화 완료")
+            self.get_logger().info("----------------pygame mixer 초기화 완료------------------")
         except Exception as e:
-            self.get_logger().error(f"pygame mixer 초기화 실패: {e}")
+            self.get_logger().error(f"$$$$$$$$$$$$$$$$$pygame mixer 초기화 실패:$$$$$$$$$$$$$$$$$$$$ {e}")
         # TTS 재생 우선순위 설정을 위한 큐 구조 
         self.request_queue = deque()
         
@@ -78,10 +78,14 @@ class TTSNode(Node):
         self.handlebutton_sub = self.create_subscription(Bool, '/handlebutton_state', self.handlebutton_callback,10)
         self.emergencybutton_sub = self.create_subscription(Bool, '/emergency', self.emergency_button_callback,10)
         
-        self.responsesub = self.create_subscription(UInt8, '/confirm_request', self.confirm_callback, 10)
+        # vision/obstacle_info 값 받아오는 sub 필요, callback에서 9번 출력 
+        # 속도조절 스위치 값 받아오는 sub 필요, callback에서 조건에 따라 7,8번 출력
 
+        #서비스로 구현 필요
+        self.responsesub = self.create_subscription(UInt8, '/confirm_request', self.confirm_callback, 10)
         self.response = self.create_publisher(UInt8, '/response_state', 10)
     
+
     def confirm_callback(self, msg):
         self.response_state = msg.data
 

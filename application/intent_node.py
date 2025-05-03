@@ -25,7 +25,6 @@ class IntentNode(Node):
             "공대" :1,
             "새천년관" :2,
             "학생회관" :3,
-            "학관":3,
             "법학관" :4,
             "정문" :5,
             "후문" :6,
@@ -35,7 +34,7 @@ class IntentNode(Node):
             "경영관" :8
         }
         # 키워드 목록
-        self.boosted_dst = ["공학관","공대","신공", "신공학관", "새천년관", "학생회관","학관", "법학관","정문", "후문", "문과대","인문학관", "경영대", "경영관"]
+        self.boosted_dst = ["공학관","공대","신공", "신공학관", "새천년관", "학생회관", "법학관","정문", "후문", "문과대","인문학관", "경영대", "경영관"]
         self.boosted_togo = ["가줘", "가자", "가고 싶어", "데려다줘", "이동", "갈래", "가고","가고싶어", "출발", "가야돼"]
         self.boosted_howlong = ["까지 ", "몇", "분이", "분이나", "얼마나", "도착", "시간", "걸릴까", "걸려", "남았어","얼마", "언제"]
         self.boosted_where = ["어디야", "현재 위치", "어디를", "지나고", "위치","지금", "어디", "현재", "지나"]
@@ -151,7 +150,7 @@ class IntentNode(Node):
         elif intent == "confirm_yes":
             if self.response_state == 2: # 확인 요청 상태일 때만
                 
-                #self.send_intent_message(intent) #의도 전송
+                self.send_intent_message(intent) #의도 전송
                 self.response_state = 3 
                 self.confirm_pub.publish(UInt8(data=self.response_state))  # 확인 요청 완료 상태 전송
                 
