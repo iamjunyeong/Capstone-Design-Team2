@@ -6,3 +6,6 @@ sounddevice==0.5.1
 protobuf==5.29.4
 ffmpeg==1.4
 playsound==1.3.0
+pygame==2.6.1
+noisereduce==3.0.3
+grpcio==1.71.0

@@ -132,7 +132,7 @@ class IntentNode(Node):
                 self.response_state = 1 
                 self.confirm_pub.publish(UInt8(data=self.response_state)) #재확인 요청 전송
                 self.dstpub.publish(UInt8(data=encoded_dst))#목적지 전송
-                #self.building_id_pub.publish(UInt8(data=encoded_dst))#목적지 전송
+                self.building_id_pub.publish(UInt8(data=encoded_dst))#목적지 전송
                 self.get_logger().info(f"목적지 전송: {encoded_dst}")
 
         elif intent == "change_dst":
