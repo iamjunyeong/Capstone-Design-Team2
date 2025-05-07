@@ -4,6 +4,7 @@ from rclpy.node import Node
 from sensor_msgs.msg import Image
 from std_msgs.msg import Int8
 from cv_bridge import CvBridge
+import cv2
 from ultralytics import YOLO
 from ament_index_python.packages import get_package_share_directory
 
@@ -41,7 +42,7 @@ def detect_obstacles(frame, model):
 class ObstacleDetector(Node):
     def __init__(self):
         super().__init__('obstacle_detector')
-        self.declare_parameter('camera_topics', ['/camera','/usb_cam1','/usb_cam2'])
+        self.declare_parameter('camera_topics', ['/camera/camera/color/image_raw','/usb_cam1','/usb_cam2'])
         topics = self.get_parameter('camera_topics').value
 
         # 모델 경로: 패키지 공유 디렉터리 내 model 폴더
@@ -50,6 +51,7 @@ class ObstacleDetector(Node):
         self.model = YOLO(model_path)
 
         self.pub = self.create_publisher(Int8, '/obstacle_info', 1)
+        self.debug_pub = self.create_publisher(Image, '/obstacle_debug/image_raw', 1)
         self.bridge = CvBridge()
 
         for t in topics:
@@ -57,12 +59,36 @@ class ObstacleDetector(Node):
             self.get_logger().info(f'Sub to {t}')
 
     def cb(self, msg: Image):
-        img = self.bridge.imgmsg_to_cv2(msg, 'bgr8')
+        try:
+            img = self.bridge.imgmsg_to_cv2(msg, 'bgr8')
+        except Exception as e:
+            self.get_logger().error(f'Image conversion failed: {e}')
+            return  # 변환 실패 시 무시하고 리턴
+
+        # YOLO 결과 및 코드 판단
+        res = self.model(img)[0]
         code = detect_obstacles(img, self.model)
+
         out = Int8()
         out.data = code
         self.pub.publish(out)
 
+        # 디버깅 이미지 퍼블리시
+        img_plot = res.plot()
+        img_bgr = cv2.cvtColor(img_plot, cv2.COLOR_RGB2BGR)
+        cv2.putText(
+            img_bgr,
+            f"Obstacle Code: {code}",
+            (20, 40),                    # 좌표 (x, y)
+            cv2.FONT_HERSHEY_SIMPLEX,   # 폰트
+            1.2,                        # 크기
+            (0, 0, 255),                # 색상 (빨강)
+            2,                          # 두께
+            cv2.LINE_AA
+        )
+        debug_msg = self.bridge.cv2_to_imgmsg(img_bgr, encoding='bgr8')
+        debug_msg.header = msg.header
+        self.debug_pub.publish(debug_msg)
 
 def main():
     rclpy.init()
