@@ -39,5 +39,6 @@ def generate_launch_description():
             name='hmi_planning_node',
             output='screen'
         )
+        
     ])
 

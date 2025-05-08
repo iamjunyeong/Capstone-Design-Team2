@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String, Bool
@@ -64,15 +62,19 @@ class VADMicStreamer:
         self.stream.stop()
         self.stream.close()
 
-    def read_stream(self,stt_input):
+    def read_stream(self):
         silence = 0
         while True:
             
-            if not stt_input:
+            if not self.stt.talkbutton_pressed:
                 print("버튼 눌리지 않아 cut함")
                 return
             else:
-                frame = self.q.get()
+                try:
+                    frame = self.q.get(timeout=0.1) 
+                except queue.Empty:
+                    continue
+
                 if len(frame) < 2:
                     continue
                 
@@ -148,8 +150,7 @@ class STTNode(Node):
             finally:
                 self.is_processing = False
         elif not msg.data:
-            pass
-            #self.get_logger().info("버튼 떨어짐, STT정지요청")
+            self.get_logger().info("버튼 떨어짐, STT대기")
 
     def get_token(self):
         if self.token is None or self.token["expire_at"] < time.time():
@@ -162,6 +163,7 @@ class STTNode(Node):
         return self.token["access_token"]
 
     def run_stt(self):
+        self.get_logger().info("Run STT")
         config = pb.DecoderConfig(
             sample_rate=SAMPLE_RATE,
             encoding=ENCODING,
@@ -183,7 +185,7 @@ class STTNode(Node):
 
                 with VADMicStreamer(self) as mic:
                     try:
-                        for chunk in mic.read_stream(self.talkbutton_pressed):
+                        for chunk in mic.read_stream():
                             if not self.talkbutton_pressed:
                                 yield pb.DecoderRequest(audio_content=chunk)
                                 self.get_logger().info("마지막 프레임 전송 후 종료")

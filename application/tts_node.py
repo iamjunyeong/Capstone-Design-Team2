@@ -7,6 +7,7 @@ from collections import deque
 import threading
 import pygame
 import time
+from hmi_interface.srv import IntentResponse
 
 class TTSNode(Node):
     def __init__(self):
@@ -72,8 +73,6 @@ class TTSNode(Node):
         self.get_logger().info('TTS Node has started.')
 
         # SUB 
-        self.subscription = self.create_subscription(String, '/intent_to_tts', self.intent_listener_callback, 10)
-        self.fin_goal_sub = self.create_subscription(UInt8, '/dst', self.fin_goal_callback, 10)
         self.talkbutton_sub = self.create_subscription(Bool, '/talkbutton_pressed', self.talkbutton_callback,10)
         self.handlebutton_sub = self.create_subscription(Bool, '/handlebutton_state', self.handlebutton_callback,10)
         self.emergencybutton_sub = self.create_subscription(Bool, '/emergency', self.emergency_button_callback,10)
@@ -81,34 +80,38 @@ class TTSNode(Node):
         # vision/obstacle_info 값 받아오는 sub 필요, callback에서 9번 출력 
         # 속도조절 스위치 값 받아오는 sub 필요, callback에서 조건에 따라 7,8번 출력
 
-        #서비스로 구현 필요
-        self.responsesub = self.create_subscription(UInt8, '/confirm_request', self.confirm_callback, 10)
-        self.response = self.create_publisher(UInt8, '/response_state', 10)
-    
+        #srv 
+        self.req_server = self.create_service(IntentResponse, '/confirm_service', self.intent_confirm_callback)
 
-    def confirm_callback(self, msg):
-        self.response_state = msg.data
-
-    def intent_listener_callback(self, msg):
-        self.intent = msg.data
-        self.get_logger().info(f"의도 수령: {self.intent}")
+    def intent_confirm_callback(self, request, response):
+        self.intent = request.intent
+        dst = self.dst_dict[request.dst]
         if self.intent == "unknown":
-            self.request_queue.append(self.output_text[0])
-        elif self.response_state == 2 and self.intent == "set_destination" :
-            self.request_queue.append(self.output_text[4])
-        else:
-            pass    
+            self.get_logger().info(f"요청 수신: {self.intent}")
+            self.request_queue.append(self.output_text[0]) #이해하지 못했어요. 
+            response.response_code = 0
 
-    def fin_goal_callback(self, msg):
-        fin_goal_int = msg.data
-        self.fin_goal=self.dst_dict[fin_goal_int] 
-        self.get_logger().info(f"목적지 수령: {self.fin_goal}")
-        if self.response_state==1 and self.intent == "set_destination":
-            self.output_text[3] = f', 목적지를 {self.fin_goal} 으로 설정할까요? 맞으면 버튼을 누르고 "네", 아니면 "아니요"라고 말씀해주세요.'
-            self.request_queue.append(self.output_text[3])
-            self.response_state = 2 # 확인 요청 상태로 변경 
-            self.response.publish(UInt8(data=self.response_state))  # 확인 요청 발행
-         
+        elif self.intent == "set_destination":
+            self.get_logger().info(f"요청 수신: 목적지={dst})")
+            self.request_queue.append(f", 목적지를 {dst} 으로 설정할까요? 맞으면 버튼을 누르고 '네', 아니면 '아니요'라고 말씀해주세요.")
+            response.response_code = 1
+        elif self.intent == "change_dst":
+            self.get_logger().info(f"요청 수신: 목적지 변경 (현재 위치={dst})")
+            self.request_queue.append(f", 목적지를 {dst}으로 변경할까요? 맞으면 버튼을 누르고 '네', 아니면 '아니요'라고 말씀해주세요.")
+            response.response_code = 2
+        elif self.intent == "get_location":
+            pass
+        elif self.intent == "get_eta":
+            pass 
+        elif self.intent == "confirm_yes":
+            self.request_queue.append(f", {dst} 으로 안내를 시작합니다. 손잡이를 꼭 잡아주세요")
+            response.response_code = 3 
+        elif self.intent == "confirm_no":
+            self.request_queue.append(f"목적지를 정확히 말씀해주세요")
+            response.response_code = 4
+            #목적지 설정 시퀀스 재진입
+        return response
+        """ """
     def handlebutton_callback(self, msg):
         self.handlebutton_code = msg.data
         if self.handlebutton_code == 2:

@@ -1,15 +1,15 @@
-#!/usr/bin/env python3
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String, Bool, UInt8
 import difflib
-
+from hmi_interface.srv import IntentResponse
 class IntentNode(Node):
     def __init__(self):
         super().__init__('intent_node')
-        self.subscription = self.create_subscription(String,'/stt_text',self.listener_callback,10)
-        self.confirm_sub = self.create_subscription(UInt8, '/response_state', self.confirm_callback, 10)  # 확인 요청 상태 구독
+        self.subscription = self.create_subscription(String,'/stt_text',self.stt_callback,10)
         
+        #srv client 
+        self.cli = self.create_client(IntentResponse, '/confirm_service') 
         self.intentpub = self.create_publisher(String, '/intent_to_tts', 10)  # /intent_to_tts 토픽으로 의도 전송
         self.confirm_pub = self.create_publisher(UInt8, '/confirm_request', 10)  # 확인 요청 상태 전송
         self.dstpub = self.create_publisher(UInt8, '/dst',1) 
@@ -17,7 +17,7 @@ class IntentNode(Node):
         self.get_logger().info('Intent Node started. Waiting for STT input...')
 
         self.user_text = None
-        self.response_state = 0 # 0:대기 중, 1: 확인 요청 진행 중, 2:확인 요청 완료, 3:거절, 재질의 
+        
         self.dst_dict = {
             "신공" :0, 
             "신공학관" :0,
@@ -41,7 +41,9 @@ class IntentNode(Node):
         self.boosted_yes = ["네", "예","어", "그래", "응","맞아", "맞습니다", "그렇습니다"]
         self.boosted_no = ["아니오", "아니", "아닌데","틀려", "틀렸어","아니야"]
         self.boosted_change_dst = ["바꿔줘", "바꾸다", "바꿀래", "변경", "변경할","바꿔", "변경해", "다시"]
-
+        self.intent = None
+        self.dst = None
+        self.response_state = 'IDLE'
         # self.input_loop() #stt 대신 키보드 입력으로 하기위한 함수
 
     # def input_loop(self): #stt 대신 키보드 입력으로 하기위한 함수
@@ -58,14 +60,10 @@ class IntentNode(Node):
     #         # self.listener_callback(msg)
     #         self.closest_text(msg)
      
-    def listener_callback(self, msg):
+    def stt_callback(self, msg):
         user_text = msg.data.strip()
         self.get_logger().info(f"STT로 수신: {user_text}")
         self.closest_text(user_text)
-    
-    def confirm_callback(self, msg):
-        self.response_state = msg.data 
-        self.get_logger().info(f"확인 요청 상태: {self.response_state}")
 
     def closest_text(self, msg): # 입력받은 stt를 의도파악 전 관련있는 단어들만 추출
         unprocessed_text = msg
@@ -105,66 +103,97 @@ class IntentNode(Node):
             "confirm_no" : ["아니오", "아니", "아닌데","틀려", "틀렸어","아니야"],
         }
 
-        destination = None
-        intent = None
+        
         #목적지 수령
         for dst in self.boosted_dst:
             if dst in user_text:
-                destination = dst
+                self.dst = dst
                 break
         #의도 수령
         for key, keywords in intent_keywords.items():
             if any(k in user_text for k in keywords):
-                intent = key
+                self.intent = key
                 break
         
-        if intent == None: 
-            intent = "unknown"
-            self.send_intent_message(intent)
+        if self.intent == None: 
+            self.intent = "unknown"
+            self.send_intent_message(self.intent)
         
-        elif intent == "set_destination":
+        elif self.intent == "set_destination":
             print("목적지 설정") 
-            self.send_intent_message(intent) #의도 전송
-               
-            if destination is not None:
-                encoded_dst= self.dst_dict[destination] 
-                self.response_state = 1 
-                self.confirm_pub.publish(UInt8(data=self.response_state)) #재확인 요청 전송
-                self.dstpub.publish(UInt8(data=encoded_dst))#목적지 전송
-                self.building_id_pub.publish(UInt8(data=encoded_dst))#목적지 전송
-                self.get_logger().info(f"목적지 전송: {encoded_dst}")
+            
+            self.response_state = 'REQUEST_CONFIRM'
 
-        elif intent == "change_dst":
+            req = IntentResponse.Request()
+            req.intent = self.intent
+            req.dst = self.dst_dict[self.dst]
+
+            self.future = self.cli.call_async(req)
+            self.future.add_done_callback(self.tts_response_callback)
+
+        elif self.intent == "change_dst":
            
             print("목적지 변경")  
-            self.send_intent_message(intent) #의도 전송
+            self.send_intent_message(self.intent) #의도 전송
 
-        elif intent == "get_eta": # planning 팀과 협업 
+        elif self.intent == "get_eta": # planning 팀과 협업 
             print("hmi planning 노드로 상태 보내주기 필요 ")
-            self.send_intent_message(intent) #의도 전송
+            self.send_intent_message(self.intent) #의도 전송
              
-        elif intent == "get_location":
+        elif self.intent == "get_location":
             print("hmi planning 노드로 상태 보내주기 필요 ")
-            self.send_intent_message(intent) #의도 전송
+            self.send_intent_message(self.intent) #의도 전송
 
-        elif intent == "confirm_yes":
-            if self.response_state == 2: # 확인 요청 상태일 때만
-                
-                self.send_intent_message(intent) #의도 전송
-                self.response_state = 3 
-                self.confirm_pub.publish(UInt8(data=self.response_state))  # 확인 요청 완료 상태 전송
-                
-            if destination:
-                encoded_dst= self.dst_dict[destination] 
-                self.building_id_pub.publish(UInt8(data=encoded_dst))#목적지 전송
-                self.get_logger().info(f"목적지 전송: {encoded_dst}")
-        
-        elif intent == "confirm_no":
-            print("no")
-            self.response_state = 4 #재질의 알고리즘 실행 위해 tts로 상태 송신 
-            self.confirm_pub.publish(UInt8(data=self.response_state))  # 확인 요청 완료 상태 전송
-            self.send_intent_message(intent) #의도 전송
-        
+        elif self.intent == "confirm_yes" or self.intent == "confirm_no":
+            if self.response_state != 'WATING_CONFIRM': # 확인 요청, WATING_CONFIRM 상태가 아닐 때는 무시
+                return
+            else: 
+                if self.intent == "confirm_yes":
+                    self.response_state = 'CONFIRMED'
+                    self.confirm_action(True) #의도 전송
+                    
+                    #목적지 확정 후 planning 노드로 목적지 전송 
+                    encoded_dst= self.dst_dict[self.dst] 
+                    self.building_id_pub.publish(UInt8(data=encoded_dst))#목적지 전송
+                    self.get_logger().info(f"목적지 전송: {encoded_dst}")
+
+                else:
+                    self.response_state = 'DENIED'
+                    self.confirm_action(False) #의도 전송
+
+    def confirm_action(self, yesorno):
+        req = IntentResponse.Request()
+        req.intent = "confirm_yes" if yesorno else "confirm_no"
+        req.dst = self.dst_dict[self.dst]
+
+        future = self.cli.call_async(req)
+        future.add_done_callback(self.final_response_callback)
+
+    def tts_response_callback(self, future):
+        try:
+            response = future.result()
+            self.get_logger().info(f"TTS 출력 완료")
+            self.response_state = 'WATING_CONFIRM' 
+        except Exception as e:
+            self.get_logger().error(f"서비스 호출 실패: {e}")
+            self.response_state = 'IDLE'
+    
+    def final_response_callback(self, future):
+        try:
+            response = future.result()
+            if self.response_state == 'CONFIRMED':
+
+                self.get_logger().info("응답 수신: 목적지 설정 완료, 안내 시작")
+                self.response_state = 'COMPLETED'
+            else: 
+                self.get_logger().info("응답 수신: 거부")
+                self.response_state = 'IDLE'
+                self.send_intent_message("unknown") # 모르겠음. 처리 불가 
+        except Exception as e:
+            self.get_logger().error(f"서비스 호출 실패: {e}")
+            self.response_state = 'IDLE'
+            self.send_intent_message("unknown") # 모르겠음. 처리 불가
+
     def find_closest_word(self, text, boosted_list):
         match = []
         for word in text.split():

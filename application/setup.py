@@ -13,7 +13,7 @@ setup(
 	    'vito_stt_client_pb2_grpc',
         'button_node',
         'keyboard_node',
-        'hmi_planning_node'
+        'hmi_planning_node',
 	],
 
     data_files=[
