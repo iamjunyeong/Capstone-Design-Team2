@@ -1,0 +1,5 @@
+iahrs_driver_node:
+  ros__parameters:
+    sensor_hz: 40
+    tf_prefix: ""
+    send_tf: True

@@ -23,8 +23,11 @@ class IahrsDriver(Node):
 
     def __init__(self):
         super().__init__("iahrs_driver_node")
+        # 센서 HZ 파라미터 받는 부분
+        self.declare_parameter("sensor_hz", 20)  # Default to 20 Hz
+        self._sensor_hz = self.get_parameter("sensor_hz").value
         self._tf_prefix = self.get_parameter_or("tf_prefix", "")
-        self._is_send_tf = self.get_parameter_or("send_tf", True) ## True에서 False로 바꿈
+        self._is_send_tf = self.get_parameter_or("send_tf", True)
 
         self.port_name = "/dev/ttyUSB0"
         self.baud_rate = "115200"
@@ -114,8 +117,7 @@ class IahrsDriver(Node):
                     self._msg.orientation.z = q[3]
 
                     self._msg.header.stamp = self.get_clock().now().to_msg()
-                    # self._msg.header.frame_id = self._tf_prefix + "/imu_link"
-                    self._msg.header.frame_id = self._tf_prefix + "imu" # frame id 수정
+                    self._msg.header.frame_id = self._tf_prefix + "/imu_link"
                     self._imu_pub_handler.publish(self._msg)
                     if self._is_send_tf is True:
                         self._send_tf()
@@ -143,7 +145,7 @@ class IahrsDriver(Node):
         t = TransformStamped()
         t.header.stamp = self.get_clock().now().to_msg()
         t.header.frame_id = self._tf_prefix + "/base_link"
-        t.child_frame_id = self._tf_prefix + "/imu"
+        t.child_frame_id = self._tf_prefix + "/imu_link"
         t.transform.rotation.x = self._msg.orientation.x
         t.transform.rotation.y = self._msg.orientation.y
         t.transform.rotation.z = self._msg.orientation.z
@@ -153,7 +155,8 @@ class IahrsDriver(Node):
     def _reset_sensor(self):
         self._write_port_timeout("za")  # 초기화
         self._set_sync_port()  # USB/Serial
-        self._set_sync_period(50)  # 주기 50ms (20hz)
+        # self._set_sync_period(50)  # 주기 50ms (20hz)
+        self._set_sync_period(int(1000 / self._sensor_hz))  # 주기를 ms로 변환
         self._set_sync_data(
             self.CONF_SYNC_LIN_ACC
             | self.CONF_SYNC_ANG_VEL
@@ -187,6 +190,8 @@ class IahrsDriver(Node):
 
 def main(args=None):
     rclpy.init(args=args)
+
+    # iahrs_driver_node.get_logger().info(f"Using sensor rate: {iahrs_driver_node._sensor_hz} Hz")
 
     iahrs_driver_node = IahrsDriver()
 
