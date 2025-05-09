@@ -27,12 +27,7 @@ class GoalSender(Node):
         super().__init__('hmi_planning_node')
 
         # /voice/building_id 토픽에서 UInt8 메시지를 구독하여 건물 ID를 수신
-        self.subscription = self.create_subscription(
-            UInt8,
-            '/voice/building_id',
-            self.building_id_callback,
-            10  # 큐 사이즈
-        )
+        self.subscription = self.create_subscription(UInt8,'/voice/building_id',self.building_id_callback, 10)
         # 구독자가 사용되지 않는 경우 경고가 발생하는 것을 방지하기 위한 참조
 
         # NavigateToPose 액션 클라이언트 생성
