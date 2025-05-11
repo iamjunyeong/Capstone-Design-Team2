@@ -28,31 +28,53 @@ CLASS_COLORS = {
 def rgb_to_float(r, g, b):
     return struct.unpack('f', struct.pack('I', (r<<16)|(g<<8)|b))[0]
 
-def build_sparse_class_cloud(color_bgr, depth_mm, K, labels, class_mask, class_id,
-                             scale=1.0, min_pix=30, max_depth_jitter_mm=3000):
-    """Generate Nx6 array [X,Y,Z,r,g,b] for each superpixel that overlaps class_mask."""
+def build_sparse_class_cloud(depth_mm, K, labels,
+                               class_mask, class_color,
+                               min_pix=30, max_std=500, z_min=0.05):
+    """YOLO 클래스 마스크에 걸친 슈퍼픽셀만 벡터화로 PCD 생성"""
     if not class_mask.any():
-        return np.zeros((0,6), np.float32)
+        return np.empty((0, 6), np.float32)
+
+    H, W   = labels.shape
+    lab_id = labels[class_mask]                    # 마스크 안 라벨 ID
+    uniq, cnt = np.unique(lab_id, return_counts=True)
+    keep = cnt >= min_pix
+    if not keep.any():
+        return np.empty((0, 6), np.float32)
+    uniq = uniq[keep]
+
+    # ① 깊이 통계
+    z_flat = depth_mm.astype(np.float32).ravel()
+    lbl_f  = labels.ravel()
+    cnt_all = np.bincount(lbl_f, minlength=uniq.max()+1)
+    cnt_all[cnt_all == 0] = 1
+    sum_z   = np.bincount(lbl_f, weights=z_flat, minlength=uniq.max()+1)
+    sum_z2  = np.bincount(lbl_f, weights=z_flat**2, minlength=uniq.max()+1)
+
+    mean_z  = (sum_z   / cnt_all)[uniq] * 1e-3     # m 단위
+    std_z   = np.sqrt(sum_z2 / cnt_all - (sum_z/cnt_all)**2)[uniq] * 1e-3
+    ok      = (std_z < max_std*1e-3) & (mean_z > z_min)
+    if not ok.any():
+        return np.empty((0, 6), np.float32)
+    uniq, mean_z = uniq[ok], mean_z[ok]
+
+    # ② u,v 평균
+    ys, xs = np.indices((H, W))
+    mean_u = np.bincount(lbl_f, xs.ravel(), minlength=uniq.max()+1)[uniq] / cnt_all[uniq]
+    mean_v = np.bincount(lbl_f, ys.ravel(), minlength=uniq.max()+1)[uniq] / cnt_all[uniq]
 
     fx, fy, cx, cy = K[0,0], K[1,1], K[0,2], K[1,2]
-    pts = []
-    for lab in np.unique(labels):
-        m = (labels == lab)
-        if m.sum() < min_pix or (class_mask & m).sum() == 0:
-            continue
-        zs = depth_mm[m].astype(np.float32)
-        if zs.std() > max_depth_jitter_mm:
-            continue
-        z = np.median(zs) * 1e-3
-        if z <= 0.05:
-            continue
-        ys, xs = np.nonzero(m)
-        u, v = xs.mean(), ys.mean()
-        X = (u - cx) * z / fx
-        Y = (v - cy) * z / fy
-        r, g, b = CLASS_COLORS[class_id]
-        pts.append([X, Y, z, r, g, b])
-    return np.asarray(pts, np.float32)
+    X = (mean_u - cx) * mean_z / fx
+    Y = (mean_v - cy) * mean_z / fy
+    Z = mean_z
+
+    r, g, b = class_color
+    pts = np.column_stack([X, Y, Z,
+                           np.full_like(X, r),
+                           np.full_like(Y, g),
+                           np.full_like(Z, b)]).astype(np.float32)
+    return pts
+
 
 def cloud_rgb_to_msg(cloud_rgb, header_src):
     if cloud_rgb.size == 0:
@@ -136,9 +158,9 @@ class SegmentedCloudNode(Node):
             elif cid == self.ID_ROADWAY: mask_r |= m_up
 
         # 3) sparse clouds using slic labels
-        cloud_b = build_sparse_class_cloud(color, depth, self.K, labels, mask_b, self.ID_BRAILLE)
-        cloud_c = build_sparse_class_cloud(color, depth, self.K, labels, mask_c, self.ID_CAUTION)
-        cloud_r = build_sparse_class_cloud(color, depth, self.K, labels, mask_r, self.ID_ROADWAY)
+        cloud_b = build_sparse_class_cloud(depth, self.K, labels, mask_b, CLASS_COLORS[self.ID_BRAILLE])
+        cloud_c = build_sparse_class_cloud(depth, self.K, labels, mask_c, CLASS_COLORS[self.ID_CAUTION])
+        cloud_r = build_sparse_class_cloud(depth, self.K, labels, mask_r, CLASS_COLORS[self.ID_ROADWAY])
 
         # 4) publish or clear
         for cloud, pub in ((cloud_b, self.pub_braille),
