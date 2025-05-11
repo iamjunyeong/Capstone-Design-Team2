@@ -1,3 +1,5 @@
+
+
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
@@ -12,7 +14,7 @@ def generate_launch_description():
           DeclareLaunchArgument('debug',                 default_value='false'),
           DeclareLaunchArgument('host',                  default_value='gnssdata.or.kr'),
           DeclareLaunchArgument('port',                  default_value='2101'),
-          DeclareLaunchArgument('mountpoint',            default_value='SUWN-RTCM31'),
+          DeclareLaunchArgument('mountpoint',            default_value='YONS-RTCM31'),
           DeclareLaunchArgument('ntrip_version',         default_value='None'),
           DeclareLaunchArgument('authenticate',          default_value='True'),
           DeclareLaunchArgument('username',              default_value='dltngod2000@gmail.com'),

@@ -87,9 +87,8 @@ void BrailleLaneLayer::activate()
   if (!node) return;
 
   auto qos = rclcpp::SensorDataQoS();
-  // Point -> PointCloud2 로 바꿉니다.
   points_sub_ = node->create_subscription<sensor_msgs::msg::PointCloud2>(
-    "/center_line_point",
+    "/obstacle_braille_block",
     qos,
     std::bind(&BrailleLaneLayer::cloudCallback, this, std::placeholders::_1)
   );

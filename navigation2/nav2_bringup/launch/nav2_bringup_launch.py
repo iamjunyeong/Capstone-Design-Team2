@@ -14,7 +14,8 @@ from nav2_common.launch import RewrittenYaml
 default_params_file = os.path.join(
     get_package_share_directory('nav2_bringup'), 'params', 'nav2_capstone_params.yaml') # param 변경
 default_map_file = os.path.join(
-    get_package_share_directory('nav2_bringup'), 'maps', 'map_filtered_rotated.yaml') # map 변경
+    get_package_share_directory('nav2_bringup'), 'maps', 'map_filtered.yaml') # map 변경
+    # get_package_share_directory('nav2_bringup'), 'maps', 'testmap_B_rotated.yaml') # map 변경
 default_rviz_config_file = os.path.join(
     get_package_share_directory('nav2_bringup'), 'rviz', 'nav2_default_view.rviz') # rviz 변경
 

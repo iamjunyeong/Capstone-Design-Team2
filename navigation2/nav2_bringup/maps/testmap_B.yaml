@@ -1,6 +1,7 @@
 image: map_filtered.png
 resolution: 0.05
-origin: [-6.871514767874032, -36.70839421421988, 0.0]
+origin: [-57.969170192896854, -6.871514766011387, 0.0]
 negate: 0
+mode: scale
 occupied_thresh: 0.65
 free_thresh: 0.196
