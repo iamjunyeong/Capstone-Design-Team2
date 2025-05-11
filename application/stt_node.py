@@ -3,7 +3,7 @@ from rclpy.node import Node
 from std_msgs.msg import String, Bool
 import numpy as np
 import noisereduce as nr
-
+import threading
 import logging
 import time
 import grpc
@@ -138,19 +138,75 @@ class STTNode(Node):
         self._sess = Session()
         self.is_processing = False  # 중복 실행 방지용
         self.talkbutton_pressed = False
-    
+
+        self.token = None
+        self._sess = Session()
+
+        # 모니터 루프 스레드 시작
+        self.monitor_thread = threading.Thread(target=self.monitor_loop)
+        self.get_logger().info("STT 모니터 루프 시작")
+        self.monitor_thread.daemon = True
+        self.monitor_thread.start()
+
     def talk_button_callback(self, msg):
         self.talkbutton_pressed = msg.data
-        #self.get_logger().info(f"Talk button 상태: {self.talkbutton_pressed}")
-        if msg.data and not self.is_processing:
-            self.get_logger().info("버튼 눌림 감지됨. STT 실행 시작.")
-            self.is_processing = True
-            try:
-                self.run_stt()
-            finally:
+        if self.talkbutton_pressed:
+            self.get_logger().info("Talk button ON")
+        else: 
+            self.get_logger().info("Talk button OFF")
+    
+    def monitor_loop(self):
+        while rclpy.ok():
+            if self.talkbutton_pressed and not self.is_processing:
+                self.get_logger().info("🎤 STT 실행 시작")
+                self.is_processing = True
+
+                config = pb.DecoderConfig(
+                    sample_rate=SAMPLE_RATE,
+                    encoding=ENCODING,
+                    use_itn=True,
+                    use_disfluency_filter=False,
+                    use_profanity_filter=False,
+                    keywords=boosted_keywords
+                )
+
+                try:
+                    with grpc.secure_channel(GRPC_SERVER_URL, grpc.ssl_channel_credentials()) as channel:
+                        stub = pb_grpc.OnlineDecoderStub(channel)
+                        cred = grpc.access_token_call_credentials(self.get_token())
+
+                        final_result = ""
+
+                        def req_iterator():
+                            yield pb.DecoderRequest(streaming_config=config)
+                            with VADMicStreamer(self) as mic:
+                                for chunk in mic.read_stream():
+                                    if not self.talkbutton_pressed:
+                                        yield pb.DecoderRequest(audio_content=chunk)
+                                        self.get_logger().info("🛑 버튼 떨어짐: 마지막 프레임 전송")
+                                        break
+                                    yield pb.DecoderRequest(audio_content=chunk)
+
+                        for resp in stub.Decode(req_iterator(), credentials=cred):
+                            for result in resp.results:
+                                if not result.alternatives:
+                                    continue
+                                text = result.alternatives[0].text.strip()
+                                if text and result.is_final:
+                                    final_result = text
+
+                        if final_result:
+                            self.get_logger().info(f"✅ 최종 인식: {final_result}")
+                            msg = String()
+                            msg.data = final_result
+                            self.publisher_.publish(msg)
+
+                except Exception as e:
+                    self.get_logger().error(f"STT 오류: {e}")
+
                 self.is_processing = False
-        elif not msg.data:
-            self.get_logger().info("버튼 떨어짐, STT대기")
+                self.get_logger().info("🕓 STT 처리 완료")
+            time.sleep(0.1)
 
     def get_token(self):
         if self.token is None or self.token["expire_at"] < time.time():
@@ -161,7 +217,7 @@ class STTNode(Node):
             resp.raise_for_status()
             self.token = resp.json()
         return self.token["access_token"]
-
+'''
     def run_stt(self):
         self.get_logger().info("Run STT")
         config = pb.DecoderConfig(
@@ -216,7 +272,7 @@ class STTNode(Node):
                 self.publisher_.publish(msg)
                 self.is_processing = False
         self.is_processing = False
-
+'''
 # === main ===
 def main(args=None):
     rclpy.init(args=args)
