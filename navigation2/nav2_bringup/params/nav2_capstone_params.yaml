@@ -62,9 +62,9 @@ controller_server:
     FollowPath:
       plugin: "dwb_core::DWBLocalPlanner"
       debug_trajectory_details: True
-      min_vel_x: 0.0
+      min_vel_x: 0.3
       min_vel_y: 0.0
-      max_vel_x: 0.26
+      max_vel_x: 1.0
       max_vel_y: 0.0
       max_vel_theta: 1.0
       min_speed_xy: 0.0
@@ -255,8 +255,8 @@ local_costmap:
       plugins: ["braille_lane_layer","obstacle_layer", "inflation_layer"]
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 3.0
-        inflation_radius: 0.55
+        cost_scaling_factor: 1.0
+        inflation_radius: 0.1
         enabled: true
       braille_lane_layer:
         plugin: "nav2_costmap_2d::BrailleLaneLayer"

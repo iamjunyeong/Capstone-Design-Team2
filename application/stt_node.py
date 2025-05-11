@@ -142,7 +142,7 @@ class STTNode(Node):
     def talk_button_callback(self, msg):
         self.talkbutton_pressed = msg.data
         #self.get_logger().info(f"Talk button 상태: {self.talkbutton_pressed}")
-        if msg.data and not self.is_processing:
+        if self.talkbutton_pressed and not self.is_processing:
             self.get_logger().info("버튼 눌림 감지됨. STT 실행 시작.")
             self.is_processing = True
             try:
@@ -192,6 +192,7 @@ class STTNode(Node):
                                 break
                             else:
                                 yield pb.DecoderRequest(audio_content=chunk)
+                                self.get_logger().info("계속 전송")
                     except Exception as e:
                         self.get_logger().error(f"요청 제너레이터 오류: {e}")
                     finally:
