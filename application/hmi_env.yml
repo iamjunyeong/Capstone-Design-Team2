@@ -1,4 +1,4 @@
-name: voice
+name: hmi
 channels:
   - defaults
   - https://repo.anaconda.com/pkgs/main
