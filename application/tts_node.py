@@ -115,9 +115,12 @@ class TTSNode(Node):
     def handlebutton_callback(self, msg):
         self.handlebutton_code = msg.data
         if self.handlebutton_code == 2:
+            #정상주행.
             pass
         elif self.handlebutton_code == 0 or self.handlebutton_code == 1:
+            #손잡이 잡아달라는 안내.
             self.request_queue.append(self.output_text[10])
+            
     def talkbutton_callback(self, msg):
         if msg.data and not self.last_talkbutton_state:
             self.last_talkbutton_state = True  # 눌림 감지

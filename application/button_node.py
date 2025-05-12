@@ -1,109 +1,62 @@
 import rclpy
 from rclpy.node import Node
-from std_msgs.msg import Bool, UInt8
-import pygame
-import time
-import threading
+from std_msgs.msg import Bool, Int32, UInt8
+
 class ButtonNode(Node):
     def __init__(self):
         super().__init__('button_node')
-        
-        self.talkbutton_sub = self.create_subscription(Bool, '/talkbutton_state', self.talkbutton_callback, 10)
-        self.handlebutton_sub = self.create_subscription(UInt8, '/handlebutton_state', self.handlebutton_callback, 10)
-        self.emergency_sub = self.create_subscription(Bool, '/emergencybutton_state', self.emergencybutton_callback, 10)
 
-        self.talkbutton_pub = self.create_publisher(Bool, '/talkbutton_pressed', 10)
-        self.emergency_pub = self.create_publisher(Bool, '/emergency', 10)
+        # 상태 추적 변수 초기화
+        self.last_emergency_state = None
+        self.last_stt_state = None
+        self.last_tact_state = -1
+
+        # Arduino data 수신 
+        self.emergency_sub = self.create_subscription(Bool,'/emergency_state',self.emergency_callback, 10)
+        self.stt_sub = self.create_subscription(Bool,'/talk_button_state', self.stt_callback, 10)
+        self.tact_sub = self.create_subscription(Int32,'/tact_switch_state', self.tact_callback, 10)
+
+        # 퍼블리셔 선언 (TTSNode 구독용)
+        self.talkbutton_pub = self.create_publisher(Bool, '/talkbutton_pressed', 10) # to STT and TTS 
+        self.emergency_pub = self.create_publisher(Bool, '/emergency', 10) #이거 수행이형이 받음
         self.handlebutton_pub = self.create_publisher(UInt8, '/handlebutton_code', 10)
         self.hmi_stop_pub = self.create_publisher(Bool, '/hmi_stop', 10)
 
-        self.handlebutton_ = self.create_publisher(UInt8, '/handlebutton_state', 10)
+    def emergency_callback(self, msg):
+        self.last_emergency_state = msg.data  # 상태 갱신
+        if self.last_emergency_state:
+            self.get_logger().warn('[EMERGENCY] 비상 정지 버튼 눌림 감지됨')
+        elif not self.last_emergency_state:
+            self.get_logger().info('[EMERGENCY] 정상 상태')
         
-        # 버튼 콜백 변수
-        self.talkbutton_pressed = False
-        self.handlebutton_status = 0 
-        self.emergency_button_pressed = False
+        self.emergency_pub.publish(Bool(data=msg.data))  #현재 비상정지 상태 퍼블리시. to TTS 및 CONTROL 모듈
 
-        #핸들버튼 상태 모니터링용
-        self.lock = threading.Lock()
-        self.current_status = None
-        self.monitor_thread = None
-        self.monitoring = False
+    def stt_callback(self, msg):
+        self.last_stt_state = msg.data
+        self.get_logger().info(f'[STT] STT 버튼 상태: {self.last_stt_state}')
+        self.talkbutton_pub.publish(Bool(data=msg.data))    
 
-        self.get_logger().info("Keyboard Button Publisher Node has started.")
-    
-    # talkbutton 상태를 받아서 처리하는 콜백 (필요시 구현)
-    def talkbutton_callback(self, msg):
-        self.talkbutton_pressed = msg.data
-        #self.get_logger().info(f"Talk button 상태: {self.talkbutton_pressed}")
-        self.talkbutton_pub.publish(Bool(data=self.talkbutton_pressed))
-        
-    # handlebutton 상태 콜백   
-    def handlebutton_callback(self, msg):
-        new_status = msg.data
+    def tact_callback(self, msg):
+        # `Int32`로 받은 데이터를 `UInt8`로 변환
+        tact_state = msg.data
+        tact_code = 0
 
-        with self.lock:
-            self.current_status = new_status
+        # `Int32` -> `UInt8` 변환
+        if tact_state in [0, 1, 2]:
+            tact_code = tact_state
+        else:
+            tact_code = 0  # 예외 처리, 적절한 값으로 설정 (기본값: 0)
 
-            #양 손 떨어짐
-            if new_status == 0:
-                if not self.monitoring:
-                    self.monitoring = True
-                    self.monitor_thread = threading.Thread(target=self.monitor_zero_status)
-                    self.monitor_thread.daemon = True
-                    self.monitor_thread.start() 
-            #양 손 잡음. pub
-            elif new_status == 2:
-                self.monitoring = False
-                #self.get_logger().info("양 손 잡음 → publish(2)")
-                self.handlebutton_pub.publish(UInt8(data=2))
-                self.hmi_stop_pub.publish(Bool(data=False))
-                
-            #한쪽 손 잡음. 3초 모니터링 후 pub     
-            elif new_status == 1:
-                if not self.monitoring:
-                    self.monitoring = True
-                    self.monitor_thread = threading.Thread(target=self.monitor_one_status)
-                    self.monitor_thread.daemon = True
-                    self.monitor_thread.start()
-    # 양 손 떨어지면 0.5초 모니터링 함수 
-    def monitor_zero_status(self):
-        start_time = time.time()
-        while time.time() - start_time < 0.5:
-            with self.lock:
-                if self.current_status != 0:
-                    #self.get_logger().info("0.5초 내 상태 변화 감지됨 → publish(0) 생략")
-                    self.monitoring = False
-                    return
-            time.sleep(0.05)  # 20Hz 감시
+        if tact_code != self.last_tact_state:  # 상태가 바뀌었을 때만 출력
+            if tact_code == 1:
+                self.get_logger().warn('[TACT] 손잡이 해제 감지됨 >3초 (0)')
+            elif tact_code == 2:
+                self.get_logger().info('[TACT] 손잡이 정상 인식 (1)')
+            elif tact_code == 0:
+                self.get_logger().warn('[TACT] 다 떨어짐')
 
-        with self.lock:
-            if self.current_status == 0:
-                self.handlebutton_pub.publish(UInt8(data=0))
-                #self.get_logger().info("비상정지")
-                self.hmi_stop_pub.publish(Bool(data=True)) 
-            self.monitoring = False
-    # 한쪽 손만 잡으면 3초 모니터링 함수
-    def monitor_one_status(self):
-        """핸들버튼 상태 모니터링 함수"""
-        start_time = time.time()
-        while time.time() - start_time < 2.0:
-            with self.lock:
-                if self.current_status != 1: #상태 변경됨
-                    self.monitoring = False
-                    return
-            time.sleep(0.05)  # 약 20Hz로 감시
-
-        with self.lock:
-            if self.current_status == 1:
-                self.handlebutton_pub.publish(UInt8(data=1))
-                self.get_logger().info("손잡이를 잡아주세요")
-            self.monitoring = False
-        self.hmi_stop_pub.publish(Bool(data=False)) 
-
-    def emergencybutton_callback(self, msg):
-        self.emergency_button_pressed = msg.data
-        # emergencybutton 상태를 받아서 처리하는 콜백 (필요시 구현)
+            self.last_tact_state = tact_code  # 상태 갱신
+        self.handlebutton_pub.publish(UInt8(data=tact_code))  # 퍼블리시
 
 def main(args=None):
     rclpy.init(args=args)
@@ -114,3 +67,4 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
+
