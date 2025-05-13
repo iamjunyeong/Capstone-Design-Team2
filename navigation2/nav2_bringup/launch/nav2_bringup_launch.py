@@ -8,30 +8,33 @@ from launch_ros.actions import Node, ComposableNodeContainer, LoadComposableNode
 from launch_ros.descriptions import ComposableNode
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from ament_index_python.packages import get_package_share_directory
-from nav2_common.launch import RewrittenYaml
+from nav2_common.launch import RewrittenYaml                 # Humble에서는 param_rewrites 필수
 
-# 기본 경로
+# ──────────── 기본 파일 경로 ────────────
 default_params_file = os.path.join(
-    get_package_share_directory('nav2_bringup'), 'params', 'nav2_capstone_params.yaml') # param 변경
+    get_package_share_directory('nav2_bringup'),
+    'params', 'nav2_capstone_params.yaml')                   # param 변경
 default_map_file = os.path.join(
-    get_package_share_directory('nav2_bringup'), 'maps', 'map_filtered.yaml') # map 변경
-    # get_package_share_directory('nav2_bringup'), 'maps', 'testmap_B_rotated.yaml') # map 변경
+    # get_package_share_directory('nav2_bringup'), 'maps', 'map_filtered.yaml')       # map 변경
+    # get_package_share_directory('nav2_bringup'), 'maps', 'testmap_B_rotated.yaml')  # map 변경
+    get_package_share_directory('nav2_bringup'), 'maps', 'konkuk_map.yaml')          # map 변경
 default_rviz_config_file = os.path.join(
-    get_package_share_directory('nav2_bringup'), 'rviz', 'nav2_default_view.rviz') # rviz 변경
+    get_package_share_directory('nav2_bringup'),
+    'rviz', 'nav2_default_view.rviz')                       # rviz 변경
 
 
 def generate_launch_description():
     # ──────────── 1. Launch 인자 ────────────
-    namespace_arg = DeclareLaunchArgument('namespace',           default_value='')
-    use_namespace_arg = DeclareLaunchArgument('use_namespace',   default_value='False')
-    use_composition_arg = DeclareLaunchArgument('use_composition', default_value='False')
-    use_sim_time_arg = DeclareLaunchArgument('use_sim_time',     default_value='False') # use_sim_time 변경
-    autostart_arg = DeclareLaunchArgument('autostart',           default_value='true')
-    params_file_arg = DeclareLaunchArgument('params_file',       default_value=default_params_file)
-    map_yaml_file_arg = DeclareLaunchArgument('map',             default_value=default_map_file)
-    rviz_config_file_arg = DeclareLaunchArgument('rviz_config_file', default_value=default_rviz_config_file)
-    use_rviz_arg = DeclareLaunchArgument('use_rviz',             default_value='True')
-    log_level_arg = DeclareLaunchArgument('log_level',           default_value='info')
+    namespace_arg       = DeclareLaunchArgument('namespace',           default_value='')
+    use_namespace_arg   = DeclareLaunchArgument('use_namespace',       default_value='False')
+    use_composition_arg = DeclareLaunchArgument('use_composition',     default_value='False')
+    use_sim_time_arg    = DeclareLaunchArgument('use_sim_time',        default_value='False')  # use_sim_time 변경
+    autostart_arg       = DeclareLaunchArgument('autostart',           default_value='true')
+    params_file_arg     = DeclareLaunchArgument('params_file',         default_value=default_params_file)
+    map_yaml_file_arg   = DeclareLaunchArgument('map',                 default_value=default_map_file)
+    rviz_config_file_arg= DeclareLaunchArgument('rviz_config_file',    default_value=default_rviz_config_file)
+    use_rviz_arg        = DeclareLaunchArgument('use_rviz',            default_value='True')
+    log_level_arg       = DeclareLaunchArgument('log_level',           default_value='info')
 
     # ──────────── 2. LaunchConfiguration ────────────
     namespace        = LaunchConfiguration('namespace')
@@ -87,12 +90,12 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(
             os.path.join(bringup_dir, 'launch', 'navigation_launch.py')),
         launch_arguments={
-            'use_sim_time': use_sim_time,
-            'params_file': params_file,
-            'autostart': autostart,
+            'use_sim_time'  : use_sim_time,
+            'params_file'   : params_file,
+            'autostart'     : autostart,
             'use_composition': use_composition,
             'container_name': 'nav2_container',
-            'log_level': log_level            # 전달
+            'log_level'     : log_level           # 전달
         }.items())
 
     # ──────────── 7. Lifecycle Manager (단일) ────────────
@@ -103,8 +106,8 @@ def generate_launch_description():
         output='screen',
         parameters=[{
             'use_sim_time': use_sim_time,
-            'autostart': autostart,
-            'node_names': [
+            'autostart'   : autostart,
+            'node_names'  : [
                 'controller_server',
                 'smoother_server',
                 'planner_server',
@@ -118,9 +121,9 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(os.path.join(bringup_dir, 'launch', 'rviz_launch.py')),
         condition=IfCondition(use_rviz),
         launch_arguments={
-            'namespace': namespace,
+            'namespace'    : namespace,
             'use_namespace': use_namespace,
-            'rviz_config': rviz_config_file
+            'rviz_config'  : rviz_config_file
         }.items())
 
     # ──────────── 9. Twist→Ackermann 변환 노드 ────────────
@@ -133,7 +136,20 @@ def generate_launch_description():
         arguments=['--ros-args', '--log-level', log_level],
         remappings=[('nav_vel', 'cmd_vel')])
 
-    # ──────────── 10. 그룹화 ────────────
+    # ──────────── 10. 신규 유틸리티 노드 2종 ────────────
+    obstacle_layer_toggler_node = Node(
+        package='obstacle_layer_toggler',
+        executable='toggle_obstacle_layer',
+        name='obstacle_layer_toggler',
+        output='screen')
+
+    costmap_clear_timer_node = Node(
+        package='costmap_clearing',
+        executable='clear_costmap_timer',
+        name='clear_costmap_timer',
+        output='screen')
+
+    # ──────────── 11. 그룹화 ────────────
     bringup_group = GroupAction([
         PushRosNamespace(namespace, condition=IfCondition(use_namespace)),
         nav2_container,
@@ -141,16 +157,16 @@ def generate_launch_description():
         map_server_node,
         navigation_include,
         lifecycle_manager_nav,
-        twist_to_ackermann_node
+        rviz_cmd,
+        twist_to_ackermann_node,
+        obstacle_layer_toggler_node,
+        costmap_clear_timer_node
     ])
 
-    # ──────────── 11. LaunchDescription ────────────
+    # ──────────── 12. LaunchDescription 반환 ────────────
     return LaunchDescription([
-        namespace_arg, use_namespace_arg, use_composition_arg,
-        use_sim_time_arg, autostart_arg,
-        params_file_arg, map_yaml_file_arg,
-        rviz_config_file_arg, use_rviz_arg,
-        log_level_arg,
-        bringup_group,
-        rviz_cmd
+        namespace_arg, use_namespace_arg, use_composition_arg, use_sim_time_arg,
+        autostart_arg, params_file_arg, map_yaml_file_arg, rviz_config_file_arg,
+        use_rviz_arg, log_level_arg,
+        bringup_group
     ])

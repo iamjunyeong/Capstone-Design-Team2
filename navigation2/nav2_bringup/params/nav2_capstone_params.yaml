@@ -384,28 +384,64 @@ map_saver:
     occupied_thresh_default: 0.65
     map_subscribe_transient_local: True
 
-# ---------- GLOBAL PLANNER ----------
+# # ---------- GLOBAL PLANNER ----------
+# planner_server:
+#   ros__parameters:
+#     expected_planner_frequency: 20.0
+#     use_sim_time: True
+#     planner_plugins: ["GridBased"]
+#     GridBased:
+#       plugin: "nav2_navfn_planner/NavfnPlanner"
+#       tolerance: 0.5
+#       use_astar: false
+#       allow_unknown: true
+
+# smac에 smoothing 여부 조절
 planner_server:
   ros__parameters:
-    expected_planner_frequency: 20.0
-    use_sim_time: True
-    planner_plugins: ["GridBased"]
+    planner_plugins: ["GridBased"]  # 사용 플러그인 이름
     GridBased:
-      plugin: "nav2_navfn_planner/NavfnPlanner"
-      tolerance: 0.5
-      use_astar: false
-      allow_unknown: true
+      plugin: "nav2_smac_planner/SmacPlannerHybrid"
+      motion_model_for_search: "DUBIN"  # 전진만 가능한 차량
+      minimum_turning_radius: 2.0  # 최소 회전 반경 (m)
+      angle_quantization_bins: 72  # 360도를 몇 등분할지 (예: 5도 간격)
+      allow_reverse: false  # 후진 허용 여부
+      max_iterations: 5000000  # 최대 반복 횟수
+      collision_check_resolution: 0.1  # 충돌 검사 해상도 (m)
+      search_timeout: 30.0  # 경로 탐색 시간 제한 (초)
+      smoothing_enabled: false  # 기본 smoothing 활성화
+      cost_penalty: 1.2  # 장애물 근처를 피하기 위한 비용 패널티
+      traversal_search: false  # 맵의 경계를 벗어나는 경로 허용 여부
 
-# ---------- PATH SMOOTHER ----------
+# smoother server 파라미터
 smoother_server:
   ros__parameters:
-    use_sim_time: True
-    smoother_plugins: ["simple_smoother"]
-    simple_smoother:
-      plugin: "nav2_smoother::SimpleSmoother"
-      tolerance: 1.0e-10
-      max_its: 1000
-      do_refinement: True
+    smoother_plugins: ["ConstrainedSmoother"]
+    ConstrainedSmoother:
+      plugin: "nav2_constrained_smoother/ConstrainedSmoother"
+      
+      curvature_weight: 4.0        # [1.0 ~ 10.0+]  높을수록 부드러운 곡선 우선
+      length_weight: 1.0           # [0.1 ~ 5.0]    경로 짧게 하되 너무 줄이면 곡률 무시함
+      obstacle_weight: 15.0        # [5.0 ~ 50.0]   장애물 멀리 회피 유도
+
+      max_curvature: 0.53          # [0.1 ~ 1.5]    차량 물리적 한계에 맞춰 설정
+      max_iterations: 300          # [50 ~ 500]     최적화 반복 횟수
+      tolerance: 1e-4              # [1e-2 ~ 1e-5]  낮을수록 더 정밀, 하지만 느려짐
+
+      allow_reverse: false         # 전진만 가능하므로 false
+      use_costmap: true            # 장애물 회피를 위해 costmap 사용
+
+
+# # ---------- PATH SMOOTHER ----------
+# smoother_server:
+#   ros__parameters:
+#     use_sim_time: True
+#     smoother_plugins: ["simple_smoother"]
+#     simple_smoother:
+#       plugin: "nav2_smoother::SimpleSmoother"
+#       tolerance: 1.0e-10
+#       max_its: 1000
+#       do_refinement: True
 
 # ---------- ROBOT STATE PUBLISHER ----------
 robot_state_publisher:
