@@ -8,19 +8,22 @@ from geometry_msgs.msg import PoseStamped
 # Nav2 액션 메시지: NavigateToPose 액션 인터페이스를 사용함
 from nav2_msgs.action import NavigateToPose
 from rclpy.action import ActionClient
-
+from hmi_interface.srv import IntentToPlanning
+import time
 # 미리 정의된 건물 좌표 데이터베이스 (건물 ID에 따른 좌표 및 방향 정보)
+
 BUILDING_DB = {
-    0: {"x": 0.0, "y": 0.0, "orientation": (0.0, 0.0, 0.0, 1.0)}, #신공학관 
-    3: {"x": 1.789409, "y": 45.007426, "orientation": (0.0, 0.0, 0.0, 1.0)}, #공대 c동 
-    4: {"x": -60.514286, "y": 126.617229, "orientation": (0.0, 0.0, 0.0, 1.0)}, #공대 A동
-    8: {"x": -142.485558, "y": 192.364434, "orientation": (0.0, 0.0, 0.0, 1.0)}, #학생회관
-    9: {"x": -193.356556, "y": 198.505700, "orientation": (0.0, 0.0, 0.0, 1.0)}, #청심대
-    11: {"x": -309.681705, "y": 114.077176, "orientation": (0.0, 0.0, 0.0, 1.0)}, #법학관
-    15: {"x": -443.098181, "y": -142.948562, "orientation": (0.0, 0.0, 0.0, 1.0)}, #수의대
-    18: {"x": -439.816741, "y": -142.948562, "orientation": (0.0, 0.0, 0.0, 1.0)}, #동생대
-    20: {"x": -487.130077, "y": -45.599748, "orientation": (0.0, 0.0, 0.0, 1.0)} #입학정보관
+    0: {"x": 0.0, "y": 0.0, "orientation": (0.0, 0.0, 0.0, 1.0), "building":"신공학관"}, #신공학관 
+    3: {"x": 1.789409, "y": 45.007426, "orientation": (0.0, 0.0, 0.0, 1.0), "building": "공학관"}, #공대 c동 
+    4: {"x": -60.514286, "y": 126.617229, "orientation": (0.0, 0.0, 0.0, 1.0) , "building":"공학관"}, #공대 A동
+    8: {"x": -142.485558, "y": 192.364434, "orientation": (0.0, 0.0, 0.0, 1.0), "building":"학생회관"}, #학생회관
+    9: {"x": -193.356556, "y": 198.505700, "orientation": (0.0, 0.0, 0.0, 1.0), "building":"청심대"}, #청심대
+    11: {"x": -309.681705, "y": 114.077176, "orientation": (0.0, 0.0, 0.0, 1.0), "building":"법학관"}, #법학관
+    15: {"x": -443.098181, "y": -142.948562, "orientation": (0.0, 0.0, 0.0, 1.0), "building":"수의학관"}, #수의대
+    18: {"x": -439.816741, "y": -142.948562, "orientation": (0.0, 0.0, 0.0, 1.0), "building":"동물생명과학관"}, #동생대
+    20: {"x": -487.130077, "y": -45.599748, "orientation": (0.0, 0.0, 0.0, 1.0), "building":"입학정보관"} #입학정보관
 }
+ESTIMATED_TIME_GAIN = 1.2
 
 class GoalSender(Node):
     def __init__(self):
@@ -33,7 +36,10 @@ class GoalSender(Node):
         # NavigateToPose 액션 클라이언트 생성
         # "navigate_to_pose"라는 이름의 액션 서버에 연결한다.
         self._action_client = ActionClient(self, NavigateToPose, 'navigate_to_pose')
+        self.planning_feedback = NavigateToPose.Feedback()
 
+        self.intent_server = self.create_service(IntentToPlanning, '/intent_to_planning', self.intent_server_callback)
+        
         self.get_logger().info("hmi_planning started.")
 
     def building_id_callback(self, msg: UInt8):
@@ -82,7 +88,7 @@ class GoalSender(Node):
         goal_pose.pose.orientation.y = oy
         goal_pose.pose.orientation.z = oz
         goal_pose.pose.orientation.w = ow
-
+        
         self.get_logger().info(f"생성된 목표 Pose: {goal_pose.pose}")
         return goal_pose
 
@@ -104,13 +110,14 @@ class GoalSender(Node):
 
         self.get_logger().info("NavigateToPose 액션 Goal 전송 중...")
         # 비동기 방식으로 액션 Goal 전송 및 결과 처리 콜백 설정
-        send_goal_future = self._action_client.send_goal_async(goal_msg)
+        send_goal_future = self._action_client.send_goal_async(goal_msg,feedback_callback=self.feedback_callback)
         send_goal_future.add_done_callback(self.goal_response_callback)
 
     def goal_response_callback(self, future):
         """
         액션 서버의 Goal 응답을 처리하는 콜백 함수.
         Goal이 거부되었는지 여부를 판단하고, 승인된 경우 결과 반환을 위한 콜백을 설정.
+        #액션의 response만 받는것, feedback 토픽으로 받을 수 있음. 
         """
         goal_handle = future.result()
         if not goal_handle.accepted:
@@ -121,6 +128,22 @@ class GoalSender(Node):
         # 액션 서버로부터 결과를 비동기적으로 받아오기 위한 후속 콜백 설정
         result_future = goal_handle.get_result_async()
         result_future.add_done_callback(self.get_result_callback)
+    
+    def feedback_callback(self, feedback_msg):
+            self.feedback = feedback_msg.feedback
+            current_time = time.time()
+
+            # 2초가 지났을 때만 출력
+            if current_time - self._last_feedback_time >= 2.0:
+                self._last_feedback_time = current_time
+
+                self.get_logger().info(f'📍[Feedback]')
+                self.get_logger().info(f'  - Distance remaining: {self.feedback.distance_remaining:.2f}m')
+                self.get_logger().info(f'  - Current pose: (x={self.feedback.current_pose.pose.position.x:.2f}, y={self.feedback.current_pose.pose.position.y:.2f})')
+                self.get_logger().info(f'  - Navigation time: {self.feedback.navigation_time}')
+                self.get_logger().info(f'  - Recoveries: {self.feedback.number_of_recoveries}')
+                self.get_logger().info(f'  - estimated time remaining: {self.feedback.estimated_time_remaining.sec:.2f}m')
+                self.get_logger().info('----------------------------')
 
     def get_result_callback(self, future):
         """
@@ -130,6 +153,42 @@ class GoalSender(Node):
         result = future.result().result
         self.get_logger().info(f'Navigation 완료: {result}')
         # 추가 후속 처리나 오류 핸들링을 구현할 수 있음.
+    
+    def intent_server_callback(self, request, response):
+        """
+        IntentToPlanning 서비스 요청을 처리하는 콜백 함수.
+        요청 intent에 따라 가장 가까운 건물(랜드마크)과 남은 시간 계산 결과를 응답에 포함시킨다.
+        """
+        if request.intent == "get_eta":
+            # 남은 시간: estimated_time_remaining (Duration.sec)
+            total_seconds = self.feedback.estimated_time_remaining.sec
+            minutes = int(ESTIMATED_TIME_GAIN * total_seconds / 60)
+            response.estimated_time_remaining =  minutes
+            response.closest_landmark = "unknown"  # ETA 요청 시 랜드마크 정보는 필요 없음
+
+        elif response.intent == "get_location":
+            # 현재 위치
+            current_x = self.current_pose.pose.position.x
+            current_y = self.current_pose.pose.position.y
+
+            # 가장 가까운 랜드마크 계산
+            min_distance = float('inf')
+            closest_landmark = "알 수 없음"
+
+            for info in BUILDING_DB.values():
+                x, y = info["x"], info["y"]
+                dist = ((current_x - x)**2 + (current_y - y)**2) ** 0.5
+                if dist < min_distance:
+                    min_distance = dist
+                    closest_landmark = info["building"]
+
+            response.closest_landmark = closest_landmark
+            response.estimated_time_remaining = 0
+        
+        # 기본적으로 요청 intent 그대로 반환
+        response.intent = request.intent
+
+        return response
 
 def main(args=None):
     """

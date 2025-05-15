@@ -1,0 +1,5 @@
+string intent
+int64 estimated_time_remaining
+string closest_landmark
+---
+bool success

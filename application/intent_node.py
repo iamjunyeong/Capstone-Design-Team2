@@ -3,6 +3,8 @@ from rclpy.node import Node
 from std_msgs.msg import String, Bool, UInt8
 import difflib
 from hmi_interface.srv import IntentResponse
+from hmi_interface.srv import IntentToPlanning
+from hmi_interface.srv import IntentToTTS
 class IntentNode(Node):
     def __init__(self):
         super().__init__('intent_node')
@@ -10,6 +12,8 @@ class IntentNode(Node):
         
         #srv client 
         self.cli = self.create_client(IntentResponse, '/confirm_service') 
+        self.intent_planning_client = self.create_client(IntentToPlanning, '/intent_to_planning') #planning 노드로 의도 전송
+        self.intent_tts_client = self.create_client(IntentToTTS, '/intent_to_tts_plan') #tts 노드로 의도 전송
         self.intentpub = self.create_publisher(String, '/intent_to_tts', 10)  # /intent_to_tts 토픽으로 의도 전송
         self.confirm_pub = self.create_publisher(UInt8, '/confirm_request', 10)  # 확인 요청 상태 전송
         self.dstpub = self.create_publisher(UInt8, '/dst',1) 
@@ -132,17 +136,17 @@ class IntentNode(Node):
             self.future.add_done_callback(self.tts_response_callback)
 
         elif self.intent == "change_dst":
-           
+            
             print("목적지 변경")  
             self.send_intent_message(self.intent) #의도 전송
 
-        elif self.intent == "get_eta": # planning 팀과 협업 
+        elif self.intent == "get_eta" or self.intent == "get_location": # planning 팀과 협업 
             print("hmi planning 노드로 상태 보내주기 필요 ")
-            self.send_intent_message(self.intent) #의도 전송
-             
-        elif self.intent == "get_location":
-            print("hmi planning 노드로 상태 보내주기 필요 ")
-            self.send_intent_message(self.intent) #의도 전송
+            planning_req = IntentToPlanning.Request()
+            planning_req.intent = self.intent
+            
+            future = self.intent_planning_client.call_async(planning_req)
+            future.add_done_callback(self.planning_response_callback)
 
         elif self.intent == "confirm_yes" or self.intent == "confirm_no":
             if self.response_state != 'WATING_CONFIRM': # 확인 요청, WATING_CONFIRM 상태가 아닐 때는 무시
@@ -193,6 +197,20 @@ class IntentNode(Node):
             self.get_logger().error(f"서비스 호출 실패: {e}")
             self.response_state = 'IDLE'
             self.send_intent_message("unknown") # 모르겠음. 처리 불가
+    
+    def planning_response_callback(self,future):
+        # planning 노드로부터 응답을 받는 콜백 함수(서비스 체이닝)
+        response = future.result()
+        self.get_logger().info(f"hmi_planning 노드로부터 서비스 응답 확인")
+        
+        tts_req = IntentToTTS.Request() 
+        tts_req.intent = response.intent_response
+        tts_req.estimated_time_remaining = response.estimated_time_remaining
+        tts_req.closest_landmark = response.closest_landmark
+        
+        self.intent_tts_client.call_async(tts_req)
+        self.get_logger().info(f"tts 노드로 서비스 호출: {tts_req.intent}")
+        
 
     def find_closest_word(self, text, boosted_list):
         match = []
