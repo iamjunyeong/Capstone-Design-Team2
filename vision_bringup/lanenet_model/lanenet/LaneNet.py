@@ -7,10 +7,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from model.lanenet.loss import DiscriminativeLoss
-from model.lanenet.backbone.UNet import UNet_Encoder, UNet_Decoder
-from model.lanenet.backbone.ENet import ENet_Encoder, ENet_Decoder
-from model.lanenet.backbone.deeplabv3_plus.deeplabv3plus import Deeplabv3plus_Encoder, Deeplabv3plus_Decoder
+from lanenet_model.lanenet.loss import DiscriminativeLoss
+from lanenet_model.lanenet.backbone.UNet import UNet_Encoder, UNet_Decoder
+from lanenet_model.lanenet.backbone.ENet import ENet_Encoder, ENet_Decoder
+from lanenet_model.lanenet.backbone.deeplabv3_plus.deeplabv3plus import Deeplabv3plus_Encoder, Deeplabv3plus_Decoder
 
 DEVICE = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 

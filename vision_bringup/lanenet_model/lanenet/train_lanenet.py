@@ -5,7 +5,7 @@ from torch.optim import lr_scheduler
 import numpy as np
 import time
 import copy
-from model.lanenet.loss import DiscriminativeLoss, FocalLoss
+from lanenet_model.lanenet.loss import DiscriminativeLoss, FocalLoss
 
 def compute_loss(net_output, binary_label, instance_label, loss_type = 'FocalLoss'):
     k_binary = 10    #1.7

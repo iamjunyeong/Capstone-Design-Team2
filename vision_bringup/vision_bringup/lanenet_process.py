@@ -155,7 +155,7 @@ def main(args=None):
 
     # 하드코딩 대신, 상대 경로로 모델 로드
     model_path = os.path.join(BASE_DIR, 'model', 'best_model.pth')
-    model_type = 'default'  # 필요에 따라 실제 아키텍처 이름으로 변경
+    model_type = 'ENet'  # 필요에 따라 실제 아키텍처 이름으로 변경
 
     model = load_model(model_path, model_type)
     node = BrailleBlockDetector(model, DEVICE)
