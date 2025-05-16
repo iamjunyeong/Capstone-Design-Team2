@@ -14,6 +14,9 @@ find_package(rosidl_default_generators REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/IntentResponse.srv"
+  "srv/IntentToTTS.srv"
+  "srv/IntentToPlanning.srv"
+  "msg/IntentToPlanningmsg.msg"
  )
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

@@ -9,6 +9,7 @@ from geometry_msgs.msg import PoseStamped
 from nav2_msgs.action import NavigateToPose
 from rclpy.action import ActionClient
 from hmi_interface.srv import IntentToPlanning
+from hmi_interface.msg import IntentToPlanningmsg
 import time
 # 미리 정의된 건물 좌표 데이터베이스 (건물 ID에 따른 좌표 및 방향 정보)
 
@@ -30,38 +31,44 @@ class GoalSender(Node):
         super().__init__('hmi_planning_node')
 
         # /voice/building_id 토픽에서 UInt8 메시지를 구독하여 건물 ID를 수신
-        self.subscription = self.create_subscription(UInt8,'/voice/building_id',self.building_id_callback, 10)
+        self.subscription = self.create_subscription(IntentToPlanningmsg,'/voice/building_id',self.building_id_callback, 10)
         # 구독자가 사용되지 않는 경우 경고가 발생하는 것을 방지하기 위한 참조
 
         # NavigateToPose 액션 클라이언트 생성
         # "navigate_to_pose"라는 이름의 액션 서버에 연결한다.
         self._action_client = ActionClient(self, NavigateToPose, 'navigate_to_pose')
         self.planning_feedback = NavigateToPose.Feedback()
-
+        self._current_goal_handle = None
         self.intent_server = self.create_service(IntentToPlanning, '/intent_to_planning', self.intent_server_callback)
         
         self.get_logger().info("hmi_planning started.")
 
-    def building_id_callback(self, msg: UInt8):
+    def building_id_callback(self, msg: IntentToPlanningmsg):
         """
-        /voice/building_id 토픽으로부터 건물 ID를 수신하는 콜백 함수.
-        음성 인식 노드로부터 전달된 uint8 정수 값을 건물 ID로 해석하고,
-        해당 건물의 좌표를 데이터베이스에서 조회 후, 목표 PoseStamped 메시지를 생성하여 액션 Goal을 전송.
+        /voice/building_id 토픽으로부터 intent와 building_id를 수신하는 콜백 함수.
+        intent에 따라 목적지를 설정하거나 기존 goal을 취소하고 새 goal을 설정함.
         """
-        building_id = msg.data
-        self.get_logger().info(f"수신된 건물 ID: {building_id}")
+        intent = msg.intent
+        building_id = msg.building_id
 
-        # 데이터베이스에 건물 ID가 존재하는지 확인
+        self.get_logger().info(f"수신된 intent: {intent}, building_id: {building_id}")
+
         if building_id not in BUILDING_DB:
             self.get_logger().error(f"존재하지 않는 건물 ID: {building_id}")
             return
 
-        # 건물 ID에 해당하는 좌표 정보 조회
         coords = BUILDING_DB[building_id]
-        # 조회된 좌표 값을 사용해 PoseStamped 메시지 생성
         goal_pose = self.create_goal_pose(coords)
-        # 생성한 PoseStamped 메시지를 액션 Goal로 전송
-        self.send_goal(goal_pose)
+
+        if intent == "set_destination_confirmed":
+            self.get_logger().info("기존 로직대로 목적지 설정 진행")
+            self.send_goal(goal_pose)
+
+        elif intent == "change_dst_confirmed":
+            self.get_logger().info("기존 goal을 취소하고 새로운 목적지로 변경")
+            self.cancel_current_goal()
+            self.send_goal(goal_pose)
+
 
     def create_goal_pose(self, coords: dict) -> PoseStamped:
         """
@@ -112,7 +119,13 @@ class GoalSender(Node):
         # 비동기 방식으로 액션 Goal 전송 및 결과 처리 콜백 설정
         send_goal_future = self._action_client.send_goal_async(goal_msg,feedback_callback=self.feedback_callback)
         send_goal_future.add_done_callback(self.goal_response_callback)
-
+    
+    def cancel_current_goal(self):
+        if self._current_goal_handle is not None:
+            self.get_logger().info("replanning, 현재 goal 취소")
+            future = self._current_goal_handle.cancel_goal_async()
+            rclpy.spin_until_future_complete(self, future)
+    
     def goal_response_callback(self, future):
         """
         액션 서버의 Goal 응답을 처리하는 콜백 함수.
@@ -126,6 +139,7 @@ class GoalSender(Node):
 
         self.get_logger().info('Goal이 승인되었습니다.')
         # 액션 서버로부터 결과를 비동기적으로 받아오기 위한 후속 콜백 설정
+        self._current_goal_handle = goal_handle
         result_future = goal_handle.get_result_async()
         result_future.add_done_callback(self.get_result_callback)
     
@@ -137,7 +151,7 @@ class GoalSender(Node):
             if current_time - self._last_feedback_time >= 2.0:
                 self._last_feedback_time = current_time
 
-                self.get_logger().info(f'📍[Feedback]')
+                self.get_logger().info(f'[Feedback]')
                 self.get_logger().info(f'  - Distance remaining: {self.feedback.distance_remaining:.2f}m')
                 self.get_logger().info(f'  - Current pose: (x={self.feedback.current_pose.pose.position.x:.2f}, y={self.feedback.current_pose.pose.position.y:.2f})')
                 self.get_logger().info(f'  - Navigation time: {self.feedback.navigation_time}')

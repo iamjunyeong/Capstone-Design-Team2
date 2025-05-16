@@ -2,9 +2,9 @@ import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Bool, Int32, UInt8
 
-class ButtonStateSubscriber(Node):
+class ButtonNode(Node):
     def __init__(self):
-        super().__init__('micro_ros_button_listener')
+        super().__init__('button_node')
 
         # 상태 추적 변수 초기화
         self.last_emergency_state = None
@@ -12,25 +12,11 @@ class ButtonStateSubscriber(Node):
         self.last_tact_state = None
 
         # emergency_state: Bool 타입
-        self.emergency_sub = self.create_subscription(
-            Bool,
-            'emergency_state',
-            self.emergency_callback,
-            10)
-
+        self.emergency_sub = self.create_subscription(Bool,'emergency_state',self.emergency_callback,10)
         # stt_button_state: Bool 타입
-        self.stt_sub = self.create_subscription(
-            Bool,
-            'stt_button_state',
-            self.stt_callback,
-            10)
-
+        self.stt_sub = self.create_subscription(Bool,'stt_button_state',self.stt_callback,10)
         # tact_switch_state: Int32
-        self.tact_sub = self.create_subscription(
-            Int32,
-            'tact_switch_state',
-            self.tact_callback,
-            10)
+        self.tact_sub = self.create_subscription(Int32,'tact_switch_state',self.tact_callback,10)
 
         # 퍼블리셔 선언 (TTSNode 구독용)
         self.talkbutton_pub = self.create_publisher(Bool, '/talkbutton_pressed', 10)
@@ -84,7 +70,7 @@ class ButtonStateSubscriber(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    node = ButtonStateSubscriber()
+    node = ButtonNode()
     rclpy.spin(node)
     node.destroy_node()
     rclpy.shutdown()

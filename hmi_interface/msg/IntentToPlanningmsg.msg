@@ -1,0 +1,2 @@
+string intent
+uint8 building_id

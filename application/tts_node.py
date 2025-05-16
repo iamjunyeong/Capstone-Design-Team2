@@ -52,7 +52,7 @@ class TTSNode(Node):
         self.handlebutton_code = 0 
         self.lock = threading.Lock()
         self.response_state = 0   # 0:대기 중, 1: 확인 요청 진행 중, 2:확인 요청 완료 3:재질의 들어가기 
-        
+        self.driving_state = 'WAITING'
         # pygame mixer 초기화
         try:
             pygame.mixer.init()
@@ -61,10 +61,6 @@ class TTSNode(Node):
             self.get_logger().error(f"$$$$$$$$$$$$$$$$$pygame mixer 초기화 실패:$$$$$$$$$$$$$$$$$$$$ {e}")
         # TTS 재생 우선순위 설정을 위한 큐 구조 
         self.request_queue = queue.PriorityQueue()
-        
-        # 우선순위에 따른 인터럽트 구현을 위한 변수 
-        #self.emergency_stop_event = threading.Event() #비상정지 이벤트 정의 
-        self.talkbutton_on = threading.Event() #상호작용 버튼 켜졌을 때 이벤트로 정의
         
         #재생 스레드 시작 
         self.playback_thread = threading.Thread(target=self.process_queue) #스레드가 실행될 때 함수 실행하라는 의미
@@ -83,6 +79,8 @@ class TTSNode(Node):
         #srv 
         self.req_server = self.create_service(IntentResponse, '/confirm_service', self.intent_confirm_callback)
         self.intent_tts_server = self.create_service(IntentToTTS, '/intent_to_tts_plan', self.intent_tts_callback)
+        
+
 
     def intent_confirm_callback(self, request, response):
         self.intent = request.intent
@@ -90,39 +88,53 @@ class TTSNode(Node):
         if self.intent == "unknown":
             self.get_logger().info(f"요청 수신: {self.intent}")
             self.clear_queue()
-            self.request_queue.put((1, self.output_text[0])) #이해하지 못했어요. 
+            self.request_queue.put((1, self.output_text[0])) 
+            self.get_logger().info("이해하지 못했습니다. 다시 말씀해주시겠어요?")
+
             response.response_code = 0
+            
 
         elif self.intent == "set_destination":
+            
             self.get_logger().info(f"요청 수신: 목적지={dst})")
             self.clear_queue()
             self.request_queue.put((1, f", 목적지를 {dst} 으로 설정할까요? 맞으면 버튼을 누르고 '네', 아니면 '아니요'라고 말씀해주세요."))
+            self.get_logger().info(f"목적지를 {dst} 으로 설정할까요? 맞으면 버튼을 누르고 '네', 아니면 '아니요'라고 말씀해주세요.")
             response.response_code = 1
+            
 
-        elif self.intent == "change_dst":
+        elif self.driving_state == "DRIVING" and self.intent == "change_dst":
             ######re-planning ##########
-            self.get_logger().info(f"요청 수신: 목적지 변경 (현재 위치={dst})")
+            self.get_logger().info(f"요청 수신: 목적지 변경")
             self.clear_queue()
-            self.request_queue.put((1, f", 목적지를 {dst}으로 변경할까요? 맞으면 버튼을 누르고 '네', 아니면 '아니요'라고 말씀해주세요."))
+            self.request_queue.put((1, f" 버튼을 누르고 변경하실 목적지를 말씀해주세요"))
+            self.get_logger().info("버튼을 누르고 변경하실 목적지를 말씀해주세요")
             response.response_code = 2
-        
-        elif self.intent == "get_location" or self.intent == "get_eta":
+            
+
+        elif self.driving_state == 'DRIVING' and (self.intent == "get_location" or self.intent == "get_eta"):
             #서비스에서 처리함
             pass
        
         elif self.intent == "confirm_yes":
             self.clear_queue()
             self.request_queue.put((1, f", {dst} 으로 안내를 시작합니다. 손잡이를 꼭 잡아주세요"))
+            self.get_logger().info(f", {dst} 으로 안내를 시작합니다. 손잡이를 꼭 잡아주세요")
             response.response_code = 3 
+            
+            self.driving_state = 'DRIVING'
+
         elif self.intent == "confirm_no":
             
             self.clear_queue()
             self.request_queue.put((0,f"목적지를 정확히 말씀해주세요"))
             self.get_logger().info("목적지를 정확히 말씀해주세요")
             response.response_code = 4
+            
             #목적지 설정 시퀀스 재진입
+        
         return response
-        """ """
+        
     def handlebutton_callback(self, msg):
         self.handlebutton_code = msg.data
         if self.handlebutton_code == 2:
@@ -137,15 +149,19 @@ class TTSNode(Node):
         if msg.data and not self.last_talkbutton_state:
             self.last_talkbutton_state = True  # 눌림 감지
             
-
             pygame.mixer.music.stop()  # 현재 재생 중인 음악 정지
             self.is_playing = False
             self.clear_queue()
-            self.request_queue.put((0, f", {self.output_text[14]}"))
-            self.get_logger().info("네")
+            if self.driving_state == 'DRIVING':
+                self.request_queue.put((0, f", {self.output_text[5]}"))
+                self.get_logger().info("목적지 변경, 현재 위치 확인, 예상 시간 확인, 정지 기능이 있습니다. 말씀해주세요.")
+            else:
+                self.request_queue.put((0, f", {self.output_text[14]}"))
+                self.get_logger().info("네")
 
         elif not msg.data:
             self.last_talkbutton_state = False  # 버튼 떨어짐
+
     def emergency_button_callback(self, msg):
         current_state = msg.data
 

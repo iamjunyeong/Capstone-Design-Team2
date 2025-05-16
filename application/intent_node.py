@@ -5,6 +5,7 @@ import difflib
 from hmi_interface.srv import IntentResponse
 from hmi_interface.srv import IntentToPlanning
 from hmi_interface.srv import IntentToTTS
+from hmi_interface.msg import IntentToPlanning
 class IntentNode(Node):
     def __init__(self):
         super().__init__('intent_node')
@@ -17,11 +18,11 @@ class IntentNode(Node):
         self.intentpub = self.create_publisher(String, '/intent_to_tts', 10)  # /intent_to_tts 토픽으로 의도 전송
         self.confirm_pub = self.create_publisher(UInt8, '/confirm_request', 10)  # 확인 요청 상태 전송
         self.dstpub = self.create_publisher(UInt8, '/dst',1) 
-        self.building_id_pub = self.create_publisher(UInt8, '/voice/building_id', 1)  # 건물 ID 전송
+        self.building_id_pub = self.create_publisher(IntentToPlanning, '/voice/building_id', 1)  # 건물 ID 전송
         self.get_logger().info('Intent Node started. Waiting for STT input...')
 
         self.user_text = None
-        
+        self.replanning = False
         self.dst_dict = {
             "신공" :0, 
             "신공학관" :0,
@@ -44,7 +45,7 @@ class IntentNode(Node):
         self.boosted_where = ["어디야", "현재 위치", "어디를", "지나고", "위치","지금", "어디", "현재", "지나"]
         self.boosted_yes = ["네", "예","어", "그래", "응","맞아", "맞습니다", "그렇습니다"]
         self.boosted_no = ["아니오", "아니", "아닌데","틀려", "틀렸어","아니야"]
-        self.boosted_change_dst = ["바꿔줘", "바꾸다", "바꿀래", "변경", "변경할","바꿔", "변경해", "다시"]
+        self.boosted_change_dst = ["바꿔줘", "바꾸다", "바꿀래", "변경", "변경할","바꿔", "변경해", "다시", "목적지"]
         self.intent = None
         self.dst = None
         self.response_state = 'IDLE'
@@ -100,11 +101,12 @@ class IntentNode(Node):
         intent_keywords = {
             "set_destination": ["가줘", "가자", "데려다줘", "이동", "갈래", "가고", "가고싶어", "출발", "가야돼"
                             "공학관","공대","신공", "신공학관", "새천년관", "학생회관","학관", "법학관","정문", "후문", "문과대", "경영대", "경영관"],
-            "change_dst" : ["바꿔줘", "바꾸다", "바꿀래", "변경", "변경할","바꿔", "변경해", "다시"],
+            "change_dst" : ["바꿔줘", "바꾸다", "바꿀래", "변경", "변경할","바꿔", "변경해", "다시", "목적지"],
             "get_eta": ["까지 ", "몇", "분이", "분이나", "얼마나", "도착", "시간", "걸릴까", "걸려", "남았어","얼마", "언제"],
             "get_location": ["어디야", "현재 위치", "어디를", "지나고", "위치","지금", "어디", "현재", "지나"],
             "confirm_yes" : ["네", "예","어", "그래", "응","맞아", "맞습니다", "그렇습니다"],
-            "confirm_no" : ["아니오", "아니", "아닌데","틀려", "틀렸어","아니야"],
+            "confirm_no" : ["아니오", "아니", "아닌데","틀려", "틀렸어", "아니야"],
+            "stop" : ["정지", "멈춰", "정지해", "멈춰줘"],
         }
 
         
@@ -132,13 +134,19 @@ class IntentNode(Node):
             req.intent = self.intent
             req.dst = self.dst_dict[self.dst]
 
-            self.future = self.cli.call_async(req)
-            self.future.add_done_callback(self.tts_response_callback)
+            future = self.cli.call_async(req)
+            future.add_done_callback(self.tts_response_callback)
 
         elif self.intent == "change_dst":
+            self.replanning = True
             
-            print("목적지 변경")  
-            self.send_intent_message(self.intent) #의도 전송
+            self.response_state = 'REPLANNING'
+
+            req = IntentResponse.Request()
+            req.intent = self.intent
+            req.dst = -1
+
+            future = self.cli.call_async(req)
 
         elif self.intent == "get_eta" or self.intent == "get_location": # planning 팀과 협업 
             print("hmi planning 노드로 상태 보내주기 필요 ")
@@ -158,12 +166,25 @@ class IntentNode(Node):
                     
                     #목적지 확정 후 planning 노드로 목적지 전송 
                     encoded_dst= self.dst_dict[self.dst] 
-                    self.building_id_pub.publish(UInt8(data=encoded_dst))#목적지 전송
+                    msg = IntentToPlanning()
+                    if self.replanning: 
+                        msg.intent = "change_dst_confirmed"
+                        self.replanning = False
+                    else: 
+                        msg.intent = "set_destination_confirmed"
+                    msg.dst = encoded_dst
+                    self.building_id_pub.publish(msg) #목적지 전송
                     self.get_logger().info(f"목적지 전송: {encoded_dst}")
 
                 else:
                     self.response_state = 'DENIED'
                     self.confirm_action(False) #의도 전송
+        elif self.intent == "stop":
+            self.get_logger().info("정지 요청")
+
+
+
+
 
     def confirm_action(self, yesorno):
         req = IntentResponse.Request()
@@ -210,8 +231,8 @@ class IntentNode(Node):
         
         self.intent_tts_client.call_async(tts_req)
         self.get_logger().info(f"tts 노드로 서비스 호출: {tts_req.intent}")
-        
 
+        
     def find_closest_word(self, text, boosted_list):
         match = []
         for word in text.split():
