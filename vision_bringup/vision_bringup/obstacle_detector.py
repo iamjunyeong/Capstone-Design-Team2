@@ -60,10 +60,23 @@ class ObstacleDetector(Node):
 
     def cb(self, msg: Image):
         try:
-            img = self.bridge.imgmsg_to_cv2(msg, 'bgr8')
+            # ① 원본 그대로 받아온다
+            img = self.bridge.imgmsg_to_cv2(msg, 'passthrough')
+
+            # ② 필요하면 BGR 로 변환
+            if msg.encoding == 'rgb8':
+                img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+            elif msg.encoding in ('mono8', '8UC1'):
+                img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+            elif msg.encoding != 'bgr8':
+                self.get_logger().warn(f'Unhandled encoding {msg.encoding}')
+                return
+            if img.size == 0:
+                self.get_logger().warn('Empty image received, skip frame')
+                return
         except Exception as e:
             self.get_logger().error(f'Image conversion failed: {e}')
-            return  # 변환 실패 시 무시하고 리턴
+            return
 
         # YOLO 결과 및 코드 판단
         res = self.model(img)[0]

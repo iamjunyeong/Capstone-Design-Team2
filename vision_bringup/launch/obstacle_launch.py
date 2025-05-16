@@ -1,30 +1,14 @@
 from launch import LaunchDescription
-from launch.actions import ExecuteProcess
-import os
+from launch_ros.actions import Node
+
+conda_python = '/home/ubuntu/miniforge3/envs/grad/bin/python'
 
 def generate_launch_description():
-    conda_python = '/home/loe/miniforge3/envs/grad/bin/python'
-    pkg_path = os.path.join(
-        os.getenv('HOME'),
-        'workspace/github/Capstone-Design-Team2/vision_bringup/vision_bringup'
-    )
+    common = dict(prefix=conda_python, output='screen')
 
     return LaunchDescription([
-        ExecuteProcess(
-            cmd=[conda_python, os.path.join(pkg_path, 'obstacle_detector.py')],
-            output='screen'
-        ),
-        # ExecuteProcess(
-        #     cmd=[conda_python, os.path.join(pkg_path, 'pcd_processs.py')],
-        #     output='screen'
-        # ),
-        # ExecuteProcess(
-        #     cmd=[conda_python, os.path.join(pkg_path, 'slic_process.py')],
-        #     output='screen'
-        # ),
-        # 추가하고 싶다면 아래처럼 yolo_process.py도 등록 가능
-        # ExecuteProcess(
-        #     cmd=[conda_python, os.path.join(pkg_path, 'yolo_process.py')],
-        #     output='screen'
-        # ),
+        Node(package='vision_bringup', executable='slic_process',      **common),
+        Node(package='vision_bringup', executable='pcd_process',       **common),
+        Node(package='vision_bringup', executable='yolo_process',      **common),
+        Node(package='vision_bringup', executable='obstacle_detector', **common),
     ])
