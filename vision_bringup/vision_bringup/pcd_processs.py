@@ -177,9 +177,11 @@ class SparseObstacleNode(Node):
             self.K = np.asarray(info_msg.k, np.float32).reshape(3,3)
             self.get_logger().info('Intrinsic K initialised.')
 
-        color  = self.bridge.imgmsg_to_cv2(img_msg,    'bgr8')
-        depth  = self.bridge.imgmsg_to_cv2(depth_msg, '16UC1')
-        labels = self.bridge.imgmsg_to_cv2(labels_msg,'32SC1')
+        color  = self.bridge.imgmsg_to_cv2(img_msg,    'passthrough')
+        if img_msg.encoding.startswith('rgb'):
+            color = cv2.cvtColor(color, cv2.COLOR_RGB2BGR)
+        depth  = self.bridge.imgmsg_to_cv2(depth_msg, 'passthrough')
+        labels = self.bridge.imgmsg_to_cv2(labels_msg,'passthrough')
 
         cloud6 = build_sparse_cloud(color, depth, self.K, labels)
         self.get_logger().info(f'SLIC→cloud: {cloud6.shape[0]} pts ({time.perf_counter()-t0:.3f}s)')

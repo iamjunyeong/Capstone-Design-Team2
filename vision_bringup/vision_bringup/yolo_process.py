@@ -106,7 +106,7 @@ class SegmentedCloudNode(Node):
         self.bridge = CvBridge()
         self.K = None
 
-        self.model = YOLO('../resource/best.pt')
+        self.model = YOLO('/home/ubuntu/capston_ws/src/Capstone-Design-Team2/vision_bringup/resource/best.pt')
 
         qos = QoSProfile(history=HistoryPolicy.KEEP_LAST, depth=5)
         sub_c = Subscriber(self, Image     , '/slic/color'       , qos_profile=qos)
@@ -130,9 +130,11 @@ class SegmentedCloudNode(Node):
             self.K = np.asarray(info_msg.k, np.float32).reshape(3,3)
             self.get_logger().info('Camera intrinsics received.')
 
-        color  = self.bridge.imgmsg_to_cv2(img_msg,   'bgr8')
-        depth  = self.bridge.imgmsg_to_cv2(depth_msg, '16UC1')
-        labels = self.bridge.imgmsg_to_cv2(labels_msg,'32SC1')
+        color  = self.bridge.imgmsg_to_cv2(img_msg,    'passthrough')
+        if img_msg.encoding.startswith('rgb'):
+            color = cv2.cvtColor(color, cv2.COLOR_RGB2BGR)
+        depth  = self.bridge.imgmsg_to_cv2(depth_msg, 'passthrough')
+        labels = self.bridge.imgmsg_to_cv2(labels_msg,'passthrough')
 
         # 1) YOLO segmentation & annotated image
         res = self.model(color, verbose=False)[0]
