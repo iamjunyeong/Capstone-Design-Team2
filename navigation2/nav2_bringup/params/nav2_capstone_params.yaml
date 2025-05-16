@@ -51,56 +51,55 @@ controller_server:
       required_movement_radius: 0.5
       movement_time_allowance: 10.0
 
-    # 여기 주석? precise_goal_checker? 바꾼 이유가 뭐야?
     general_goal_checker:
       stateful: True
       plugin: "nav2_controller::SimpleGoalChecker"
       xy_goal_tolerance: 0.25
       yaw_goal_tolerance: 0.25
 
-    # DWB local-planner parameters (TurtleBot3 기본값)
-    FollowPath:
-      plugin: "dwb_core::DWBLocalPlanner"
-      debug_trajectory_details: True
-      min_vel_x: 0.3
-      min_vel_y: 0.0
-      max_vel_x: 1.0
-      max_vel_y: 0.0
-      max_vel_theta: 1.0
-      min_speed_xy: 0.0
-      max_speed_xy: 0.26
-      min_speed_theta: 0.0
-      # Add high threshold velocity for turtlebot 3 issue.
-      # https://github.com/ROBOTIS-GIT/turtlebot3_simulations/issues/75
-      acc_lim_x: 2.5
-      acc_lim_y: 0.0
-      acc_lim_theta: 3.2
-      decel_lim_x: -2.5
-      decel_lim_y: 0.0
-      decel_lim_theta: -3.2
-      vx_samples: 20
-      vy_samples: 5
-      vtheta_samples: 20
-      sim_time: 1.7
-      linear_granularity: 0.05
-      angular_granularity: 0.025
-      transform_tolerance: 0.2
-      xy_goal_tolerance: 0.25
-      trans_stopped_velocity: 0.25
-      short_circuit_trajectory_evaluation: True
-      stateful: True
-      critics: ["RotateToGoal", "Oscillation", "BaseObstacle",
-                "GoalAlign", "PathAlign", "PathDist", "GoalDist"]
-      BaseObstacle.scale: 0.02
-      PathAlign.scale: 32.0
-      PathAlign.forward_point_distance: 0.1
-      GoalAlign.scale: 24.0
-      GoalAlign.forward_point_distance: 0.1
-      PathDist.scale: 32.0
-      GoalDist.scale: 24.0
-      RotateToGoal.scale: 32.0
-      RotateToGoal.slowing_factor: 5.0
-      RotateToGoal.lookahead_time: -1.0
+    # # DWB local-planner parameters (TurtleBot3 기본값)
+    # FollowPath:
+    #   plugin: "dwb_core::DWBLocalPlanner"
+    #   debug_trajectory_details: True
+    #   min_vel_x: 0.0
+    #   min_vel_y: 0.0
+    #   max_vel_x: 0.26
+    #   max_vel_y: 0.0
+    #   max_vel_theta: 1.0
+    #   min_speed_xy: 0.0
+    #   max_speed_xy: 0.26
+    #   min_speed_theta: 0.0
+    #   # Add high threshold velocity for turtlebot 3 issue.
+    #   # https://github.com/ROBOTIS-GIT/turtlebot3_simulations/issues/75
+    #   acc_lim_x: 2.5
+    #   acc_lim_y: 0.0
+    #   acc_lim_theta: 3.2
+    #   decel_lim_x: -2.5
+    #   decel_lim_y: 0.0
+    #   decel_lim_theta: -3.2
+    #   vx_samples: 20
+    #   vy_samples: 5
+    #   vtheta_samples: 20
+    #   sim_time: 1.7
+    #   linear_granularity: 0.05
+    #   angular_granularity: 0.025
+    #   transform_tolerance: 0.2
+    #   xy_goal_tolerance: 0.25
+    #   trans_stopped_velocity: 0.25
+    #   short_circuit_trajectory_evaluation: True
+    #   stateful: True
+    #   critics: ["RotateToGoal", "Oscillation", "BaseObstacle",
+    #             "GoalAlign", "PathAlign", "PathDist", "GoalDist"]
+    #   BaseObstacle.scale: 0.02
+    #   PathAlign.scale: 32.0
+    #   PathAlign.forward_point_distance: 0.1
+    #   GoalAlign.scale: 24.0
+    #   GoalAlign.forward_point_distance: 0.1
+    #   PathDist.scale: 32.0
+    #   GoalDist.scale: 24.0
+    #   RotateToGoal.scale: 32.0
+    #   RotateToGoal.slowing_factor: 5.0
+    #   RotateToGoal.lookahead_time: -1.0
 
     # # DWB (남욱 4/28)
     # FollowPath:
@@ -140,7 +139,6 @@ controller_server:
     #   PathDist.scale: 32.0
     #   GoalDist.scale: 24.0
     #   # RotateToGoal.scale: 0.0  # 필요시 제외
-
 
     # # MPPI (남욱 4/28)
     # FollowPath:
@@ -191,6 +189,52 @@ controller_server:
     #     enabled: true
     #     cost_power: 1
     #     cost_weight: 100.0
+    
+    # 동적+정적 DWB (남욱 5/16)
+    FollowPath:
+      plugin: "dwb_core::DWBLocalPlanner"
+      debug_trajectory_details: True
+      min_vel_x: 0.0
+      max_vel_x: 0.5
+      min_vel_y: 0.0
+      max_vel_y: 0.0
+      min_speed_xy: 0.0
+      max_speed_xy: 0.5
+      min_speed_theta: 0.0
+      max_vel_theta: 0.7
+      acc_lim_x: 1.0
+      acc_lim_y: 0.0
+      acc_lim_theta: 1.0
+      decel_lim_x: -1.0
+      decel_lim_y: 0.0
+      decel_lim_theta: -1.0
+      vx_samples: 20
+      vy_samples: 1
+      vtheta_samples: 1
+      sim_time: 2.0
+      linear_granularity: 0.05
+      angular_granularity: 0.025
+      transform_tolerance: 0.2
+      xy_goal_tolerance: 0.3
+      trans_stopped_velocity: 0.1
+      short_circuit_trajectory_evaluation: True
+      stateful: True
+      critics: ["Oscillation", "BaseObstacle", "GoalAlign", "PathAlign", "PathDist", "GoalDist", "ObstacleSpeedCritic"]
+      ObstacleSpeedCritic:
+        plugin: "dwb_critics::ObstacleSpeedCritic"
+        full_speed_distance: 5.0
+        stop_distance: 2.5
+        scale: 1000.0
+        obstacle_state: 0
+        obstacle_distance: 100.0
+      BaseObstacle.scale: 0.02
+      PathAlign.scale: 32.0
+      PathAlign.forward_point_distance: 0.1
+      GoalAlign.scale: 32.0
+      GoalAlign.forward_point_distance: 0.1
+      PathDist.scale: 32.0
+      GoalDist.scale: 24.0
+      # RotateToGoal.scale: 0.0  # 필요시 제외
 
 # # ---------- COSTMAPS ----------
 # local_costmap:
@@ -236,23 +280,104 @@ controller_server:
 #         map_subscribe_transient_local: True
 #       always_send_full_costmap: True
 
-# costmap (용준 4/28)
+# # costmap (용준 4/28)
+# local_costmap:
+#   local_costmap:
+#     ros__parameters:
+#       update_frequency: 5.0
+#       publish_frequency: 2.0
+#       transform_tolerance: 1.0
+#       global_frame: odom
+#       robot_base_frame: base_link
+#       use_sim_time: False
+#       rolling_window: true
+#       width: 7
+#       height: 7
+#       resolution: 0.05
+#       robot_radius: 0.1
+#       # 기본 static_layer를 추가한 후, inflation_layer와 braille_lane_layer를 순서대로 사용합니다.
+#       plugins: ["braille_lane_layer","obstacle_layer", "inflation_layer"]
+#       inflation_layer:
+#         plugin: "nav2_costmap_2d::InflationLayer"
+#         cost_scaling_factor: 3.0
+#         inflation_radius: 0.55
+#         enabled: true
+#       braille_lane_layer:
+#         plugin: "nav2_costmap_2d::BrailleLaneLayer"
+#         enabled: true
+#       obstacle_layer:
+#         plugin: "nav2_costmap_2d::ObstacleLayer"
+#         enabled: true
+#         observation_sources: "scan curb zone road"
+#         scan:
+#           topic: /scan
+#           max_obstacle_height: 2.0
+#           clearing: True
+#           marking: True
+#           data_type: "LaserScan"
+#           raytrace_max_range: 3.0
+#           raytrace_min_range: 0.0
+#           obstacle_max_range: 2.5
+#           obstacle_min_range: 0.0
+#         curb:
+#           sensor_frame: camera_color_optical_frame
+#           topic: /obstacle_clusters_colored
+#           data_type: "PointCloud2"
+#           marking: true
+#           clearing: true
+#           observation_persistence: 0.0
+#           min_obstacle_height: -5000.0
+#           max_obstacle_height: 5000.0
+#           obstacle_max_range: 8.5
+#           obstacle_min_range: 0.0
+#           raytrace_max_range: 9.0
+#           raytrace_min_range: 0.0
+#         zone:
+#           sensor_frame: camera_color_optical_frame
+#           topic: /obstacle_caution_zone
+#           data_type: "PointCloud2"
+#           marking: true
+#           clearing: true
+#           observation_persistence: 0.0
+#           min_obstacle_height: -5000.0
+#           max_obstacle_height: 5000.0
+#           obstacle_max_range: 8.5
+#           obstacle_min_range: 0.0
+#           raytrace_max_range: 9.0
+#           raytrace_min_range: 0.0
+#         road:
+#           sensor_frame: camera_color_optical_frame
+#           topic: /obstacle_roadway
+#           data_type: "PointCloud2"
+#           marking: true
+#           clearing: true
+#           observation_persistence: 0.0
+#           min_obstacle_height: -5000.0
+#           max_obstacle_height: 5000.0
+#           obstacle_max_range: 8.5
+#           obstacle_min_range: 0.0
+#           raytrace_max_range: 9.0
+#           raytrace_min_range: 0.0
+#       always_send_full_costmap: true
+
+# costmap (용준 5/16)
 local_costmap:
   local_costmap:
     ros__parameters:
       update_frequency: 5.0
-      publish_frequency: 2.0
-      transform_tolerance: 1.0
+      publish_frequency: 4.0
+      transform_tolerance: 0.1
       global_frame: odom
       robot_base_frame: base_link
-      use_sim_time: False
+      use_sim_time: true
+      use_maximum: True
       rolling_window: true
       width: 7
       height: 7
       resolution: 0.05
       robot_radius: 0.1
       # 기본 static_layer를 추가한 후, inflation_layer와 braille_lane_layer를 순서대로 사용합니다.
-      plugins: ["braille_lane_layer","obstacle_layer", "inflation_layer"]
+      plugins: ["dynamic_obstacle_layer","road_obstacle_layer","braille_lane_layer","inflation_layer"]
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 1.0
@@ -261,12 +386,14 @@ local_costmap:
       braille_lane_layer:
         plugin: "nav2_costmap_2d::BrailleLaneLayer"
         enabled: true
-      obstacle_layer:
+      dynamic_obstacle_layer:
+        max_obstacle_height: 10.0      # ← 반드시 추가
+        min_obstacle_height: -10.0
         plugin: "nav2_costmap_2d::ObstacleLayer"
         enabled: true
-        observation_sources: "scan curb zone road"
+        observation_sources: "scan curb zone"
         scan:
-          topic: /scan
+          topic: scan
           max_obstacle_height: 2.0
           clearing: True
           marking: True
@@ -276,45 +403,51 @@ local_costmap:
           obstacle_max_range: 2.5
           obstacle_min_range: 0.0
         curb:
-          sensor_frame: camera_color_optical_frame
-          topic: /obstacle_clusters_colored
+          sensor_frame: camera_color_optical_frame  
+          topic: /obstacle_clusters_colored      
           data_type: "PointCloud2"
           marking: true
           clearing: true
-          observation_persistence: 0.0
-          min_obstacle_height: -5000.0
-          max_obstacle_height: 5000.0
+          #observation_persistence: 0.1
+          min_obstacle_height: -10.0
+          max_obstacle_height: 10.0
           obstacle_max_range: 8.5
           obstacle_min_range: 0.0
           raytrace_max_range: 9.0
           raytrace_min_range: 0.0
         zone:
-          sensor_frame: camera_color_optical_frame
-          topic: /obstacle_caution_zone
+          sensor_frame: camera_color_optical_frame  
+          topic: /obstacle_caution_zone     
           data_type: "PointCloud2"
           marking: true
           clearing: true
-          observation_persistence: 0.0
-          min_obstacle_height: -5000.0
-          max_obstacle_height: 5000.0
+          #observation_persistence: 0.1
+          min_obstacle_height: -10.0
+          max_obstacle_height: 10.0
           obstacle_max_range: 8.5
           obstacle_min_range: 0.0
           raytrace_max_range: 9.0
           raytrace_min_range: 0.0
+      road_obstacle_layer:
+        min_obstacle_height: -10.0
+        max_obstacle_height: 10.0
+        plugin: "nav2_costmap_2d::ObstacleLayer"
+        enabled: true
+        observation_sources: "road"
         road:
-          sensor_frame: camera_color_optical_frame
-          topic: /obstacle_roadway
+          sensor_frame: camera_color_optical_frame  
+          topic: /obstacle_roadway   
           data_type: "PointCloud2"
           marking: true
           clearing: true
-          observation_persistence: 0.0
-          min_obstacle_height: -5000.0
-          max_obstacle_height: 5000.0
+          min_obstacle_height: -10.0
+          max_obstacle_height: 10.0
           obstacle_max_range: 8.5
           obstacle_min_range: 0.0
           raytrace_max_range: 9.0
           raytrace_min_range: 0.0
-      always_send_full_costmap: true
+      always_send_full_costmap: True
+
 
 # global_costmap:
 #   global_costmap:
@@ -351,7 +484,7 @@ local_costmap:
 #         inflation_radius: 0.55
 #       always_send_full_costmap: True
 
-# 수정
+# global costmap obstacle, inflation 제거 버전
 global_costmap:
   global_costmap:
     ros__parameters:
@@ -384,28 +517,64 @@ map_saver:
     occupied_thresh_default: 0.65
     map_subscribe_transient_local: True
 
-# ---------- GLOBAL PLANNER ----------
+# # ---------- GLOBAL PLANNER ----------
+# planner_server:
+#   ros__parameters:
+#     expected_planner_frequency: 20.0
+#     use_sim_time: True
+#     planner_plugins: ["GridBased"]
+#     GridBased:
+#       plugin: "nav2_navfn_planner/NavfnPlanner"
+#       tolerance: 0.5
+#       use_astar: false
+#       allow_unknown: true
+
+# smac에 smoothing 여부 조절
 planner_server:
   ros__parameters:
-    expected_planner_frequency: 20.0
-    use_sim_time: True
-    planner_plugins: ["GridBased"]
+    planner_plugins: ["GridBased"]  # 사용 플러그인 이름
     GridBased:
-      plugin: "nav2_navfn_planner/NavfnPlanner"
-      tolerance: 0.5
-      use_astar: false
-      allow_unknown: true
+      plugin: "nav2_smac_planner/SmacPlannerHybrid"
+      motion_model_for_search: "DUBIN"  # 전진만 가능한 차량
+      minimum_turning_radius: 2.0  # 최소 회전 반경 (m)
+      angle_quantization_bins: 72  # 360도를 몇 등분할지 (예: 5도 간격)
+      allow_reverse: false  # 후진 허용 여부
+      max_iterations: 5000000  # 최대 반복 횟수
+      collision_check_resolution: 0.1  # 충돌 검사 해상도 (m)
+      search_timeout: 30.0  # 경로 탐색 시간 제한 (초)
+      smoothing_enabled: false  # 기본 smoothing 활성화
+      cost_penalty: 1.2  # 장애물 근처를 피하기 위한 비용 패널티
+      traversal_search: false  # 맵의 경계를 벗어나는 경로 허용 여부
 
-# ---------- PATH SMOOTHER ----------
+# smoother server 파라미터
 smoother_server:
   ros__parameters:
-    use_sim_time: True
-    smoother_plugins: ["simple_smoother"]
-    simple_smoother:
-      plugin: "nav2_smoother::SimpleSmoother"
-      tolerance: 1.0e-10
-      max_its: 1000
-      do_refinement: True
+    smoother_plugins: ["ConstrainedSmoother"]
+    ConstrainedSmoother:
+      plugin: "nav2_constrained_smoother/ConstrainedSmoother"
+      
+      curvature_weight: 4.0        # [1.0 ~ 10.0+]  높을수록 부드러운 곡선 우선
+      length_weight: 1.0           # [0.1 ~ 5.0]    경로 짧게 하되 너무 줄이면 곡률 무시함
+      obstacle_weight: 15.0        # [5.0 ~ 50.0]   장애물 멀리 회피 유도
+
+      max_curvature: 0.53          # [0.1 ~ 1.5]    차량 물리적 한계에 맞춰 설정
+      max_iterations: 300          # [50 ~ 500]     최적화 반복 횟수
+      tolerance: 1e-4              # [1e-2 ~ 1e-5]  낮을수록 더 정밀, 하지만 느려짐
+
+      allow_reverse: false         # 전진만 가능하므로 false
+      use_costmap: true            # 장애물 회피를 위해 costmap 사용
+
+
+# # ---------- PATH SMOOTHER ----------
+# smoother_server:
+#   ros__parameters:
+#     use_sim_time: True
+#     smoother_plugins: ["simple_smoother"]
+#     simple_smoother:
+#       plugin: "nav2_smoother::SimpleSmoother"
+#       tolerance: 1.0e-10
+#       max_its: 1000
+#       do_refinement: True
 
 # ---------- ROBOT STATE PUBLISHER ----------
 robot_state_publisher:

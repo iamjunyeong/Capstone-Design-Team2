@@ -4,12 +4,19 @@
   <BehaviorTree ID="MainTree">
     <PipelineSequence name="NavigateWithReplanning">
       <!-- 1 Hz 주기로 글로벌 경로 재계산 후 글로벌 코스트맵 클리어 -->
-      <RateController hz="1.0">
+      <!-- <RateController hz="1.0">
         <Sequence>
           <ComputePathToPose goal="{goal}" path="{path}" planner_id="GridBased"/>
           <ClearEntireCostmap service_name="global_costmap/clear_entirely_global_costmap"/>
         </Sequence>
-      </RateController>
+      </RateController> -->
+
+      <!-- 1번만 글로벌 경로 계산 후 스무딩-->
+      <ComputePathToPose goal="{goal}" path="{unsmoothed_path}" planner_id="GridBased"/>
+      <SmoothPath
+        unsmoothed_path="{unsmoothed_path}"
+        path="{path}"
+        smoother_id="ConstrainedSmoother">
 
       <!-- 경로 추종 후 로컬 코스트맵 클리어 -->
       <Sequence>
