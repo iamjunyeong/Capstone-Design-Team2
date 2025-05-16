@@ -1,15 +1,13 @@
 #!/usr/bin/env python3
 """
 segmented_cloud_node.py
-YOLO‑Seg → pixel masks (roadway / caution_zone / braille_guide_block)
-        → SLIC super‑pixels → sparse coloured cloud
+YOLO-Seg → pixel masks → SLIC labels → sparse coloured cloud per class
 Publishes:
   /obstacle_roadway          (red points)
   /obstacle_caution_zone     (yellow points)
   /obstacle_braille_block    (cyan points)
-  /segmented/image_annotated (RGB image with YOLO overlays)
+  /segmented/image_annotated (annotated image)
 """
-
 import rclpy, time, struct, cv2, numpy as np
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, HistoryPolicy
@@ -20,59 +18,63 @@ from message_filters import Subscriber, ApproximateTimeSynchronizer
 import sensor_msgs_py.point_cloud2 as pc2
 from ultralytics import YOLO
 
-# ─── assign fixed RGB colours per class ─────────────────────
-# ORDER is (R, G, B)
+# 클래스별 색상 (R,G,B)
 CLASS_COLORS = {
-    2: (0,   255, 255),   # braille_guide_block → cyan
-    3: (255, 255,   0),   # caution_zone        → yellow
-    4: (255,   0,   0),   # roadway             → red
+    2: (0,   255, 255),  # braille → cyan
+    3: (255, 255,   0),  # caution → yellow
+    4: (255,   0,   0),  # roadway → red
 }
 
 def rgb_to_float(r, g, b):
     return struct.unpack('f', struct.pack('I', (r<<16)|(g<<8)|b))[0]
 
-def slic_opencv_bgr(bgr, size=12, ruler=8.0, iters=5):
-    if not hasattr(cv2, 'ximgproc'):
-        raise RuntimeError('opencv‑contrib‑python is required')
-    slicer = cv2.ximgproc.createSuperpixelSLIC(
-        bgr, algorithm=cv2.ximgproc.SLICO,
-        region_size=size, ruler=ruler)
-    slicer.iterate(iters)
-    return slicer.getLabels()
-
-def build_sparse_class_cloud(color_bgr, depth_mm, K, class_mask, class_id,
-                             scale=0.4, slic_size=8, slic_ruler=7.0,
-                             min_pix=30, max_depth_jitter_mm=3000):
+def build_sparse_class_cloud(depth_mm, K, labels,
+                               class_mask, class_color,
+                               min_pix=30, max_std=500, z_min=0.05):
+    """YOLO 클래스 마스크에 걸친 슈퍼픽셀만 벡터화로 PCD 생성"""
     if not class_mask.any():
-        return np.zeros((0,6), np.float32)
+        return np.empty((0, 6), np.float32)
 
-    if scale != 1.0:
-        color_bgr  = cv2.resize(color_bgr,  None, fx=scale, fy=scale, interpolation=cv2.INTER_LINEAR)
-        depth_mm   = cv2.resize(depth_mm,   None, fx=scale, fy=scale, interpolation=cv2.INTER_NEAREST)
-        class_mask = cv2.resize(class_mask.astype(np.uint8), None, fx=scale, fy=scale,
-                                interpolation=cv2.INTER_NEAREST).astype(bool)
-        fx, fy, cx, cy = (K[0,0]*scale, K[1,1]*scale, K[0,2]*scale, K[1,2]*scale)
-    else:
-        fx, fy, cx, cy = K[0,0], K[1,1], K[0,2], K[1,2]
+    H, W   = labels.shape
+    lab_id = labels[class_mask]                    # 마스크 안 라벨 ID
+    uniq, cnt = np.unique(lab_id, return_counts=True)
+    keep = cnt >= min_pix
+    if not keep.any():
+        return np.empty((0, 6), np.float32)
+    uniq = uniq[keep]
 
-    labels = slic_opencv_bgr(color_bgr, slic_size, slic_ruler)
-    pts = []
-    for lab in np.unique(labels):
-        m = labels == lab
-        if m.sum() < min_pix: continue
-        if class_mask[m].mean() < 0.6: continue
-        zs = depth_mm[m].astype(np.float32)
-        if zs.std() > max_depth_jitter_mm: continue
-        z = np.median(zs) * 1e-3
-        if z <= 0.05: continue
-        ys, xs = np.nonzero(m)
-        u, v = xs.mean(), ys.mean()
-        X = (u - cx) * z / fx
-        Y = (v - cy) * z / fy
-        r, g, b = CLASS_COLORS[class_id]
-        pts.append([X, Y, z, r, g, b])
+    # ① 깊이 통계
+    z_flat = depth_mm.astype(np.float32).ravel()
+    lbl_f  = labels.ravel()
+    cnt_all = np.bincount(lbl_f, minlength=uniq.max()+1)
+    cnt_all[cnt_all == 0] = 1
+    sum_z   = np.bincount(lbl_f, weights=z_flat, minlength=uniq.max()+1)
+    sum_z2  = np.bincount(lbl_f, weights=z_flat**2, minlength=uniq.max()+1)
 
-    return np.asarray(pts, np.float32)
+    mean_z  = (sum_z   / cnt_all)[uniq] * 1e-3     # m 단위
+    std_z   = np.sqrt(sum_z2 / cnt_all - (sum_z/cnt_all)**2)[uniq] * 1e-3
+    ok      = (std_z < max_std*1e-3) & (mean_z > z_min)
+    if not ok.any():
+        return np.empty((0, 6), np.float32)
+    uniq, mean_z = uniq[ok], mean_z[ok]
+
+    # ② u,v 평균
+    ys, xs = np.indices((H, W))
+    mean_u = np.bincount(lbl_f, xs.ravel(), minlength=uniq.max()+1)[uniq] / cnt_all[uniq]
+    mean_v = np.bincount(lbl_f, ys.ravel(), minlength=uniq.max()+1)[uniq] / cnt_all[uniq]
+
+    fx, fy, cx, cy = K[0,0], K[1,1], K[0,2], K[1,2]
+    X = (mean_u - cx) * mean_z / fx
+    Y = (mean_v - cy) * mean_z / fy
+    Z = mean_z
+
+    r, g, b = class_color
+    pts = np.column_stack([X, Y, Z,
+                           np.full_like(X, r),
+                           np.full_like(Y, g),
+                           np.full_like(Z, b)]).astype(np.float32)
+    return pts
+
 
 def cloud_rgb_to_msg(cloud_rgb, header_src):
     if cloud_rgb.size == 0:
@@ -80,12 +82,15 @@ def cloud_rgb_to_msg(cloud_rgb, header_src):
     xyz  = cloud_rgb[:, :3]
     rgbf = np.vectorize(rgb_to_float)(*(cloud_rgb[:, 3:].astype(np.uint8)[:, ::-1]).T)
     data = np.hstack((xyz, rgbf[:,None])).astype(np.float32)
+
+    # keyword 인자로만 PointField 생성
     fields = [
-        PointField(name='x',   offset=0,  datatype=PointField.FLOAT32, count=1),
-        PointField(name='y',   offset=4,  datatype=PointField.FLOAT32, count=1),
-        PointField(name='z',   offset=8,  datatype=PointField.FLOAT32, count=1),
-        PointField(name='rgb', offset=12, datatype=PointField.FLOAT32, count=1),
+        PointField(name='x', offset=0,  datatype=PointField.FLOAT32, count=1),
+        PointField(name='y', offset=4,  datatype=PointField.FLOAT32, count=1),
+        PointField(name='z', offset=8,  datatype=PointField.FLOAT32, count=1),
+        PointField(name='rgb', offset=12,datatype=PointField.FLOAT32, count=1),
     ]
+
     hdr = Header()
     hdr.stamp    = header_src.stamp
     hdr.frame_id = header_src.frame_id
@@ -101,81 +106,87 @@ class SegmentedCloudNode(Node):
         self.bridge = CvBridge()
         self.K = None
 
-        self.model = YOLO(
-            '/home/loe/workspace/yolo/surface/ultralytics/train3/weights/best.pt'
-        )
+        self.model = YOLO('/home/ubuntu/capston_ws/src/Capstone-Design-Team2/vision_bringup/resource/best.pt')
 
         qos = QoSProfile(history=HistoryPolicy.KEEP_LAST, depth=5)
-        c = Subscriber(self, Image,      '/camera/camera/color/image_raw', qos_profile=qos)
-        d = Subscriber(self, Image,      '/camera/camera/aligned_depth_to_color/image_raw', qos_profile=qos)
-        i = Subscriber(self, CameraInfo, '/camera/camera/color/camera_info', qos_profile=qos)
+        sub_c = Subscriber(self, Image     , '/slic/color'       , qos_profile=qos)
+        sub_d = Subscriber(self, Image     , '/slic/depth'       , qos_profile=qos)
+        sub_i = Subscriber(self, CameraInfo, '/slic/camera_info' , qos_profile=qos)
+        sub_l = Subscriber(self, Image     , '/slic/labels'      , qos_profile=qos)
 
-        sync = ApproximateTimeSynchronizer([c,d,i], queue_size=5, slop=0.03)
-        sync.registerCallback(self.cb_synced)
+        ats = ApproximateTimeSynchronizer([sub_c, sub_d, sub_i, sub_l], 5, 0.03)
+        ats.registerCallback(self.cb_synced)
 
-        self.pub_road      = self.create_publisher(PointCloud2, '/obstacle_roadway',       10)
-        self.pub_caution   = self.create_publisher(PointCloud2, '/obstacle_caution_zone',  10)
-        self.pub_braille   = self.create_publisher(PointCloud2, '/obstacle_braille_block', 10)
-        self.pub_annotated = self.create_publisher(Image,       '/segmented/image_annotated', 10)
+        self.pub_road    = self.create_publisher(PointCloud2, '/obstacle_roadway',       10)
+        self.pub_caution = self.create_publisher(PointCloud2, '/obstacle_caution_zone',  10)
+        self.pub_braille = self.create_publisher(PointCloud2, '/obstacle_braille_block',10)
+        self.pub_annot   = self.create_publisher(Image    , '/segmented/image_annotated',10)
 
         self.get_logger().info('SegmentedCloudNode ready.')
 
-    def cb_synced(self, img_msg, depth_msg, info_msg):
+    def cb_synced(self, img_msg, depth_msg, info_msg, labels_msg):
         t0 = time.perf_counter()
         if self.K is None:
             self.K = np.asarray(info_msg.k, np.float32).reshape(3,3)
             self.get_logger().info('Camera intrinsics received.')
 
-        color = self.bridge.imgmsg_to_cv2(img_msg,   'bgr8')
-        depth = self.bridge.imgmsg_to_cv2(depth_msg, '16UC1')
+        color  = self.bridge.imgmsg_to_cv2(img_msg,    'passthrough')
+        if img_msg.encoding.startswith('rgb'):
+            color = cv2.cvtColor(color, cv2.COLOR_RGB2BGR)
+        depth  = self.bridge.imgmsg_to_cv2(depth_msg, 'passthrough')
+        labels = self.bridge.imgmsg_to_cv2(labels_msg,'passthrough')
 
+        # 1) YOLO segmentation & annotated image
         res = self.model(color, verbose=False)[0]
         if res.masks is None:
             self.get_logger().warn('No YOLO masks.')
             return
-
-        # Annotated image
         annotated = res.plot()
-        ann_msg   = self.bridge.cv2_to_imgmsg(annotated, 'bgr8')
+        ann_msg = self.bridge.cv2_to_imgmsg(annotated, 'bgr8')
         ann_msg.header = img_msg.header
-        self.pub_annotated.publish(ann_msg)
+        self.pub_annot.publish(ann_msg)
 
-        cls_ids = res.boxes.cls.int().cpu().tolist()
-        masks   = (res.masks.data.cpu().numpy() > 0.5)
+        # 2) class masks
         h, w = color.shape[:2]
         mask_b = np.zeros((h, w), bool)
         mask_c = np.zeros((h, w), bool)
         mask_r = np.zeros((h, w), bool)
-
-        for m, cid in zip(masks, cls_ids):
-            m_up = cv2.resize(m.astype(np.uint8), (w,h),
+        for m, cid in zip(res.masks.data.cpu().numpy()>0.5,
+                          res.boxes.cls.int().cpu().tolist()):
+            m_up = cv2.resize(m.astype(np.uint8), (w, h),
                               interpolation=cv2.INTER_NEAREST).astype(bool)
-            if cid == self.ID_BRAILLE:
-                mask_b |= m_up
-            elif cid == self.ID_CAUTION:
-                mask_c |= m_up
-            elif cid == self.ID_ROADWAY:
-                mask_r |= m_up
+            if cid == self.ID_BRAILLE: mask_b |= m_up
+            elif cid == self.ID_CAUTION: mask_c |= m_up
+            elif cid == self.ID_ROADWAY: mask_r |= m_up
 
-        cloud_b = build_sparse_class_cloud(color, depth, self.K, mask_b, self.ID_BRAILLE)
-        cloud_c = build_sparse_class_cloud(color, depth, self.K, mask_c, self.ID_CAUTION)
-        cloud_r = build_sparse_class_cloud(color, depth, self.K, mask_r, self.ID_ROADWAY)
+        # 3) sparse clouds using slic labels
+        cloud_b = build_sparse_class_cloud(depth, self.K, labels, mask_b, CLASS_COLORS[self.ID_BRAILLE])
+        cloud_c = build_sparse_class_cloud(depth, self.K, labels, mask_c, CLASS_COLORS[self.ID_CAUTION])
+        cloud_r = build_sparse_class_cloud(depth, self.K, labels, mask_r, CLASS_COLORS[self.ID_ROADWAY])
 
-        if cloud_b.size:
-            msg = cloud_rgb_to_msg(cloud_b, img_msg.header)
-            if msg: self.pub_braille.publish(msg)
-
-        if cloud_c.size:
-            msg = cloud_rgb_to_msg(cloud_c, img_msg.header)
-            if msg: self.pub_caution.publish(msg)
-
-        if cloud_r.size:
-            msg = cloud_rgb_to_msg(cloud_r, img_msg.header)
-            if msg: self.pub_road.publish(msg)
+        # 4) publish or clear
+        for cloud, pub in ((cloud_b, self.pub_braille),
+                           (cloud_c, self.pub_caution),
+                           (cloud_r, self.pub_road)):
+            msg = cloud_rgb_to_msg(cloud, img_msg.header)
+            if msg is None:
+                # 빈 클라우드 생성도 동일하게 keyword args 사용
+                empty_fields = [
+                    PointField(name='x', offset=0,  datatype=PointField.FLOAT32, count=1),
+                    PointField(name='y', offset=4,  datatype=PointField.FLOAT32, count=1),
+                    PointField(name='z', offset=8,  datatype=PointField.FLOAT32, count=1),
+                    PointField(name='rgb',offset=12, datatype=PointField.FLOAT32, count=1),
+                ]
+                empty = pc2.create_cloud(img_msg.header, empty_fields, [])
+                pub.publish(empty)
+            else:
+                pub.publish(msg)
 
         self.get_logger().info(
             f'proc_time={time.perf_counter()-t0:.3f}s '
-            f'pts: braille={cloud_b.shape[0]}, caution={cloud_c.shape[0]}, road={cloud_r.shape[0]}'
+            f'braille={cloud_b.shape[0]} '
+            f'caution={cloud_c.shape[0]} '
+            f'road={cloud_r.shape[0]}'
         )
 
 def main(args=None):
@@ -183,6 +194,8 @@ def main(args=None):
     node = SegmentedCloudNode()
     try:
         rclpy.spin(node)
+    except KeyboardInterrupt:
+        pass
     finally:
         node.destroy_node()
         rclpy.shutdown()
