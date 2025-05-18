@@ -8,9 +8,9 @@ import threading
 class KeyboardNode(Node):
     def __init__(self):
         super().__init__('keyboard_node')
-        self.talkbutton_pub = self.create_publisher(Bool, '/talkbutton_state',  10)
-        self.handlebutton_pub = self.create_publisher(UInt8, '/handlebutton_state', 10)
-        self.emergency_pub = self.create_publisher(Bool, '/emergencybutton_state', 10)
+        self.talkbutton_pub = self.create_publisher(Bool, '/stt_button_state',  10)
+        self.handlebutton_pub = self.create_publisher(UInt8, '/tactswitch_state', 10)
+        self.emergency_pub = self.create_publisher(Bool, '/emergency_state', 10)
         self.emergency_pressed = False
         self.emergency_active = False
         self.run_keyboard_listener()
@@ -55,6 +55,7 @@ class KeyboardNode(Node):
 
             if now - emergency_pub_time > pub_rate:     
                 self.publish_emergency(self.emergency_active)
+                
                 emergency_pub_time = now
     
             # 음성 상호작용: '1' 키 (주기적 발행)
@@ -65,6 +66,7 @@ class KeyboardNode(Node):
 
             if now - talk_pub_time > pub_rate:
                 self.publish_talk(pressed)
+                
                 talk_pub_time = now
 
             # 핸들 버튼 코드: 'a', 's' 키 감지
@@ -75,6 +77,7 @@ class KeyboardNode(Node):
                 code = 1
             if now - handle_pub_time > pub_rate:
                 self.publish_handle(code)
+                
                 handle_pub_time = now
             
             pygame.display.flip()
@@ -99,7 +102,8 @@ class KeyboardNode(Node):
 def main(args=None):
     rclpy.init(args=args)
     node = KeyboardNode()
+    rclpy.spin(node)
+    node.destroy_node()
     rclpy.shutdown()
-
 if __name__ == '__main__':
     main()

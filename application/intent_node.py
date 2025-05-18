@@ -5,7 +5,7 @@ import difflib
 from hmi_interface.srv import IntentResponse
 from hmi_interface.srv import IntentToPlanning
 from hmi_interface.srv import IntentToTTS
-from hmi_interface.msg import IntentToPlanning
+from hmi_interface.msg import IntentToPlanningmsg
 class IntentNode(Node):
     def __init__(self):
         super().__init__('intent_node')
@@ -18,7 +18,7 @@ class IntentNode(Node):
         self.intentpub = self.create_publisher(String, '/intent_to_tts', 10)  # /intent_to_tts 토픽으로 의도 전송
         self.confirm_pub = self.create_publisher(UInt8, '/confirm_request', 10)  # 확인 요청 상태 전송
         self.dstpub = self.create_publisher(UInt8, '/dst',1) 
-        self.building_id_pub = self.create_publisher(IntentToPlanning, '/voice/building_id', 1)  # 건물 ID 전송
+        self.building_id_pub = self.create_publisher(IntentToPlanningmsg, '/voice/building_id', 1)  # 건물 ID 전송
         self.get_logger().info('Intent Node started. Waiting for STT input...')
 
         self.user_text = None
@@ -166,13 +166,13 @@ class IntentNode(Node):
                     
                     #목적지 확정 후 planning 노드로 목적지 전송 
                     encoded_dst= self.dst_dict[self.dst] 
-                    msg = IntentToPlanning()
+                    msg = IntentToPlanningmsg()
                     if self.replanning: 
                         msg.intent = "change_dst_confirmed"
                         self.replanning = False
                     else: 
                         msg.intent = "set_destination_confirmed"
-                    msg.dst = encoded_dst
+                    msg.building_id = encoded_dst
                     self.building_id_pub.publish(msg) #목적지 전송
                     self.get_logger().info(f"목적지 전송: {encoded_dst}")
 
