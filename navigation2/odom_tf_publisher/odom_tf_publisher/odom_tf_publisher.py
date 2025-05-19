@@ -20,8 +20,8 @@ class OdomTfPublisher(Node):
         now = self.get_clock().now()
         # 시작 시점으로부터 경과 시간 (초 단위)
         elapsed = (now - self.start_time).nanoseconds * 1e-9
-        # 속도 1 m/s로 전진했을 때의 거리
-        distance = 1.0 * elapsed
+        # 속도 0.2 m/s로 전진했을 때의 거리
+        distance = 0.2 * elapsed
 
         # TransformStamped 메시지 구성
         t = TransformStamped()

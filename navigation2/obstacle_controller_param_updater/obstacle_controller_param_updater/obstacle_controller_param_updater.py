@@ -44,8 +44,8 @@ class ObstacleParamUpdater(Node):
     def scan_callback(self, msg: LaserScan):
         """ LaserScan 중 –6°~+6° 구간의 최소 유효 거리값을 계산 """
         # 라디안으로 변환
-        start_ang = -6.0 * math.pi / 180.0
-        end_ang   = +6.0 * math.pi / 180.0
+        start_ang = -180.0 * math.pi / 180.0
+        end_ang   = -160.0 * math.pi / 180.0
 
         # 인덱스 계산
         i_start = math.ceil((start_ang - msg.angle_min) / msg.angle_increment)

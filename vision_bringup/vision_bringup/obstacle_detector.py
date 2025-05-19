@@ -42,7 +42,7 @@ def detect_obstacles(frame, model):
 class ObstacleDetector(Node):
     def __init__(self):
         super().__init__('obstacle_detector')
-        self.declare_parameter('camera_topics', ['/camera/camera/color/image_raw','/usb_cam1','/usb_cam2'])
+        self.declare_parameter('camera_topics', ['/camera/camera/color/image_raw'])
         topics = self.get_parameter('camera_topics').value
 
         # 모델 경로: 패키지 공유 디렉터리 내 model 폴더
