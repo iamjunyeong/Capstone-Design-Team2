@@ -25,45 +25,57 @@ def fastslic_bgr(bgr: np.ndarray, num_components=1600, compactness=10):
 def rgb_to_float(r, g, b):
     return struct.unpack('f', struct.pack('I', (r << 16) | (g << 8) | b))[0]
 
+def build_sparse_cloud(color, depth, K, labels,
+                       min_pix=30, max_std=300, z_min=0.05):
+    H, W = labels.shape
+    Npix = H * W
+    lab_flat = labels.ravel()
 
-def build_sparse_cloud(color_bgr: np.ndarray,
-                       depth_mm: np.ndarray,
-                       K: np.ndarray,
-                       labels: np.ndarray = None):
-    """fast-SLIC → superpixel centroids → Nx6 array"""
-    # scale=1.0 이면 내부 리사이즈 및 K 스케일링 건너뜀
+    # 1. 픽셀 수
+    counts = np.bincount(lab_flat)
+    valid  = counts >= min_pix
+    if not valid.any():
+        return np.empty((0, 6), np.float32)
+
+    # 2. 깊이: median & std
+    z = depth.astype(np.float32).ravel()
+    # sort‑by‑labels trick
+    order  = lab_flat.argsort()
+    z_sort = z[order]
+    lab_sort = lab_flat[order]
+    split = np.cumsum(counts[valid])[:-1]
+    groups = np.split(z_sort[valid[lab_sort]], split)
+
+    med = np.array([np.median(g) for g in groups])
+    std = np.array([g.std()     for g in groups])
+    ok  = std < max_std
+    med = med[ok] * 1e-3
+    labs = np.nonzero(valid)[0][ok]
+
+    # 3. 좌표계
+    ys, xs = np.indices((H, W))
+    u = np.bincount(lab_flat, xs.ravel()) / counts
+    v = np.bincount(lab_flat, ys.ravel()) / counts
+    u, v = u[labs], v[labs]
+
     fx, fy, cx, cy = K[0,0], K[1,1], K[0,2], K[1,2]
-    if labels is None:
-        raise RuntimeError("Expected precomputed superpixel labels but got None")
+    X = (u - cx) * med / fx
+    Y = (v - cy) * med / fy
+    Z = med
 
+    # 4. 컬러
+    r = np.bincount(lab_flat, color[:,:,2].ravel())[labs] / counts[labs]
+    g = np.bincount(lab_flat, color[:,:,1].ravel())[labs] / counts[labs]
+    b = np.bincount(lab_flat, color[:,:,0].ravel())[labs] / counts[labs]
 
-    # Superpixel segmentation
-    h, w = color_bgr.shape[:2]
+    pts = np.column_stack([X, Y, Z, r, g, b]).astype(np.float32)
+    return pts[Z > z_min]
 
-
-    pts = []
-    for lab in np.unique(labels):
-        m = labels == lab
-        zs = depth_mm[m].astype(np.float32)
-
-        if m.sum() < 30 or zs.std() > 3000:
-            continue
-        z = np.median(zs) * 1e-3
-        if z <= 0.05:
-            continue
-
-        ys, xs = np.nonzero(m)
-        u, v   = xs.mean(), ys.mean()
-        X, Y   = (u - cx) * z / fx, (v - cy) * z / fy
-        b, g, r = [int(color_bgr[:, :, c][m].mean()) for c in range(3)]
-        pts.append([X, Y, z, r, g, b])
-
-    return np.asarray(pts, np.float32)
 
 
 def process_cloud(cloud_rgb: np.ndarray,
-                  voxel=0.01, ransac_dist=0.10,
-                  eps=1.0, min_samples=3, top_k=20):
+                  voxel=0.01, ransac_dist=0.2,
+                  eps=1.0, min_samples=10, top_k=15):
     # (원본과 동일)
     if cloud_rgb.size == 0:
         return None, [], []
@@ -165,9 +177,11 @@ class SparseObstacleNode(Node):
             self.K = np.asarray(info_msg.k, np.float32).reshape(3,3)
             self.get_logger().info('Intrinsic K initialised.')
 
-        color  = self.bridge.imgmsg_to_cv2(img_msg,    'bgr8')
-        depth  = self.bridge.imgmsg_to_cv2(depth_msg, '16UC1')
-        labels = self.bridge.imgmsg_to_cv2(labels_msg,'32SC1')
+        color  = self.bridge.imgmsg_to_cv2(img_msg,    'passthrough')
+        if img_msg.encoding.startswith('rgb'):
+            color = cv2.cvtColor(color, cv2.COLOR_RGB2BGR)
+        depth  = self.bridge.imgmsg_to_cv2(depth_msg, 'passthrough')
+        labels = self.bridge.imgmsg_to_cv2(labels_msg,'passthrough')
 
         cloud6 = build_sparse_cloud(color, depth, self.K, labels)
         self.get_logger().info(f'SLIC→cloud: {cloud6.shape[0]} pts ({time.perf_counter()-t0:.3f}s)')

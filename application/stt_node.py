@@ -151,6 +151,7 @@ class STTNode(Node):
 
     def talk_button_callback(self, msg):
         self.talkbutton_pressed = msg.data
+<<<<<<< HEAD
         if self.talkbutton_pressed:
             self.get_logger().info("Talk button ON")
         else: 
@@ -205,6 +206,15 @@ class STTNode(Node):
                 except Exception as e:
                     self.get_logger().error(f"STT 오류: {e}")
 
+=======
+        #self.get_logger().info(f"Talk button 상태: {self.talkbutton_pressed}")
+        if self.talkbutton_pressed and not self.is_processing:
+            self.get_logger().info("버튼 눌림 감지됨. STT 실행 시작.")
+            self.is_processing = True
+            try:
+                self.run_stt()
+            finally:
+>>>>>>> dev
                 self.is_processing = False
                 self.get_logger().info("🕓 STT 처리 완료")
             time.sleep(0.1)
@@ -249,6 +259,7 @@ class STTNode(Node):
                                 break
                             else:
                                 yield pb.DecoderRequest(audio_content=chunk)
+                                self.get_logger().info("계속 전송")
                     except Exception as e:
                         self.get_logger().error(f"요청 제너레이터 오류: {e}")
                     finally:

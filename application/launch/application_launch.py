@@ -27,12 +27,12 @@ def generate_launch_description():
             name='button_node',
             #output='screen'
         ),
-        Node(
-            package='application',
-            executable='keyboard_node',
-            name='keyboard_node',
-            #output='screen'
-        ),
+        #Node(
+        #    package='application',
+        #    executable='keyboard_node',
+        #    name='keyboard_node',
+        #    #output='screen'
+        #),
         Node(
             package='application',
             executable='hmi_planning_node',

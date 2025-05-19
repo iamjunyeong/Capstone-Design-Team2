@@ -26,9 +26,11 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'lanenet_process = vision_bringup.lanenet_process:main',
             'pcd_process = vision_bringup.pcd_processs:main',
             'yolo_process = vision_bringup.yolo_process:main',
             'obstacle_detector = vision_bringup.obstacle_detector:main',
+            'slic_process = vision_bringup.slic_process:main',
         ],
     },
 )
