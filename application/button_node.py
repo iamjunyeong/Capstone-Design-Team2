@@ -36,9 +36,9 @@ class ButtonNode(Node):
 
     def stt_callback(self, msg):
             if msg.data:
-                self.get_logger().info('[STT] 버튼 눌림 감지됨 (True)')
+                self.get_logger().info('[talk button]')
             else:
-                self.get_logger().info('[STT] 대기 상태(False)')
+                self.get_logger().info('------------')
             self.last_stt_state = msg.data  # 상태 갱신
             self.talkbutton_pub.publish(Bool(data=msg.data))
 

@@ -32,7 +32,6 @@ boosted_keywords = [
     "가줘:5.0", "가자:5.0", "가고:2.0", "싶어:5.0", "데려다줘:5.0", "이동:5.0", "목적지:5.0", "변경:5.0" ,
     "몇:3.0","분:2.0", "얼마나:5.0", "도착:5.0", "시간:5.0", "얼마:5.0", "남았어:5.0", "걸려:5.0",
     "어디야:5.0", "어디:5.0","현재:5.0", "위치:5.0", "지나:5.0", "확인:5.0", "정지:5.0", "멈춰:5.0", "정지해:5.0", "멈춰줘:5.0",
-    
 ]
 
 # === 마이크 VAD 스트리머 ===
@@ -134,7 +133,7 @@ class STTNode(Node):
         super().__init__('stt_node')
         self.publisher_ = self.create_publisher(String, '/stt_text', 10)
         self.talkbutton_sub = self.create_subscription(Bool,'/talkbutton_pressed',self.talk_button_callback,10)
-        self.get_logger().info('STT Node has started.')
+        
         self.token = None
         self._sess = Session()
         self.is_processing = False  # 중복 실행 방지용
@@ -145,24 +144,26 @@ class STTNode(Node):
 
         # 모니터 루프 스레드 시작
         self.monitor_thread = threading.Thread(target=self.monitor_loop)
-        self.get_logger().info("STT 모니터 루프 시작")
         self.monitor_thread.daemon = True
         self.monitor_thread.start()
+        self.get_logger().info("STT 모니터 루프 시작, STT NODE START")
 
     def talk_button_callback(self, msg):
         self.talkbutton_pressed = msg.data
 
-        if self.talkbutton_pressed:
-            self.get_logger().info("Talk button ON")
-        else: 
-            self.get_logger().info("Talk button OFF")
+        # if self.talkbutton_pressed:
+        #     self.get_logger().info("Talk button ON")
+        # else: 
+        #     self.get_logger().info("Talk button OFF")
     
     def monitor_loop(self):
         while rclpy.ok():
+            #self.get_logger().info("STT 모니터 루프 실행 중")
             if self.talkbutton_pressed and not self.is_processing:
                 self.get_logger().info("🎤 STT 실행 시작")
                 self.is_processing = True
-
+                
+                
                 config = pb.DecoderConfig(
                     sample_rate=SAMPLE_RATE,
                     encoding=ENCODING,
@@ -171,7 +172,6 @@ class STTNode(Node):
                     use_profanity_filter=False,
                     keywords=boosted_keywords
                 )
-
                 try:
                     with grpc.secure_channel(GRPC_SERVER_URL, grpc.ssl_channel_credentials()) as channel:
                         stub = pb_grpc.OnlineDecoderStub(channel)
@@ -190,8 +190,10 @@ class STTNode(Node):
                                     yield pb.DecoderRequest(audio_content=chunk)
 
                         for resp in stub.Decode(req_iterator(), credentials=cred):
+                            
                             for result in resp.results:
                                 if not result.alternatives:
+                                    self.get_logger().info("결과 없음")
                                     continue
                                 text = result.alternatives[0].text.strip()
                                 if text and result.is_final:
@@ -202,23 +204,14 @@ class STTNode(Node):
                             msg = String()
                             msg.data = final_result
                             self.publisher_.publish(msg)
+                            self.is_processing = False
+                            self.get_logger().info("🔁 STT 실행 종료 및 초기화 완료")
 
                 except Exception as e:
                     self.get_logger().error(f"STT 오류: {e}")
-
-
-        #self.get_logger().info(f"Talk button 상태: {self.talkbutton_pressed}")
-        if self.talkbutton_pressed and not self.is_processing:
-            self.get_logger().info("버튼 눌림 감지됨. STT 실행 시작.")
-            self.is_processing = True
-            try:
-                self.run_stt()
-            finally:
-
-                self.is_processing = False
-                self.get_logger().info("🕓 STT 처리 완료")
-            time.sleep(0.1)
-
+                finally:
+                    self.is_processing = False
+                    self.get_logger().info(" STT 실행 종료 및 초기화 완료")
     def get_token(self):
         if self.token is None or self.token["expire_at"] < time.time():
             resp = self._sess.post(
@@ -228,63 +221,7 @@ class STTNode(Node):
             resp.raise_for_status()
             self.token = resp.json()
         return self.token["access_token"]
-'''
-    def run_stt(self):
-        self.get_logger().info("Run STT")
-        config = pb.DecoderConfig(
-            sample_rate=SAMPLE_RATE,
-            encoding=ENCODING,
-            use_itn=True,
-            use_disfluency_filter=False,
-            use_profanity_filter=False,
-            keywords=boosted_keywords
-        )
 
-        with grpc.secure_channel(GRPC_SERVER_URL, grpc.ssl_channel_credentials()) as channel:
-            stub = pb_grpc.OnlineDecoderStub(channel)
-            cred = grpc.access_token_call_credentials(self.get_token())
-
-            final_result = ""  # 마지막 결과 저장용
-
-            def req_iterator():
-                yield pb.DecoderRequest(streaming_config=config)
-                self.get_logger().info("스트리밍 설정 전송")
-
-                with VADMicStreamer(self) as mic:
-                    try:
-                        for chunk in mic.read_stream():
-                            if not self.talkbutton_pressed:
-                                yield pb.DecoderRequest(audio_content=chunk)
-                                self.get_logger().info("마지막 프레임 전송 후 종료")
-                                break
-                            else:
-                                yield pb.DecoderRequest(audio_content=chunk)
-                                self.get_logger().info("계속 전송")
-                    except Exception as e:
-                        self.get_logger().error(f"요청 제너레이터 오류: {e}")
-                    finally:
-                        self.get_logger().info("스트리밍 종료")
-
-            # 음성 인식 응답 수신
-            for resp in stub.Decode(req_iterator(), credentials=cred):
-                for result in resp.results:
-                    if not result.alternatives:
-                        continue
-                    text = result.alternatives[0].text
-                    if not text.strip():
-                        continue
-                    if result.is_final:
-                        final_result = text  # 🔑 마지막 결과 저장
-
-            # 요청 루프가 끝났을 때 마지막 결과가 있다면 publish
-            if final_result:
-                self.get_logger().info(f"STT 종료, 최종 인식: {final_result}")
-                msg = String()
-                msg.data = final_result
-                self.publisher_.publish(msg)
-                self.is_processing = False
-        self.is_processing = False
-'''
 # === main ===
 def main(args=None):
     rclpy.init(args=args)

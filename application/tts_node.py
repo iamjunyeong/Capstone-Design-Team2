@@ -33,17 +33,16 @@ class TTSNode(Node):
         }
         #변수 선언
         self.intent = None
-        self.dst = None
         self.dst_dict = {
-            0: "신공학관",
-            1: "공학관",
-            2: "새천년관",
-            3: "학생회관",
-            4: "법학관",
-            5: "정문",
-            6: "후문",
-            7: "인문학관",
-            8: "경영관"
+            1: "신공학관",
+            2: "공학관",
+            3: "새천년관",
+            4: "학생회관",
+            5: "법학관",
+            6: "정문",
+            7: "후문",
+            8: "인문학관",
+            9: "경영관"
         }
         self.talkbutton_pressed = False
         self.is_playing = False  # 현재 음성이 재생 중인지 여부
@@ -66,35 +65,28 @@ class TTSNode(Node):
         self.playback_thread = threading.Thread(target=self.process_queue) #스레드가 실행될 때 함수 실행하라는 의미
         self.playback_thread.daemon = True # 데몬 스레드는 메인 프로그램이 종료될 때 같이 종료
         self.playback_thread.start()
-        self.get_logger().info('TTS Node thread has started.')
-
+        
         # SUB 
         self.talkbutton_sub = self.create_subscription(Bool, '/talkbutton_pressed', self.talkbutton_callback,10)
         self.handlebutton_sub = self.create_subscription(Bool, '/handlebutton_state', self.handlebutton_callback,10)
         self.emergencybutton_sub = self.create_subscription(Bool, '/emergency', self.emergency_button_callback,10)
         
         # vision/obstacle_info 값 받아오는 sub 필요, callback에서 9번 출력 
-        # 속도조절 스위치 값 받아오는 sub 필요, callback에서 조건에 따라 7,8번 출력
-
+        # (보류) 속도조절 스위치 값 받아오는 sub 필요, callback에서 조건에 따라 7,8번 출력
         #srv 
         self.req_server = self.create_service(IntentResponse, '/confirm_service', self.intent_confirm_callback)
         self.intent_tts_server = self.create_service(IntentToTTS, '/intent_to_tts_plan', self.intent_tts_callback)
-        
 
+        self.get_logger().info('TTS Node thread has started.')
 
     def intent_confirm_callback(self, request, response):
         self.intent = request.intent
-        dst = self.dst_dict[request.dst]
-        if self.intent == "unknown":
-            self.get_logger().info(f"요청 수신: {self.intent}")
-            self.clear_queue()
-            self.request_queue.put((1, self.output_text[0])) 
-            self.get_logger().info("이해하지 못했습니다. 다시 말씀해주시겠어요?")
-
-            response.response_code = 0
-            
-
-        elif self.intent == "set_destination":
+        if request.dst == 255 :
+            dst = None 
+        else:
+            dst = self.dst_dict[request.dst]
+        
+        if self.intent == "set_destination":
             
             self.get_logger().info(f"요청 수신: 목적지={dst})")
             self.clear_queue()
@@ -132,7 +124,14 @@ class TTSNode(Node):
             response.response_code = 4
             
             #목적지 설정 시퀀스 재진입
-        
+        elif self.intent == "unknown":
+            self.get_logger().info(f"요청 수신: {self.intent}")
+            self.clear_queue()
+            self.request_queue.put((1, self.output_text[0])) 
+            self.get_logger().info("이해하지 못했습니다. 다시 말씀해주시겠어요?")
+
+            response.response_code = 0
+            
         return response
         
     def handlebutton_callback(self, msg):
@@ -142,19 +141,22 @@ class TTSNode(Node):
             pass
         elif self.handlebutton_code == 0 or self.handlebutton_code == 1:
             #손잡이 잡아달라는 안내.
-            self.clear_queue()
+            
             self.request_queue.put((0, self.output_text[10]))
             
     def talkbutton_callback(self, msg):
         if msg.data and not self.last_talkbutton_state:
             self.last_talkbutton_state = True  # 눌림 감지
             
-            pygame.mixer.music.stop()  # 현재 재생 중인 음악 정지
-            self.is_playing = False
-            self.clear_queue()
+            self.stop_and_clear_queue()  # 현재 재생 중인 음성 정지
             if self.driving_state == 'DRIVING':
-                self.request_queue.put((0, f", {self.output_text[5]}"))
-                self.get_logger().info("목적지 변경, 현재 위치 확인, 예상 시간 확인, 정지 기능이 있습니다. 말씀해주세요.")
+                if self.intent == "change_dst":
+
+                    self.request_queue.put((0, f", {self.output_text[14]}"))
+                    self.get_logger().info("네")
+                else: 
+                    self.request_queue.put((0, f", {self.output_text[5]}"))
+                    self.get_logger().info("목적지 변경, 현재 위치 확인, 예상 시간 확인, 정지 기능이 있습니다. 말씀해주세요.")
             else:
                 self.request_queue.put((0, f", {self.output_text[14]}"))
                 self.get_logger().info("네")
@@ -169,9 +171,7 @@ class TTSNode(Node):
         if current_state and not self.emergencybutton_pressed:
             self.emergencybutton_pressed = True
             
-            pygame.mixer.music.stop()  # 현재 재생 중 음성 정지
-            self.is_playing = False
-            self.clear_queue()
+            self.stop_and_clear_queue() 
             self.request_queue.put((0, f"{self.output_text[12]}"))  # 우선순위 0: 비상정지
             self.get_logger().info("비상 정지")
 
@@ -180,9 +180,7 @@ class TTSNode(Node):
             self.emergencybutton_pressed = False
             
             # 필요 시 안내 음성 추가
-            pygame.mixer.music.stop()  # 현재 재생 중 음성 정지
-            self.is_playing = False
-            self.clear_queue()
+            self.stop_and_clear_queue()  
             self.request_queue.put((0, "비상 정지가 해제되었습니다. 정상 주행을 재개합니다."))
             self.get_logger().info("비상 정지가 해제되었습니다. 정상 주행을 재개합니다.") 
 
@@ -198,7 +196,6 @@ class TTSNode(Node):
 
     def text_to_speech(self, text):
         try:
-            time.sleep(0.0)
             file_name = 'output.mp3'
             tts = gTTS(text=text, lang='ko')
             tts.save(file_name)
@@ -228,9 +225,7 @@ class TTSNode(Node):
         """
         try:
             # 현재 재생 중인 TTS 중단
-            pygame.mixer.music.stop()
-            self.clear_queue()
-            self.is_playing = False
+            self.stop_and_clear_queue()
 
             # intent에 따라 출력할 문장 구성
             if request.intent == "get_eta":
@@ -252,6 +247,10 @@ class TTSNode(Node):
     def clear_queue(self):
         with self.request_queue.mutex:
             self.request_queue.queue.clear()
+    def stop_and_clear_queue(self):
+        pygame.mixer.music.stop()
+        self.is_playing = False
+        self.clear_queue()
 
 def main(args=None):
     rclpy.init(args=args)
