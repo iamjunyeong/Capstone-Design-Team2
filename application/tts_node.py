@@ -21,7 +21,7 @@ class TTSNode(Node):
             
             4: f', 안내 서비스를 시작합니다. 손잡이를 잡아주세요',
             5: ', 목적지 변경, 현재 위치 확인, 정지, 중 말씀해주세요',
-            
+            6 : ', 정지하겠습니다.',
             7: ', 가속하겠습니다.',
             8: ', 감속하겠습니다.',
             9: ', 보행 중입니다. 주의하여주세요.',
@@ -110,7 +110,7 @@ class TTSNode(Node):
        
         elif self.intent == "confirm_yes":
             self.clear_queue()
-            self.request_queue.put((1, f", {dst} 으로 안내를 시작합니다. 손잡이를 꼭 잡아주세요"))
+            self.request_queue.put((0, f", {dst} 으로 안내를 시작합니다. 손잡이를 꼭 잡아주세요"))
             self.get_logger().info(f", {dst} 으로 안내를 시작합니다. 손잡이를 꼭 잡아주세요")
             response.response_code = 3 
             
@@ -122,7 +122,16 @@ class TTSNode(Node):
             self.request_queue.put((0,f"목적지를 정확히 말씀해주세요"))
             self.get_logger().info("목적지를 정확히 말씀해주세요")
             response.response_code = 4
-            
+
+        elif self.intent == "stop":
+            self.clear_queue()
+            self.request_queue.put((0, f", {self.output_text[6]}"))
+            self.get_logger().info(f", {self.output_text[6]}")
+            response.response_code = 5
+            #self.driving_state = 'STOP'
+
+
+
             #목적지 설정 시퀀스 재진입
         elif self.intent == "unknown":
             self.get_logger().info(f"요청 수신: {self.intent}")
@@ -131,7 +140,7 @@ class TTSNode(Node):
             self.get_logger().info("이해하지 못했습니다. 다시 말씀해주시겠어요?")
 
             response.response_code = 0
-            
+        
         return response
         
     def handlebutton_callback(self, msg):
