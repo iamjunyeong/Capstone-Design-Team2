@@ -65,66 +65,83 @@ class VADMicStreamer:
     def read_stream(self):
         silence = 0
         while True:
-            
             if not self.stt.talkbutton_pressed:
                 print("버튼 눌리지 않아 cut함")
                 return
+            try:
+                frame = self.q.get(timeout=0.1)
+            except queue.Empty:
+                continue
+
+            if len(frame) < 2:
+                continue
+
+            # VAD용 원본 그대로 사용
+            is_speech = self.vad.is_speech(frame, SAMPLE_RATE)
+
+            # STT용 전처리
+            processed_frame = self.preprocess_audio(frame)
+
+            yield processed_frame  # 전처리된 것을 STT에 전송
+
+            if is_speech:
+                silence = 0
             else:
-                try:
-                    frame = self.q.get(timeout=0.1) 
-                except queue.Empty:
-                    continue
+                silence += 1
+                if silence >= self.max_silence_frames:
+                    print("무음 감지, 스트리밍 종료")
+                    return
 
-                if len(frame) < 2:
-                    continue
-                
-                frame = self.preprocess_audio(frame) # (지욱) 전처리 추가
-
-                is_speech = self.vad.is_speech(frame, SAMPLE_RATE)
-                yield frame
-                
-                if is_speech:
-                    silence = 0
-                else:
-                    silence += 1
-                    if silence >= self.max_silence_frames:
-                        print("무음 감지, 스트리밍 종료")
-                        return
-    
-    def preprocess_audio(self, frame): # 전처리 함수
+    def preprocess_audio(self, frame):  # 전처리 함수
         try:
-            if len(frame) < 1024:  # 짧은 건 패스
+            if len(frame) < 1024:
                 return frame
 
-            # bytes -> numpy array
-            audio_np = np.frombuffer(frame, dtype=np.int16)
+            audio_np_int16 = np.frombuffer(frame, dtype=np.int16)
 
-            if len(audio_np) < 512:
+            if len(audio_np_int16) < 512:
                 return frame
 
-            # 잡음 제거
-            reduced_noise = nr.reduce_noise(
-                y=audio_np,
+            audio_np_float = audio_np_int16.astype(np.float32) / 32768.0
+
+            def highpass_filter(data, cutoff=50, fs=16000, order=5):
+                from scipy.signal import butter, lfilter
+                b, a = butter(order, cutoff / (0.5 * fs), btype='high', analog=False)
+                return lfilter(b, a, data)
+
+            audio_highpassed = highpass_filter(audio_np_float)
+
+            # 214~215Hz 감소 (마이크 기본 잡음)
+            def bandstop_filter(data, lowcut=214.0, highcut=215.0, fs=16000, order=2):
+                from scipy.signal import butter, filtfilt
+                nyq = 0.5 * fs
+                low = lowcut / nyq
+                high = highcut / nyq
+                b, a = butter(order, [low, high], btype='bandstop')
+                return filtfilt(b, a, data)
+
+            audio_bandstopped = bandstop_filter(audio_highpassed)
+
+            # no tensorflow
+            reduced_float = nr.reduce_noise(
+                y=audio_bandstopped,
                 sr=SAMPLE_RATE,
-                prop_decrease=0.5,
+                prop_decrease=0.6,
                 n_fft=512,
                 win_length=512,
                 hop_length=256,
-                n_std_thresh=1.5,
-                stationary=True,
-                use_tensorflow=True #기똥차네
+                stationary=True
             )
 
-            # [핵심] 항상 int16로 변환해서 다시 bytes로
-            reduced_noise = reduced_noise.astype(np.int16)
-            processed_frame = reduced_noise.tobytes()
+            # float32 → int16
+            reduced_int16 = np.clip(reduced_float * 32768, -32768, 32767).astype(np.int16)
+            processed_frame = reduced_int16.tobytes()
 
             return processed_frame
 
         except Exception as e:
             print(f"Noise reduction 에러 무시: {e}")
             return frame
-
 
     
 # === STT 노드 ===
