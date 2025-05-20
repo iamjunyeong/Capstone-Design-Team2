@@ -213,6 +213,7 @@ class STTNode(Node):
                                     self.get_logger().info("결과 없음")
                                     continue
                                 text = result.alternatives[0].text.strip()
+                                
                                 if text and result.is_final:
                                     final_result = text
 
@@ -226,9 +227,11 @@ class STTNode(Node):
 
                 except Exception as e:
                     self.get_logger().error(f"STT 오류: {e}")
+
                 finally:
                     self.is_processing = False
                     self.get_logger().info(" STT 실행 종료 및 초기화 완료")
+
     def get_token(self):
         if self.token is None or self.token["expire_at"] < time.time():
             resp = self._sess.post(
