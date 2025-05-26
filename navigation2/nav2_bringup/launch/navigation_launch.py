@@ -30,7 +30,7 @@ def generate_launch_description():
         'bt_navigator'
     ]
 
-    remappings = [('/tf', 'tf'), ('/tf_static', 'tf_static')]
+    remappings = [('/tf', 'tf'), ('/tf_static', 'tf_static'), ('/scan', '/scan_output')]
 
     configured_params = ParameterFile(
         RewrittenYaml(

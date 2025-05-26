@@ -142,7 +142,7 @@ def generate_launch_description():
         arguments=['--ros-args', '--log-level', log_level],
         remappings=[('nav_vel', 'cmd_vel')])
 
-    # ──────────── 10. 신규 유틸리티 노드 2종 ────────────
+    # ──────────── 10. 신규 유틸리티 노드 2+1종 ────────────
     obstacle_layer_toggler_node = Node(
         package='obstacle_layer_toggler',
         executable='toggle_obstacle_layer',
@@ -154,6 +154,13 @@ def generate_launch_description():
         executable='clear_costmap_timer',
         name='clear_costmap_timer',
         output='screen')
+    
+    scan_filter_node = Node(
+        package='scan_filter_pkg',
+        executable='scan_filter_node',
+        name='scan_filter_node',
+        output='screen',
+        remappings=[('/scan_input', '/scan')])
 
     # ──────────── 11. 그룹화 ────────────
     bringup_group = GroupAction([
@@ -166,7 +173,8 @@ def generate_launch_description():
         rviz_cmd,
         twist_to_ackermann_node,
         obstacle_layer_toggler_node,
-        costmap_clear_timer_node
+        costmap_clear_timer_node,
+        scan_filter_node
     ])
 
     # ──────────── 12. LaunchDescription 반환 ────────────

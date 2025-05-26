@@ -40,16 +40,16 @@ controller_server:
     min_x_velocity_threshold: 0.001
     min_y_velocity_threshold: 0.5
     min_theta_velocity_threshold: 0.001
-    failure_tolerance: 0.3
-    progress_checker_plugin: "progress_checker"
+    failure_tolerance: -1.0
+    # progress_checker_plugin: "progress_checker"
     goal_checker_plugins: ["general_goal_checker"]  # "precise_goal_checker"
     controller_plugins: ["FollowPath"]
 
     # Progress checker parameters
-    progress_checker:
-      plugin: "nav2_controller::SimpleProgressChecker"
-      required_movement_radius: 0.5
-      movement_time_allowance: 10.0
+    # progress_checker:
+    #   plugin: "nav2_controller::SimpleProgressChecker"
+    #   required_movement_radius: 0.5
+    #   movement_time_allowance: 10.0
 
     general_goal_checker:
       stateful: True
@@ -61,7 +61,7 @@ controller_server:
     FollowPath:
       plugin: "dwb_core::DWBLocalPlanner"
       debug_trajectory_details: True
-      min_vel_x: 0.0
+      min_vel_x: 0.3
       min_vel_y: 0.0
       max_vel_x: 0.5
       max_vel_y: 0.0
@@ -90,7 +90,10 @@ controller_server:
       stateful: True
       critics: ["RotateToGoal", "Oscillation", "BaseObstacle",
                 "GoalAlign", "PathAlign", "PathDist", "GoalDist"]
-      BaseObstacle.scale: 0.02
+      # critics: ["ObstacleFootprint", "RotateToGoal", "Oscillation", "BaseObstacle",
+      #           "GoalAlign", "PathAlign", "PathDist", "GoalDist"]
+      # ObstacleFootprint.scale: 1.0      # 충돌 셀은 무조건 제외
+      BaseObstacle.scale: 2.0
       PathAlign.scale: 32.0
       PathAlign.forward_point_distance: 0.1
       GoalAlign.scale: 24.0
@@ -237,53 +240,53 @@ controller_server:
     #   # RotateToGoal.scale: 0.0  # 필요시 제외
 
     # teb (5.19)
-    FollowPath:
-      plugin: "teb_local_planner::TebLocalPlannerROS"
+    # FollowPath:
+    #   plugin: "teb_local_planner::TebLocalPlannerROS"
 
-      odom_topic: "odom"
-      map_frame: "map"
-      teb_autosize: True
-      dt_ref: 0.3
-      dt_hysteresis: 0.1
-      max_samples: 500
+    #   odom_topic: "odom"
+    #   map_frame: "map"
+    #   teb_autosize: True
+    #   dt_ref: 0.3
+    #   dt_hysteresis: 0.1
+    #   max_samples: 500
 
-      # Robot
-      max_vel_x: 0.5
-      max_vel_x_backwards: 0.2
-      max_vel_theta: 1.0
-      acc_lim_x: 1.0
-      acc_lim_theta: 1.0
+    #   # Robot
+    #   max_vel_x: 0.5
+    #   max_vel_x_backwards: 0.2
+    #   max_vel_theta: 1.0
+    #   acc_lim_x: 1.0
+    #   acc_lim_theta: 1.0
 
-      footprint_model:
-        type: "circular"
-        radius: 0.2
+    #   footprint_model:
+    #     type: "circular"
+    #     radius: 0.2
 
-      # Goal tolerance
-      xy_goal_tolerance: 0.2
-      yaw_goal_tolerance: 0.1
-      free_goal_vel: false
+    #   # Goal tolerance
+    #   xy_goal_tolerance: 0.2
+    #   yaw_goal_tolerance: 0.1
+    #   free_goal_vel: false
 
-      # Obstacles
-      min_obstacle_dist: 0.4
-      inflation_dist: 0.6
-      include_costmap_obstacles: True
-      costmap_obstacles_behind_robot_dist: 1.5
-      obstacle_poses_affected: 30
+    #   # Obstacles
+    #   min_obstacle_dist: 0.4
+    #   inflation_dist: 0.6
+    #   include_costmap_obstacles: True
+    #   costmap_obstacles_behind_robot_dist: 1.5
+    #   obstacle_poses_affected: 30
 
-      # Optimization
-      no_inner_iterations: 5
-      no_outer_iterations: 4
-      optimization_activate: true
-      optimization_verbose: false
+    #   # Optimization
+    #   no_inner_iterations: 5
+    #   no_outer_iterations: 4
+    #   optimization_activate: true
+    #   optimization_verbose: false
 
-      # Via-points
-      global_plan_viapoint_sep: 0.3
-      via_points_ordered: true
+    #   # Via-points
+    #   global_plan_viapoint_sep: 0.3
+    #   via_points_ordered: true
 
-      # Weight
-      weight_kinematics_nh: 1000
-      weight_optimaltime: 1.0
-      weight_obstacle: 50.0
+    #   # Weight
+    #   weight_kinematics_nh: 1000
+    #   weight_optimaltime: 1.0
+    #   weight_obstacle: 50.0
 
 # # ---------- COSTMAPS ----------
 # local_costmap:
@@ -430,7 +433,7 @@ local_costmap:
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 1.0
-        inflation_radius: 0.3
+        inflation_radius: 0.5
         enabled: true
       braille_lane_layer:
         plugin: "nav2_costmap_2d::BrailleLaneLayer"
