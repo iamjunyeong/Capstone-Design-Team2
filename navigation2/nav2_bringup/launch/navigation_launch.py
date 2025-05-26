@@ -3,7 +3,7 @@ import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, GroupAction, SetEnvironmentVariable
-from launch.conditions import IfCondition
+from launch.conditions import IfCondition, UnlessCondition
 from launch.substitutions import LaunchConfiguration, PythonExpression
 from launch_ros.actions import LoadComposableNodes, Node
 from launch_ros.descriptions import ComposableNode, ParameterFile
@@ -22,6 +22,7 @@ def generate_launch_description():
     container_full  = (namespace, '/', container_name)
     use_respawn     = LaunchConfiguration('use_respawn')
     log_level       = LaunchConfiguration('log_level')
+    use_scan_filter = LaunchConfiguration('use_scan_filter')
 
     lifecycle_nodes = [
         'controller_server',
@@ -30,7 +31,7 @@ def generate_launch_description():
         'bt_navigator'
     ]
 
-    remappings = [('/tf', 'tf'), ('/tf_static', 'tf_static'), ('/scan', '/scan_output')]
+    remappings = [('/tf', 'tf'), ('/tf_static', 'tf_static')]
 
     configured_params = ParameterFile(
         RewrittenYaml(
@@ -46,10 +47,20 @@ def generate_launch_description():
         condition=IfCondition(PythonExpression(['not ', use_composition])),
         actions=[
             Node(package='nav2_controller', executable='controller_server',
-                 output='screen', respawn=use_respawn, respawn_delay=2.0,
+                 name='controller_server', output='screen',
+                 respawn=use_respawn, respawn_delay=2.0,
                  parameters=[configured_params],
                  arguments=['--ros-args', '--log-level', log_level],
-                 remappings=remappings),
+                 remappings=remappings+[('/scan', '/scan_output')],
+                 condition=IfCondition(use_scan_filter)),
+
+            Node(package='nav2_controller', executable='controller_server',
+                 name='controller_server', output='screen',
+                 respawn=use_respawn, respawn_delay=2.0,
+                 parameters=[configured_params],
+                 arguments=['--ros-args', '--log-level', log_level],
+                 remappings=remappings,
+                 condition=UnlessCondition(use_scan_filter)),
 
             Node(package='nav2_smoother', executable='smoother_server',
                  name='smoother_server', output='screen',
@@ -83,7 +94,16 @@ def generate_launch_description():
                 plugin='nav2_controller::ControllerServer',
                 name='controller_server',
                 parameters=[configured_params],
-                remappings=remappings),
+                remappings=remappings+[('/scan', '/scan_output')],
+                condition=IfCondition(use_scan_filter)),
+
+            ComposableNode(
+                package='nav2_controller',
+                plugin='nav2_controller::ControllerServer',
+                name='controller_server',
+                parameters=[configured_params],
+                remappings=remappings,
+                condition=UnlessCondition(use_scan_filter)),
 
             ComposableNode(
                 package='nav2_smoother',
@@ -119,6 +139,7 @@ def generate_launch_description():
         DeclareLaunchArgument('container_name', default_value='nav2_container'),
         DeclareLaunchArgument('use_respawn', default_value='False'),
         DeclareLaunchArgument('log_level', default_value='info'),
+        DeclareLaunchArgument('use_scan_filter', default_value='True'),
     ]:
         lc.add_action(arg)
 

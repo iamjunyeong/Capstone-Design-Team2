@@ -61,7 +61,6 @@ NavigateThroughPosesNavigator::getDefaultBTFilepath(
     node->declare_parameter<std::string>(
       "default_nav_through_poses_bt_xml",
       pkg_share_dir +
-      // "/behavior_trees/navigate_capstone.xml");
       "/behavior_trees/navigate_w_replanning_time.xml");
   }
 
