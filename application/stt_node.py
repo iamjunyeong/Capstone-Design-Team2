@@ -94,15 +94,12 @@ class VADMicStreamer:
 
     def preprocess_audio(self, frame):  # 전처리 함수
         try:
-            if len(frame) < 1024:
-                return frame
-
             audio_np_int16 = np.frombuffer(frame, dtype=np.int16)
 
-            if len(audio_np_int16) < 512:
+            if len(audio_np_int16) < 480:
                 return frame
 
-            audio_np_float = audio_np_int16.astype(np.float32) / 32768.0
+            audio_np_float = audio_np_int16.astype(np.float32) / 32767.0
 
             def highpass_filter(data, cutoff=50, fs=16000, order=5):
                 from scipy.signal import butter, lfilter
