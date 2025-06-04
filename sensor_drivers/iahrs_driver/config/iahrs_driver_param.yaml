@@ -6,3 +6,4 @@ iahrs_driver:
     parent_frame: base_link
     serial_port: /dev/ttyUSB0
     qos_reliability: "best_effort"
+    is_compensation_enable: true

@@ -4,6 +4,7 @@
 #include <geometry_msgs/msg/twist_with_covariance_stamped.hpp>
 #include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
 #include <geometry_msgs/msg/transform_stamped.hpp>
+#include <std_msgs/msg/float64_multi_array.hpp>
 
 #include <gtsam/navigation/ImuFactor.h>
 #include <gtsam/navigation/ImuBias.h>
@@ -41,6 +42,8 @@ public:
     imu_sub_ = this->create_subscription<sensor_msgs::msg::Imu>("imu/data", 10, bind(&FactorGraphNode::imuCallback, this, placeholders::_1));
     encoder_sub_ = this->create_subscription<geometry_msgs::msg::TwistWithCovarianceStamped>("encoder/twist", 10, bind(&FactorGraphNode::preintegrateImu, this, placeholders::_1));
     gps_sub_ = this->create_subscription<sensor_msgs::msg::NavSatFix>("Ublox_gps/fix", 10, bind(&FactorGraphNode::gpsCallback, this, placeholders::_1));
+    imu_variance_sub_ = this->create_subscription<std_msgs::msg::Float64MultiArray>(
+      "imu/variance", 10, std::bind(&FactorGraphNode::varianceCallback, this, std::placeholders::_1));
 
     local_pose_pub_ = this->create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>("odometry/local",10);
     global_pose_pub_ = this->create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>("odometry/global",10);
@@ -58,12 +61,18 @@ public:
     prev_velocity_ = gtsam::Vector3(0,0,0);
 
     imuCovarianceParams = PreintegrationParams::MakeSharedU(9.80665);
-    acc_sigma = 0.02483647066;
-    gyro_sigma = 0.15130551861;
-    Matrix3 I_3x3 = Matrix3::Identity();
-    imuCovarianceParams->accelerometerCovariance = I_3x3 * pow(acc_sigma,2);
-    imuCovarianceParams->gyroscopeCovariance = I_3x3 * pow(gyro_sigma,2);
-    imuCovarianceParams->integrationCovariance = I_3x3 * 1e-8;
+    // acc_sigma = 0.02483647066;
+    // gyro_sigma = 0.15130551861;
+    if (imu_variance_received_) {
+      Matrix3 I_3x3 = Matrix3::Identity();
+      imuCovarianceParams->accelerometerCovariance = I_3x3 * imu_variance_[0];
+      imuCovarianceParams->gyroscopeCovariance = I_3x3 * imu_variance_[3];
+    } else {
+      Matrix3 I_3x3 = Matrix3::Identity();
+      imuCovarianceParams->accelerometerCovariance = I_3x3 * pow(0.02483647066,2);
+      imuCovarianceParams->gyroscopeCovariance = I_3x3 * pow(0.15130551861,2);
+    }
+    imuCovarianceParams->integrationCovariance = Matrix3::Identity() * 1e-8;
     imu_count_ = 0;
   }
 
@@ -99,6 +108,7 @@ private:
   rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr imu_sub_;
   rclcpp::Subscription<geometry_msgs::msg::TwistWithCovarianceStamped>::SharedPtr encoder_sub_;
   rclcpp::Subscription<sensor_msgs::msg::NavSatFix>::SharedPtr gps_sub_;
+  rclcpp::Subscription<std_msgs::msg::Float64MultiArray>::SharedPtr imu_variance_sub_;
 
   size_t imu_count_;
   deque<sensor_msgs::msg::Imu::SharedPtr> imu_buf_;
@@ -123,6 +133,9 @@ private:
   double acc_sigma;
   double gyro_sigma;
 
+  std::array<double, 6> imu_variance_;
+  bool imu_variance_received_ = false;
+
   // imu callback func
   void imuCallback(const sensor_msgs::msg::Imu::SharedPtr imu_msg){
     imu_buf_.push_back(imu_msg);
@@ -144,6 +157,13 @@ private:
   // create keyframe when encoder topic has arrived
   void preintegrateImu(const geometry_msgs::msg::TwistWithCovarianceStamped::SharedPtr encoder_msg){
     if (imu_buf_.size() < 2) return; // imu_buff_ must have more than 2 imu topics
+
+    imuCovarianceParams = PreintegrationParams::MakeSharedU(9.80665);
+    if (imu_variance_received_) {
+      Matrix3 I_3x3 = Matrix3::Identity();
+      imuCovarianceParams->accelerometerCovariance = I_3x3 * imu_variance_[0];
+      imuCovarianceParams->gyroscopeCovariance = I_3x3 * imu_variance_[3];
+    }
 
     rclcpp::Time prev_time = imu_buf_.front()->header.stamp;
     rclcpp::Time encoder_time = encoder_msg->header.stamp;
@@ -183,18 +203,28 @@ private:
     auto imu_factor = gtsam::ImuFactor(prev_pose_key, prev_velocity_key, curr_pose_key, curr_velocity_key, prev_bias_key, *preIntegratedImu);
     graph_.add(imu_factor);
 
+    // Ackermann model 적용
+    double L = 0.72;  // 차량 휠베이스
+    double v = hypot(encoder_msg->twist.twist.linear.x, encoder_msg->twist.twist.linear.y); // 속도
+    double delta = encoder_msg->twist.twist.angular.z;  // 조향각(rad), 이 값은 조향 각도로 입력되어야 함
+
+    double theta_dot = (v / L) * tan(delta);  // 회전률
+
+    // 추정된 각속도 벡터 적용 (Z 축만 회전한다고 가정)
+    encoder_velocity_ = Vector3(v, 0.0, 0.0);  // 전진 속도만 적용
+    Vector3 angular_velocity(0.0, 0.0, theta_dot);
+
+    // 노이즈 모델 설정 및 factor 추가
+    auto dynamic_sigma = std::max(0.05, 0.02 * v);  
+    auto encoder_noise = gtsam::noiseModel::Isotropic::Sigma(3, dynamic_sigma);
+
+    graph_.add(gtsam::PriorFactor<gtsam::Vector3>(curr_velocity_key, encoder_velocity_, encoder_noise));
+
     auto bias_noise_model = gtsam::noiseModel::Isotropic::Sigma(6,1e-3);
     graph_.add(gtsam::BetweenFactor<gtsam::imuBias::ConstantBias>(prev_bias_key, curr_bias_key, gtsam::imuBias::ConstantBias(),bias_noise_model)); // bias 사이에 between factor로 noise_model을 삽입
     initial_estimate_.insert(curr_pose_key, estimated_state.pose());
     initial_estimate_.insert(curr_velocity_key, estimated_state.v());
     initial_estimate_.insert(curr_bias_key,imu_bias_);
-
-    auto speed = hypot(encoder_msg->twist.twist.linear.x,encoder_msg->twist.twist.linear.y);
-    auto dynamic_sigma = std::max(0.05, 0.02 * speed);  
-    auto encoder_noise = gtsam::noiseModel::Isotropic::Sigma(3, dynamic_sigma);
-    encoder_velocity_ = Vector3(encoder_msg->twist.twist.linear.x, encoder_msg->twist.twist.linear.y, encoder_msg->twist.twist.linear.z);
-
-    graph_.add(gtsam::PriorFactor<gtsam::Vector3>(curr_velocity_key, encoder_velocity_, encoder_noise));
     
     keyframe_idx_map_.insert({encoder_msg->header.stamp, keyframe_idx_});
     keyframe_idx_++;
@@ -353,6 +383,14 @@ private:
     auto diff_before = (stamp - before->first).nanoseconds();
 
     return (diff_after < diff_before) ? after->first : before->first;
+  }
+
+  void varianceCallback(const std_msgs::msg::Float64MultiArray::SharedPtr msg) {
+    if (msg->data.size() != 6) return;
+    for (size_t i = 0; i < 6; ++i) {
+      imu_variance_[i] = msg->data[i];
+    }
+    imu_variance_received_ = true;
   }
 };
 
