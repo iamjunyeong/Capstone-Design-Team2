@@ -74,6 +74,38 @@ public:
     }
     imuCovarianceParams->integrationCovariance = Matrix3::Identity() * 1e-8;
     imu_count_ = 0;
+
+    Pose3 initial_pose = Pose3();  // Identity by default
+    Vector3 initial_velocity(0.0, 0.0, 0.0);
+    imuBias::ConstantBias initial_bias;  // Zero bias
+
+    // Add prior factors
+    auto pose_noise = noiseModel::Diagonal::Sigmas((Vector(6) << Vector3::Constant(1e-2), Vector3::Constant(1e-2)).finished());
+    auto velocity_noise = noiseModel::Isotropic::Sigma(3, 1e-2);
+    auto bias_noise = noiseModel::Isotropic::Sigma(6, 1e-3);
+
+    graph_.add(PriorFactor<Pose3>(symbol('p', 0), initial_pose, pose_noise));
+    graph_.add(PriorFactor<Vector3>(symbol('v', 0), initial_velocity, velocity_noise));
+    graph_.add(PriorFactor<imuBias::ConstantBias>(symbol('b', 0), initial_bias, bias_noise));
+
+    // Add initial estimate
+    initial_estimate_.insert(symbol('p', 0), initial_pose);
+    initial_estimate_.insert(symbol('v', 0), initial_velocity);
+    initial_estimate_.insert(symbol('b', 0), initial_bias);
+
+    // Initialize ISAM2
+    isam2_.update(graph_, initial_estimate_);
+    graph_.resize(0);
+    initial_estimate_.clear();
+
+    // Save previous states
+    prev_pose_ = initial_pose;
+    prev_velocity_ = initial_velocity;
+    prev_bias_ = initial_bias;
+    prev_state_ = NavState(initial_pose, initial_velocity);
+
+    // 초기 시간도 설정 필요
+    prev_imu_time_ = this->now();
   }
 
 private:
@@ -133,6 +165,13 @@ private:
   double acc_sigma;
   double gyro_sigma;
 
+  // GTSAM 관련 상태 변수
+  gtsam::imuBias::ConstantBias prev_bias_;
+  gtsam::NavState prev_state_;
+
+  // 이전 IMU 메시지 시간 (시간 간격 계산용)
+  rclcpp::Time prev_imu_time_;
+
   std::array<double, 6> imu_variance_;
   bool imu_variance_received_ = false;
 
@@ -169,12 +208,14 @@ private:
     rclcpp::Time encoder_time = encoder_msg->header.stamp;
     preIntegratedImu = std::make_shared<PreintegratedImuMeasurements>(imuCovarianceParams, imu_bias_);
 
-    for(size_t i = 0; i<imu_buf_.size(); i++)
+    for(size_t i = 1; i<imu_buf_.size(); i++)
     {
       auto imu_msg = imu_buf_[i];
       rclcpp::Time curr_time = imu_msg->header.stamp;
       if(curr_time > encoder_time) break;
-      double dt = (curr_time - prev_time).seconds();
+      rclcpp::Time t_curr(imu_buf_[i]->header.stamp);
+      rclcpp::Time t_prev(imu_buf_[i-1]->header.stamp);
+      double dt = (t_curr - t_prev).seconds();
       prev_time = curr_time;
 
       Vector3 accel(
@@ -205,9 +246,11 @@ private:
 
     // Ackermann model 적용
     double L = 0.72;  // 차량 휠베이스
-    double v = hypot(encoder_msg->twist.twist.linear.x, encoder_msg->twist.twist.linear.y); // 속도
+    double v = hypot(encoder_msg->twist.twist.linear.x, encoder_msg->twist.twist.linear.y);
     double delta = encoder_msg->twist.twist.angular.z;  // 조향각(rad), 이 값은 조향 각도로 입력되어야 함
 
+    if (encoder_msg->twist.twist.linear.x < 0)
+      v *= -1;
     double theta_dot = (v / L) * tan(delta);  // 회전률
 
     // 추정된 각속도 벡터 적용 (Z 축만 회전한다고 가정)
@@ -272,7 +315,7 @@ private:
     local_odom_tf.transform.rotation.w = q.w();
 
     local_odom_broadcaster_->sendTransform(local_odom_tf);
-    }
+  }
 
   void gpsCallback(const sensor_msgs::msg::NavSatFix::SharedPtr gps_msg)
   {
@@ -303,14 +346,13 @@ private:
     double local_x = x - utm_origin_x_; 
     double local_y = y - utm_origin_y_;
 
-    gtsam::Point2 gps_position(local_x, local_y);
-    auto gps_noise = gtsam::noiseModel::Isotropic::Sigma(2, 0.5);
+    gtsam::Pose3 gps_position(gtsam::Rot3(), gtsam::Point3(local_x, local_y, 0.0));
+    auto gps_noise = gtsam::noiseModel::Diagonal::Sigmas((Vector(6) << 0.1, 0.1, 0.1, 999, 999, 999).finished());  // 6DOF Pose3
 
     rclcpp::Time gps_key_time = gps_msg->header.stamp;
-    size_t gps_key_idx = findClosestKeyframe(gps_key_time);
-    gtsam::Symbol curr_pose_key('p', gps_key_idx);
+    gtsam::Symbol curr_pose_key('p', keyframe_idx_);
 
-    graph_.add(gtsam::PriorFactor<gtsam::Point2>(curr_pose_key, gps_position, gps_noise));
+    graph_.add(gtsam::PriorFactor<gtsam::Pose3>(curr_pose_key, gps_position, gps_noise));
     isam2_.update(graph_, initial_estimate_);
     graph_.resize(0);
     initial_estimate_.clear();
