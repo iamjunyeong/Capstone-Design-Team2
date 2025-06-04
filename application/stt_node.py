@@ -99,6 +99,19 @@ class VADMicStreamer:
             if len(audio_np_int16) < 480:
                 return frame
 
+            def is_all_frames_too_quiet(audio_np, frame_size=480, hop_size=240, threshold_db=60.0):
+                for i in range(0, len(audio_np) - frame_size, hop_size):
+                    frame = audio_np[i:i+frame_size].astype(np.float32)
+                    rms = np.sqrt(np.mean(frame**2) + 1e-10)
+                    db = 20 * np.log10(rms)
+                    if db >= threshold_db:
+                        return False
+                return True
+
+            # 너무 조용하면 원본 프레임 그대로 반환
+            if is_all_frames_too_quiet(audio_np_int16):
+                return frame
+
             audio_np_float = audio_np_int16.astype(np.float32) / 32767.0
 
             def highpass_filter(data, cutoff=50, fs=16000, order=5):
@@ -108,8 +121,7 @@ class VADMicStreamer:
 
             audio_highpassed = highpass_filter(audio_np_float)
 
-            # 214~215Hz 감소 (마이크 기본 잡음)
-            def bandstop_filter(data, lowcut=214.0, highcut=215.0, fs=16000, order=2):
+            def bandstop_filter(data, lowcut=213.0, highcut=215.0, fs=16000, order=2):
                 from scipy.signal import butter, filtfilt
                 nyq = 0.5 * fs
                 low = lowcut / nyq
@@ -119,18 +131,16 @@ class VADMicStreamer:
 
             audio_bandstopped = bandstop_filter(audio_highpassed)
 
-            # no tensorflow
             reduced_float = nr.reduce_noise(
                 y=audio_bandstopped,
-                sr=SAMPLE_RATE,
+                sr=16000,
                 prop_decrease=0.6,
-                n_fft=512,
-                win_length=512,
-                hop_length=256,
+                n_fft=240,
+                win_length=480,
+                hop_length=240,
                 stationary=True
             )
 
-            # float32 → int16
             reduced_int16 = np.clip(reduced_float * 32768, -32768, 32767).astype(np.int16)
             processed_frame = reduced_int16.tobytes()
 
@@ -139,7 +149,7 @@ class VADMicStreamer:
         except Exception as e:
             print(f"Noise reduction 에러 무시: {e}")
             return frame
-    
+        
 # === STT 노드 ===
 class STTNode(Node):
     def __init__(self):
