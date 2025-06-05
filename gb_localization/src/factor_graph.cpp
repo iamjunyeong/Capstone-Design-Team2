@@ -35,6 +35,9 @@ using namespace gtsam;
 class FactorGraphNode : public rclcpp::Node
 {
 public:
+  double datum_latitude_ = 0.0;
+  double datum_longitude_ = 0.0;
+  bool datum_set_ = false;
   FactorGraphNode() : Node("factor_graph_node")
   {
     RCLCPP_INFO(this->get_logger(),"factor_graph_node started");
@@ -42,6 +45,11 @@ public:
     imu_sub_ = this->create_subscription<sensor_msgs::msg::Imu>("imu/data", 10, bind(&FactorGraphNode::imuCallback, this, placeholders::_1));
     encoder_sub_ = this->create_subscription<geometry_msgs::msg::TwistWithCovarianceStamped>("encoder/twist", 10, bind(&FactorGraphNode::preintegrateImu, this, placeholders::_1));
     gps_sub_ = this->create_subscription<sensor_msgs::msg::NavSatFix>("Ublox_gps/fix", 10, bind(&FactorGraphNode::gpsCallback, this, placeholders::_1));
+    // rosbag qos 설정 ************************************************************************************
+    rclcpp::QoS gps_qos = rclcpp::QoS(rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_sensor_data));
+    gps_qos.best_effort();
+    gps_sub_ = this->create_subscription<sensor_msgs::msg::NavSatFix>("ublox_gps_node/fix", gps_qos, bind(&FactorGraphNode::gpsCallback, this, placeholders::_1));
+    //**************************************************************************************************
     imu_variance_sub_ = this->create_subscription<std_msgs::msg::Float64MultiArray>(
       "imu/variance", 10, std::bind(&FactorGraphNode::varianceCallback, this, std::placeholders::_1));
 
@@ -63,15 +71,23 @@ public:
     imuCovarianceParams = PreintegrationParams::MakeSharedU(9.80665);
     // acc_sigma = 0.02483647066;
     // gyro_sigma = 0.15130551861;
-    if (imu_variance_received_) {
-      Matrix3 I_3x3 = Matrix3::Identity();
-      imuCovarianceParams->accelerometerCovariance = I_3x3 * imu_variance_[0];
-      imuCovarianceParams->gyroscopeCovariance = I_3x3 * imu_variance_[3];
-    } else {
-      Matrix3 I_3x3 = Matrix3::Identity();
-      imuCovarianceParams->accelerometerCovariance = I_3x3 * pow(0.02483647066,2);
-      imuCovarianceParams->gyroscopeCovariance = I_3x3 * pow(0.15130551861,2);
-    }
+    // if (imu_variance_received_) {
+    //   Matrix3 I_3x3 = Matrix3::Identity();
+    //   imuCovarianceParams->accelerometerCovariance = I_3x3 * imu_variance_[0];
+    //   imuCovarianceParams->gyroscopeCovariance = I_3x3 * imu_variance_[3];
+    // } else {
+    //   Matrix3 I_3x3 = Matrix3::Identity();
+    //   imuCovarianceParams->accelerometerCovariance = I_3x3 * pow(0.02483647066,2);
+    //   imuCovarianceParams->gyroscopeCovariance = I_3x3 * pow(0.15130551861,2);
+    // }
+    imuCovarianceParams->accelerometerCovariance = (gtsam::Matrix33() <<
+      999.0, 0.0, 0.0,
+      0.0, 999.0, 0.0,
+      0.0, 0.0, 999.0).finished();  // Ignore accel entirely
+    imuCovarianceParams->gyroscopeCovariance = (gtsam::Matrix33() <<
+      999.0, 0.0, 0.0,
+      0.0, 999.0, 0.0,
+      0.0, 0.0, 1e-2).finished();  // Only trust yaw
     imuCovarianceParams->integrationCovariance = Matrix3::Identity() * 1e-8;
     imu_count_ = 0;
 
@@ -106,6 +122,26 @@ public:
 
     // 초기 시간도 설정 필요
     prev_imu_time_ = this->now();
+
+    // Declare and get datum parameters, and set UTM origin if provided
+    this->declare_parameter("datum_latitude", 0.0);
+    this->declare_parameter("datum_longitude", 0.0);
+    this->get_parameter("datum_latitude", datum_latitude_);
+    this->get_parameter("datum_longitude", datum_longitude_);
+    RCLCPP_INFO(this->get_logger(), "Loaded datum params: latitude = %.9f, longitude = %.9f", datum_latitude_, datum_longitude_);
+
+    if (datum_latitude_ != 0.0 || datum_longitude_ != 0.0) {
+      int zone;
+      bool northp;
+      try {
+        GeographicLib::UTMUPS::Forward(datum_latitude_, datum_longitude_, zone, northp, utm_origin_x_, utm_origin_y_);
+        gps_origin_initialized_ = true;
+        datum_set_ = true;
+        RCLCPP_INFO(this->get_logger(), "Datum set to: (%.9f, %.9f) -> UTM (%.3f, %.3f)", datum_latitude_, datum_longitude_, utm_origin_x_, utm_origin_y_);
+      } catch (const std::exception& e) {
+        RCLCPP_WARN(this->get_logger(), "Failed to convert datum to UTM: %s", e.what());
+      }
+    }
   }
 
 private:
@@ -130,8 +166,6 @@ private:
 
   double utm_origin_x_ = 0.0;
   double utm_origin_y_ = 0.0;
-
-  std::map<rclcpp::Time, size_t> keyframe_idx_map_;
 
   std::map<rclcpp::Time, rclcpp::Time> keyframe_timestamps_;
   std::map<rclcpp::Time, size_t> keyframe_index_map_;
@@ -200,8 +234,14 @@ private:
     imuCovarianceParams = PreintegrationParams::MakeSharedU(9.80665);
     if (imu_variance_received_) {
       Matrix3 I_3x3 = Matrix3::Identity();
-      imuCovarianceParams->accelerometerCovariance = I_3x3 * imu_variance_[0];
-      imuCovarianceParams->gyroscopeCovariance = I_3x3 * imu_variance_[3];
+      imuCovarianceParams->accelerometerCovariance = (gtsam::Matrix33() <<
+        999.0, 0.0, 0.0,
+        0.0, 999.0, 0.0,
+        0.0, 0.0, 999.0).finished();  // Ignore accel entirely
+      imuCovarianceParams->gyroscopeCovariance = (gtsam::Matrix33() <<
+        999.0, 0.0, 0.0,
+        0.0, 999.0, 0.0,
+        0.0, 0.0, 1e-2).finished();  // Only trust yaw
     }
 
     rclcpp::Time prev_time = imu_buf_.front()->header.stamp;
@@ -242,34 +282,64 @@ private:
     gtsam::Symbol curr_bias_key('b',keyframe_idx_+1);    
 
     auto imu_factor = gtsam::ImuFactor(prev_pose_key, prev_velocity_key, curr_pose_key, curr_velocity_key, prev_bias_key, *preIntegratedImu);
-    graph_.add(imu_factor);
+    // graph_.add(imu_factor);  // Now re-enable IMU factor
 
-    // Ackermann model 적용
-    double L = 0.72;  // 차량 휠베이스
-    double v = hypot(encoder_msg->twist.twist.linear.x, encoder_msg->twist.twist.linear.y);
-    double delta = encoder_msg->twist.twist.angular.z;  // 조향각(rad), 이 값은 조향 각도로 입력되어야 함
-
-    if (encoder_msg->twist.twist.linear.x < 0)
-      v *= -1;
-    double theta_dot = (v / L) * tan(delta);  // 회전률
-
-    // 추정된 각속도 벡터 적용 (Z 축만 회전한다고 가정)
-    encoder_velocity_ = Vector3(v, 0.0, 0.0);  // 전진 속도만 적용
-    Vector3 angular_velocity(0.0, 0.0, theta_dot);
+    double vx = encoder_msg->twist.twist.linear.x;
+    double vy = encoder_msg->twist.twist.linear.y;
+    encoder_velocity_ = gtsam::Vector3(vx, vy, 0.0);
 
     // 노이즈 모델 설정 및 factor 추가
-    auto dynamic_sigma = std::max(0.05, 0.02 * v);  
-    auto encoder_noise = gtsam::noiseModel::Isotropic::Sigma(3, dynamic_sigma);
+    auto encoder_noise = gtsam::noiseModel::Isotropic::Sigma(3, 0.1);
 
-    graph_.add(gtsam::PriorFactor<gtsam::Vector3>(curr_velocity_key, encoder_velocity_, encoder_noise));
+    // graph_.add(gtsam::PriorFactor<gtsam::Vector3>(curr_velocity_key, encoder_velocity_, encoder_noise));
+        // Add velocity smoothness between factor using encoder velocity
+    auto velocity_between_noise = gtsam::noiseModel::Isotropic::Sigma(3, 1e-2);
+    graph_.add(gtsam::BetweenFactor<gtsam::Vector3>(prev_velocity_key, curr_velocity_key, encoder_velocity_, velocity_between_noise));
 
     auto bias_noise_model = gtsam::noiseModel::Isotropic::Sigma(6,1e-3);
-    graph_.add(gtsam::BetweenFactor<gtsam::imuBias::ConstantBias>(prev_bias_key, curr_bias_key, gtsam::imuBias::ConstantBias(),bias_noise_model)); // bias 사이에 between factor로 noise_model을 삽입
-    initial_estimate_.insert(curr_pose_key, estimated_state.pose());
+    graph_.add(gtsam::BetweenFactor<gtsam::imuBias::ConstantBias>(prev_bias_key, curr_bias_key, gtsam::imuBias::ConstantBias(),bias_noise_model)); // Removed per instruction
+    gtsam::Pose3 ackermann_pose;
+    {
+      // Calculate the pose change from Ackermann model
+      static bool is_first_encoder = true;
+      static rclcpp::Time prev_encoder_time;
+      rclcpp::Time encoder_time(encoder_msg->header.stamp);
+
+      double dt;
+      if (is_first_encoder) {
+        prev_encoder_time = imu_buf_.front()->header.stamp;
+        dt = 0.01;
+        is_first_encoder = false;
+      } else {
+        dt = (encoder_time - prev_encoder_time).seconds();
+      }
+
+      prev_encoder_time = encoder_time;
+
+      double v_x = encoder_msg->twist.twist.linear.x;
+      double v_y = encoder_msg->twist.twist.linear.y;
+
+      double dx = v_x * dt;
+      double dy = v_y * dt;
+      
+      double L = 0.72;
+      double v = hypot(v_x, v_y);
+      if (v_x < 0) v *= -1;
+      double delta = encoder_msg->twist.twist.angular.z;  // 조향각
+      double theta_dot = (v / L) * tan(delta);
+      double dtheta = theta_dot * dt;
+
+      gtsam::Rot3 dR = gtsam::Rot3::Yaw(dtheta);
+      gtsam::Point3 dT(dx, dy, 0.0);
+
+      ackermann_pose = prev_pose_.compose(gtsam::Pose3(dR, dT));
+    }
+    initial_estimate_.insert(curr_pose_key, ackermann_pose);
     initial_estimate_.insert(curr_velocity_key, estimated_state.v());
     initial_estimate_.insert(curr_bias_key,imu_bias_);
     
-    keyframe_idx_map_.insert({encoder_msg->header.stamp, keyframe_idx_});
+    keyframe_index_map_.insert({encoder_msg->header.stamp, keyframe_idx_});
+    keyframe_timestamps_.insert({encoder_msg->header.stamp, encoder_msg->header.stamp});
     keyframe_idx_++;
 
     isam2_.update(graph_, initial_estimate_);
@@ -319,6 +389,7 @@ private:
 
   void gpsCallback(const sensor_msgs::msg::NavSatFix::SharedPtr gps_msg)
   {
+    RCLCPP_INFO(this->get_logger(),"GPS received");
     double latitude = gps_msg->latitude;
     double longitude = gps_msg->longitude;
     
@@ -335,12 +406,11 @@ private:
       return;
     }
 
-    if(!gps_origin_initialized_)
-    {
+    if (!gps_origin_initialized_ && !datum_set_) {
       utm_origin_x_ = x;
       utm_origin_y_ = y;
-
       gps_origin_initialized_ = true;
+      RCLCPP_INFO(this->get_logger(), "GPS origin set to UTM (%.3f, %.3f) from first fix", utm_origin_x_, utm_origin_y_);
     }
 
     double local_x = x - utm_origin_x_; 
@@ -362,11 +432,12 @@ private:
     auto q = gps_pose.rotation().toQuaternion();
 
     geometry_msgs::msg::PoseWithCovarianceStamped global_pose_msg;
-    global_pose_msg.header.stamp = gps_msg->header.stamp;
+    global_pose_msg.header.stamp = getKeyframeTimestamp(gps_msg->header.stamp);
 
     global_pose_msg.pose.pose.position.x = x;
     global_pose_msg.pose.pose.position.y = y;
     global_pose_msg.pose.pose.position.z = 0.0;
+    
 
     global_pose_msg.pose.pose.orientation.x = q.x();
     global_pose_msg.pose.pose.orientation.y = q.y();
@@ -377,12 +448,12 @@ private:
     global_pose_pub_->publish(global_pose_msg);
 
     geometry_msgs::msg::TransformStamped global_map_tf;
-    global_map_tf.header.stamp = gps_msg->header.stamp;
+    global_map_tf.header.stamp = getKeyframeTimestamp(gps_msg->header.stamp);
     global_map_tf.header.frame_id = "map";
     global_map_tf.child_frame_id = "odom";
 
-    global_map_tf.transform.translation.x = x - utm_origin_x_;
-    global_map_tf.transform.translation.y = y - utm_origin_y_;
+    global_map_tf.transform.translation.x = local_x;
+    global_map_tf.transform.translation.y = local_y;
     global_map_tf.transform.translation.z = 0.0;
     
     global_map_tf.transform.rotation.x = q.x();
@@ -391,7 +462,6 @@ private:
     global_map_tf.transform.rotation.w = q.w();
 
     global_odom_broadcaster_->sendTransform(global_map_tf);
-    keyframe_idx_++;
   }
 
   size_t findClosestKeyframe(const rclcpp::Time& stamp) {
@@ -411,20 +481,22 @@ private:
 
   rclcpp::Time getKeyframeTimestamp(const rclcpp::Time& stamp)
   {
-    if (keyframe_timestamps_.empty()) return rclcpp::Time(0);
+    RCLCPP_INFO(rclcpp::get_logger("FactorGraphNode"), "keyframe_index_map_ size: %zu", keyframe_index_map_.size());
+    if (keyframe_index_map_.empty()) {
+      RCLCPP_INFO(rclcpp::get_logger("FactorGraphNode"), "return time 0");
+      return rclcpp::Time(0);
+    }
 
-    auto it = keyframe_index_map_.lower_bound(stamp);
+    auto it = keyframe_index_map_.upper_bound(stamp);
 
-    if (it == keyframe_index_map_.begin()) return it->first;
-    if (it == keyframe_index_map_.end()) return std::prev(it)->first;
+    if (it == keyframe_index_map_.begin()) {
+      RCLCPP_WARN(rclcpp::get_logger("FactorGraphNode"), "All keyframes are after the given stamp. Returning time 0.");
+      return rclcpp::Time(0);
+    }
 
-    auto after = it;
-    auto before = std::prev(it);
-
-    auto diff_after = (after->first - stamp).nanoseconds();
-    auto diff_before = (stamp - before->first).nanoseconds();
-
-    return (diff_after < diff_before) ? after->first : before->first;
+    --it;  // Move iterator to the greatest timestamp less than 'stamp'
+    RCLCPP_INFO(rclcpp::get_logger("FactorGraphNode"), "Selected previous keyframe timestamp: %.9f", it->first.seconds());
+    return it->first;
   }
 
   void varianceCallback(const std_msgs::msg::Float64MultiArray::SharedPtr msg) {

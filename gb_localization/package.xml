@@ -23,6 +23,8 @@
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>tf2</exec_depend>
   <exec_depend>tf2_ros</exec_depend>
+  <exec_depend>geographiclib</exec_depend>
+  <exec_depend>geographic_msgs</exec_depend>
 
   <export>
     <build_type>ament_cmake</build_type>
