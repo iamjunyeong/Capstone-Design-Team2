@@ -362,12 +362,11 @@ private:
     auto q = gps_pose.rotation().toQuaternion();
 
     geometry_msgs::msg::PoseWithCovarianceStamped global_pose_msg;
-    global_pose_msg.header.stamp = getKeyframeTimestamp(gps_msg->header.stamp);
+    global_pose_msg.header.stamp = gps_msg->header.stamp;
 
     global_pose_msg.pose.pose.position.x = x;
     global_pose_msg.pose.pose.position.y = y;
     global_pose_msg.pose.pose.position.z = 0.0;
-    
 
     global_pose_msg.pose.pose.orientation.x = q.x();
     global_pose_msg.pose.pose.orientation.y = q.y();
@@ -378,7 +377,7 @@ private:
     global_pose_pub_->publish(global_pose_msg);
 
     geometry_msgs::msg::TransformStamped global_map_tf;
-    global_map_tf.header.stamp = getKeyframeTimestamp(gps_msg->header.stamp);
+    global_map_tf.header.stamp = gps_msg->header.stamp;
     global_map_tf.header.frame_id = "map";
     global_map_tf.child_frame_id = "odom";
 
@@ -392,6 +391,7 @@ private:
     global_map_tf.transform.rotation.w = q.w();
 
     global_odom_broadcaster_->sendTransform(global_map_tf);
+    keyframe_idx_++;
   }
 
   size_t findClosestKeyframe(const rclcpp::Time& stamp) {
