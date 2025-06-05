@@ -42,6 +42,11 @@ public:
     imu_sub_ = this->create_subscription<sensor_msgs::msg::Imu>("imu/data", 10, bind(&FactorGraphNode::imuCallback, this, placeholders::_1));
     encoder_sub_ = this->create_subscription<geometry_msgs::msg::TwistWithCovarianceStamped>("encoder/twist", 10, bind(&FactorGraphNode::preintegrateImu, this, placeholders::_1));
     gps_sub_ = this->create_subscription<sensor_msgs::msg::NavSatFix>("Ublox_gps/fix", 10, bind(&FactorGraphNode::gpsCallback, this, placeholders::_1));
+    // rosbag qos 설정 ************************************************************************************
+    rclcpp::QoS gps_qos = rclcpp::QoS(rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_sensor_data));
+    gps_qos.best_effort();
+    gps_sub_ = this->create_subscription<sensor_msgs::msg::NavSatFix>("ublox_gps_node/fix", gps_qos, bind(&FactorGraphNode::gpsCallback, this, placeholders::_1));
+    //**************************************************************************************************
     imu_variance_sub_ = this->create_subscription<std_msgs::msg::Float64MultiArray>(
       "imu/variance", 10, std::bind(&FactorGraphNode::varianceCallback, this, std::placeholders::_1));
 
@@ -130,8 +135,6 @@ private:
 
   double utm_origin_x_ = 0.0;
   double utm_origin_y_ = 0.0;
-
-  std::map<rclcpp::Time, size_t> keyframe_idx_map_;
 
   std::map<rclcpp::Time, rclcpp::Time> keyframe_timestamps_;
   std::map<rclcpp::Time, size_t> keyframe_index_map_;
@@ -269,7 +272,8 @@ private:
     initial_estimate_.insert(curr_velocity_key, estimated_state.v());
     initial_estimate_.insert(curr_bias_key,imu_bias_);
     
-    keyframe_idx_map_.insert({encoder_msg->header.stamp, keyframe_idx_});
+    keyframe_index_map_.insert({encoder_msg->header.stamp, keyframe_idx_});
+    keyframe_timestamps_.insert({encoder_msg->header.stamp, encoder_msg->header.stamp});
     keyframe_idx_++;
 
     isam2_.update(graph_, initial_estimate_);
@@ -319,6 +323,7 @@ private:
 
   void gpsCallback(const sensor_msgs::msg::NavSatFix::SharedPtr gps_msg)
   {
+    RCLCPP_INFO(this->get_logger(),"GPS received");
     double latitude = gps_msg->latitude;
     double longitude = gps_msg->longitude;
     
@@ -362,11 +367,12 @@ private:
     auto q = gps_pose.rotation().toQuaternion();
 
     geometry_msgs::msg::PoseWithCovarianceStamped global_pose_msg;
-    global_pose_msg.header.stamp = gps_msg->header.stamp;
+    global_pose_msg.header.stamp = getKeyframeTimestamp(gps_msg->header.stamp);
 
     global_pose_msg.pose.pose.position.x = x;
     global_pose_msg.pose.pose.position.y = y;
     global_pose_msg.pose.pose.position.z = 0.0;
+    
 
     global_pose_msg.pose.pose.orientation.x = q.x();
     global_pose_msg.pose.pose.orientation.y = q.y();
@@ -377,7 +383,7 @@ private:
     global_pose_pub_->publish(global_pose_msg);
 
     geometry_msgs::msg::TransformStamped global_map_tf;
-    global_map_tf.header.stamp = gps_msg->header.stamp;
+    global_map_tf.header.stamp = getKeyframeTimestamp(gps_msg->header.stamp);
     global_map_tf.header.frame_id = "map";
     global_map_tf.child_frame_id = "odom";
 
@@ -391,7 +397,6 @@ private:
     global_map_tf.transform.rotation.w = q.w();
 
     global_odom_broadcaster_->sendTransform(global_map_tf);
-    keyframe_idx_++;
   }
 
   size_t findClosestKeyframe(const rclcpp::Time& stamp) {
@@ -411,20 +416,22 @@ private:
 
   rclcpp::Time getKeyframeTimestamp(const rclcpp::Time& stamp)
   {
-    if (keyframe_timestamps_.empty()) return rclcpp::Time(0);
+    RCLCPP_INFO(rclcpp::get_logger("FactorGraphNode"), "keyframe_index_map_ size: %zu", keyframe_index_map_.size());
+    if (keyframe_index_map_.empty()) {
+      RCLCPP_INFO(rclcpp::get_logger("FactorGraphNode"), "return time 0");
+      return rclcpp::Time(0);
+    }
 
-    auto it = keyframe_index_map_.lower_bound(stamp);
+    auto it = keyframe_index_map_.upper_bound(stamp);
 
-    if (it == keyframe_index_map_.begin()) return it->first;
-    if (it == keyframe_index_map_.end()) return std::prev(it)->first;
+    if (it == keyframe_index_map_.begin()) {
+      RCLCPP_WARN(rclcpp::get_logger("FactorGraphNode"), "All keyframes are after the given stamp. Returning time 0.");
+      return rclcpp::Time(0);
+    }
 
-    auto after = it;
-    auto before = std::prev(it);
-
-    auto diff_after = (after->first - stamp).nanoseconds();
-    auto diff_before = (stamp - before->first).nanoseconds();
-
-    return (diff_after < diff_before) ? after->first : before->first;
+    --it;  // Move iterator to the greatest timestamp less than 'stamp'
+    RCLCPP_INFO(rclcpp::get_logger("FactorGraphNode"), "Selected previous keyframe timestamp: %.9f", it->first.seconds());
+    return it->first;
   }
 
   void varianceCallback(const std_msgs::msg::Float64MultiArray::SharedPtr msg) {
