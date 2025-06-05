@@ -7,6 +7,7 @@ import struct
 import threading
 import math
 from ackermann_msgs.msg import AckermannDrive     # ★ 신규
+import time
 
 class SerialBridgeNode(Node):
     def __init__(self):
@@ -24,6 +25,10 @@ class SerialBridgeNode(Node):
         # 초기값 설정
         self.speed = 0.0
         self.angle = 0.0
+        # 이전 ROS 수신 시간 저장용 (self에 바인딩)
+        if not hasattr(self, 'last_ros_time'):
+            self.last_ros_time = None
+            self.last_arduino_time = None
 
         self.create_subscription(
             AckermannDrive,
@@ -36,7 +41,7 @@ class SerialBridgeNode(Node):
         self.mode_pub = self.create_publisher(Int32, '/vehicle/mode', 10)
 
         # 주기적으로 아두이노에 데이터 전송 (10Hz)
-        self.timer = self.create_timer(0.1, self.send_serial_data)
+        self.timer = self.create_timer(0.05, self.send_serial_data)
 
         # 시리얼 수신 스레드 시작
         self.serial_thread = threading.Thread(target=self.read_serial_loop, daemon=True)
@@ -92,7 +97,7 @@ class SerialBridgeNode(Node):
 
     def read_serial_loop(self):
         HEADER = b'\xAA\x55'
-        PACKET_SIZE = 131  # header(2) + payload(64) + crc(1)
+        PACKET_SIZE = 143  # header(2) + payload(64) + crc(1)
 
         buffer = bytearray()
 
@@ -130,33 +135,63 @@ class SerialBridgeNode(Node):
                         continue
 
                     try:
-                        unpacked = struct.unpack('<iiii ifff ffff ffff ifff ffff ffff ff ff', payload)
+                        unpacked = struct.unpack('<iii ifff ffff ffff ifff ffff ffi ffff ff ff L', payload)
                         (
-                            mode, gear, aile, thro,
+                            mode, aile, thro,
                             pot_val, steer_raw_angle, steer_filtered_angle, steer_target_angle, 
                             steer_error, steer_integral, steer_derivative, steer_pid_output, 
                             steer_pwm, steer_pwm_filtered,steer_cur_compensation,steer_target_PWM_compensated,
                             encoder_count, speed_raw, speed_filtered, speed_target, 
                             speed_error, speed_integral, speed_derivative, speed_pid_output, 
+                            speed_ff_output, speed_total_output,speed_is_break,
                             speed_pwm, speed_pwm_filtered,speed_cur_compensation,speed_target_PWM_compensated,
                             remote_speed, remote_angle,
                             auto_speed, auto_angle,
+                            last_time,
                         ) = unpacked
 
                         mode_str = "AUTONOMOUS" if mode == 1 else "MANUAL"
+                        if abs(speed_target) < 0.1:
+                            speed_match_percent = 0.0  # 정지 상태로 간주하거나 생략
+                        else:
+                            speed_match_percent = abs(speed_filtered) / abs(speed_target) * 100.0
+
+                        now_ros_time = time.time() * 1000  # ms 단위 (float)
+                        # ROS 루프 주기 계산
+                        if self.last_ros_time is None:
+                            ros_loop_interval = 0.0
+                        else:
+                            ros_loop_interval = now_ros_time - self.last_ros_time
+
+                        self.last_ros_time = now_ros_time
+
+                        # 아두이노 제어 주기 계산
+                        if self.last_arduino_time is None:
+                            arduino_loop_interval = 0
+                        else:
+                            arduino_loop_interval = last_time - self.last_arduino_time
+
+                        self.last_arduino_time = last_time
+
+                        ros_loop_hz = 1000.0 / ros_loop_interval if ros_loop_interval > 0 else 0.0
+                        arduino_loop_hz = 1000.0 / arduino_loop_interval if arduino_loop_interval > 0 else 0.0
 
                         self.get_logger().info(
                             f"\nROS2 ← Arduino\n"
                             f"{'━'*98}\n"
-                            f"[MODE & REMOTE] | MODE: {mode_str:>12} | GEAR: {gear:>5} | AILE: {aile:>5} | THRO: {thro:>5}\n"
+                            f"[MODE & REMOTE] | MODE: {mode_str:>12} | AILE: {aile:>5} | THRO: {thro:>5}\n"
+                            f"{'━'*98}\n"
+                            f"[LOOP INTERVAL] | ARDUINO: {arduino_loop_interval:>4} ms ({arduino_loop_hz:>4.1f} Hz) | "
+                            f"ROS: {ros_loop_interval:>5.1f} ms ({ros_loop_hz:>4.1f} Hz)\n"
                             f"{'━'*98}\n"
                             f"[POTENTIOMETER] | COUNT: {pot_val:>8} | ANGLE: {steer_raw_angle:>9.2f}° | ANGLE_LPF: {steer_filtered_angle:>9.2f}° | TARGET: {steer_target_angle:>9.2f}°\n"
                             f"                | ERROR: {steer_error:>8.2f} | INT: {steer_integral:>12.2f} | DERIV: {steer_derivative:>14.2f} | PID: {steer_pid_output:>13.2f}\n"
-                            f"                | PWM: {steer_pwm:>10.2f} | PWM_LPF: {steer_pwm_filtered:>8.2f} | COMP: {steer_cur_compensation:>15.2f} | COMP_PWM: {steer_target_PWM_compensated:>8.2f}\n"
+                            f"                | PWM: {steer_pwm:>10.2f} | PWM_LPF: {steer_pwm_filtered:>8.2f} | COMP: {steer_cur_compensation:>15.2f} | FINAL_PWM: {int(steer_target_PWM_compensated):>7}\n"
                             f"{'━'*98}\n"
                             f"[ENCODER]       | COUNT: {encoder_count:>8} | SPEED: {speed_raw:>7.4f}m/s | SPEED_LPF: {speed_filtered:>7.4f}m/s | TARGET: {speed_target:>7.4f}m/s\n"
                             f"                | ERROR: {speed_error:>8.4f} | INT: {speed_integral:>12.4f} | DERIV: {speed_derivative:>14.4f} | PID: {speed_pid_output:>13.4f}\n"
-                            f"                | PWM: {speed_pwm:>10.2f} | PWM_LPF: {speed_pwm_filtered:>8.2f} | COMP: {speed_cur_compensation:>15.2f} | COMP_PWM: {speed_target_PWM_compensated:>8.2f}\n"
+                            f"                | FF: {speed_ff_output:>11.4f} | TOTAL: {speed_total_output:>10.4f} | SPEED/TARGET: {speed_match_percent:>6.2f}% | BREAK: {speed_is_break:>11}\n"
+                            f"                | PWM: {speed_pwm:>10.2f} | PWM_LPF: {speed_pwm_filtered:>8.2f} | COMP: {speed_cur_compensation:>15.2f} | FINAL_PWM: {int(speed_target_PWM_compensated):>7}\n"
                             f"{'━'*98}\n"
                             f"[REMOTE CMD]    | SPEED: {remote_speed:>8.4f}m/s | ANGLE: {remote_angle:>8.4f}°\n"
                             f"[AUTO CMD]      | SPEED: {auto_speed:>8.4f}m/s | ANGLE: {auto_angle:>8.4f}°\n"
