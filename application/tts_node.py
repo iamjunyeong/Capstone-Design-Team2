@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import rclpy
 from rclpy.node import Node
-from std_msgs.msg import String, Bool, UInt8
+from std_msgs.msg import String, Bool, UInt8, Int8
 from gtts import gTTS
 import queue
 import threading
@@ -50,8 +50,9 @@ class TTSNode(Node):
         self.emergencybutton_pressed = False
         self.handlebutton_code = 0 
         self.lock = threading.Lock()
-        self.response_state = 0   # 0:대기 중, 1: 확인 요청 진행 중, 2:확인 요청 완료 3:재질의 들어가기 
         self.driving_state = 'WAITING'
+        self.vision_obstacle_info = 0  # 0(장애물 없음), 1(정적), 2(동적),3(둘다)
+        self.sound_file = "response.mp3"  # 효과음 파일 경로
         # pygame mixer 초기화
         try:
             pygame.mixer.init()
@@ -70,7 +71,8 @@ class TTSNode(Node):
         self.talkbutton_sub = self.create_subscription(Bool, '/talkbutton_pressed', self.talkbutton_callback,10)
         self.handlebutton_sub = self.create_subscription(Bool, '/handlebutton_state', self.handlebutton_callback,10)
         self.emergencybutton_sub = self.create_subscription(Bool, '/emergency', self.emergency_button_callback,10)
-        
+        self.vision_obstacle_info_sub = self.create_subscription(Int8, '/obstacle_info', self.vision_callback, 10)  # 장애물 정보 수신용
+
         # vision/obstacle_info 값 받아오는 sub 필요, callback에서 9번 출력 
         # (보류) 속도조절 스위치 값 받아오는 sub 필요, callback에서 조건에 따라 7,8번 출력
         #srv 
@@ -161,14 +163,14 @@ class TTSNode(Node):
             if self.driving_state == 'DRIVING':
                 if self.intent == "change_dst":
 
-                    self.request_queue.put((0, f", {self.output_text[14]}"))
-                    self.get_logger().info("네")
+                    self.effect_soundplay(sound_file=self.sound_file)
+                    self.get_logger().info("효과음")
                 else: 
                     self.request_queue.put((0, f", {self.output_text[5]}"))
                     self.get_logger().info("목적지 변경, 현재 위치 확인, 예상 시간 확인, 정지 기능이 있습니다. 말씀해주세요.")
             else:
-                self.request_queue.put((0, f", {self.output_text[14]}"))
-                self.get_logger().info("네")
+                self.effect_soundplay(sound_file=self.sound_file)
+                self.get_logger().info("효과음")
 
         elif not msg.data:
             self.last_talkbutton_state = False  # 버튼 떨어짐
@@ -182,7 +184,7 @@ class TTSNode(Node):
             
             self.stop_and_clear_queue() 
             self.request_queue.put((0, f"{self.output_text[12]}"))  # 우선순위 0: 비상정지
-            self.get_logger().info("비상 정지")
+            self.get_logger().info("비상 정지, 비상 정지")
 
         # 비상정지 해제 감지 (True → False 전이)
         elif not current_state and self.emergencybutton_pressed:
@@ -192,6 +194,24 @@ class TTSNode(Node):
             self.stop_and_clear_queue()  
             self.request_queue.put((0, "비상 정지가 해제되었습니다. 정상 주행을 재개합니다."))
             self.get_logger().info("비상 정지가 해제되었습니다. 정상 주행을 재개합니다.") 
+    
+    # 비전 장애물 받아오는 코드, 미완성!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!, 비전에서 토픽 고쳐야함. 지금은 obstacle_info 그대로 받아오면 너무 멀때 대처 x.
+    def vision_callback(self, msg):
+        last_obstacle_info = self.vision_obstacle_info
+        self.vision_obstacle_info = msg.data
+        
+        if self.vision_obstacle_info == 0: #장애물 없음
+            self.get_logger().info("장애물 없음")
+        elif self.vision_obstacle_info == 1: #정적 장애물
+            self.get_logger().info("정적 장애물 감지")
+        
+        elif self.vision_obstacle_info == 2: #동적 장애물
+            self.get_logger().info("동적 장애물 감지")
+        elif self.vision_obstacle_info == 3: #둘다
+            self.get_logger().info("정적 및 동적 장애물 감지")
+
+
+
 
     def process_queue(self):
         """우선순위 큐에서 요청을 꺼내 순차적으로 재생"""
@@ -202,7 +222,7 @@ class TTSNode(Node):
 
             except queue.Empty:
                 time.sleep(0.05)
-
+    
     def text_to_speech(self, text):
         try:
             file_name = 'output.mp3'
@@ -224,6 +244,27 @@ class TTSNode(Node):
 
         except Exception as e:
             self.get_logger().error(f"TTS 오류: {e}")
+            self.is_playing = False
+        finally:
+            self.is_playing = False
+    
+    def effect_soundplay(self, sound_file):
+        try:
+        # 재생 시작
+            if not pygame.mixer.get_init():
+                pygame.mixer.init()
+            pygame.mixer.music.load(sound_file)
+            pygame.mixer.music.play()
+            self.is_playing = True
+
+            # 재생이 끝날 때까지 대기
+            while pygame.mixer.music.get_busy():
+                time.sleep(0.1)
+
+            self.is_playing = False
+
+        except Exception as e:
+            self.get_logger().error(f"효과음 출력 오류: {e}")
             self.is_playing = False
         finally:
             self.is_playing = False

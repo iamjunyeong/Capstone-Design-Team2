@@ -12,19 +12,19 @@ class ButtonNode(Node):
         self.last_tact_state = None
 
         # emergency_state: Bool 타입
-        self.emergency_sub = self.create_subscription(Bool,'emergency_state',self.emergency_callback,10)
+        self.emergency_sub = self.create_subscription(Bool,'/emergency_state',self.emergency_callback,10)
         # stt_button_state: Bool 타입
-        self.stt_sub = self.create_subscription(Bool,'stt_button_state',self.stt_callback,10)
+        self.stt_sub = self.create_subscription(Bool,'/stt_button_state',self.stt_callback,10)
         # tact_switch_state: Int32
-        self.tact_sub = self.create_subscription(Int32,'tact_switch_state',self.tact_callback,10)
+        self.tact_sub = self.create_subscription(Int32,'/tact_switch_state',self.tact_callback,10)
 
         # 퍼블리셔 선언 (TTSNode 구독용)
         self.talkbutton_pub = self.create_publisher(Bool, '/talkbutton_pressed', 10)
         self.emergency_pub = self.create_publisher(Bool, '/emergency', 5)
-        self.handlebutton_pub = self.create_publisher(UInt8, '/handlebutton_code', 5)
-        self.hmi_stop_pub = self.create_publisher(Bool, '/hmi_stop', 10)
+        self.handlebutton_pub = self.create_publisher(UInt8, '/handlebutton_state', 5)
+        self.hmi_stop_pub = self.create_publisher(Bool, '/hmi_stop', 10) #control 로 보내는 hmi 상태 
 
-        self.handlebutton_ = self.create_publisher(UInt8, '/handlebutton_state', 10)
+        
 
     def emergency_callback(self, msg):
             if msg.data:
