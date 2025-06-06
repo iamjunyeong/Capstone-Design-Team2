@@ -210,6 +210,8 @@ class SerialBridgeNode(Node):
 
                     del buffer[:PACKET_SIZE]
                     self.get_logger().debug(f"[Buffer] Packet processed. Buffer trimmed to {len(buffer)} bytes.")
+                    
+                time.sleep(0.005)
 
             except Exception as e:
                 self.get_logger().warn(f"[Serial Error] Read loop failed: {e}")
