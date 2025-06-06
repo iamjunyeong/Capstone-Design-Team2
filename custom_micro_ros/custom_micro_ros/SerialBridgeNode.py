@@ -41,7 +41,7 @@ class SerialBridgeNode(Node):
         self.mode_pub = self.create_publisher(Int32, '/vehicle/mode', 10)
 
         # 주기적으로 아두이노에 데이터 전송 (10Hz)
-        self.timer = self.create_timer(0.1, self.send_serial_data)
+        self.timer = self.create_timer(0.05, self.send_serial_data)
 
         # 시리얼 수신 스레드 시작
         self.serial_thread = threading.Thread(target=self.read_serial_loop, daemon=True)
@@ -210,6 +210,8 @@ class SerialBridgeNode(Node):
 
                     del buffer[:PACKET_SIZE]
                     self.get_logger().debug(f"[Buffer] Packet processed. Buffer trimmed to {len(buffer)} bytes.")
+                    
+                time.sleep(0.005)
 
             except Exception as e:
                 self.get_logger().warn(f"[Serial Error] Read loop failed: {e}")

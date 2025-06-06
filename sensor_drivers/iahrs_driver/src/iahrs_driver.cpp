@@ -18,11 +18,19 @@
 
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/float64.hpp"
+<<<<<<< HEAD
+=======
+#include "std_msgs/msg/float64_multi_array.hpp"
+>>>>>>> feature-localization-imu
 #include "sensor_msgs/msg/imu.hpp"
 #include "sensor_msgs/msg/magnetic_field.hpp"
 #include "geometry_msgs/msg/transform_stamped.hpp"
 #include "tf2_ros/transform_broadcaster.h"
 #include "tf2/LinearMath/Quaternion.h"
+<<<<<<< HEAD
+=======
+#include <tf2/LinearMath/Matrix3x3.h>
+>>>>>>> feature-localization-imu
 
 //interface package srv include...
 #include "interfaces/srv/imu_reset.hpp"
@@ -30,6 +38,10 @@
 
 // #define SERIAL_PORT	"/dev/ttyUSB0"
 #define SERIAL_SPEED	B115200
+<<<<<<< HEAD
+=======
+#define gravity_accelation 9.806055
+>>>>>>> feature-localization-imu
 
 typedef struct IMU_DATA
 {
@@ -94,6 +106,10 @@ public:
 		this->declare_parameter("parent_frame", "base_link");
 		this->declare_parameter("serial_port", "/dev/ttyUSB0");
 		this->declare_parameter("qos_reliability", "best_effort");
+<<<<<<< HEAD
+=======
+		this->declare_parameter("is_compensation_enable", false);
+>>>>>>> feature-localization-imu
 		
 		//Get Param
 		// m_bSingle_TF_option = 
@@ -103,13 +119,20 @@ public:
 		// serial_port_ = 
 		// qos_reliability_ =
 		this->get_parameter("m_bSingle_TF_option", m_bSingle_TF_option);
+<<<<<<< HEAD
 		
+=======
+>>>>>>> feature-localization-imu
 		this->get_parameter("sensor_hz", sensor_hz_);
 		this->get_parameter("child_frame", child_frame_);
 		this->get_parameter("parent_frame", parent_frame_);
 		this->get_parameter("serial_port", serial_port_);
 		this->get_parameter("qos_reliability", qos_reliability_);
+<<<<<<< HEAD
 
+=======
+		this->get_parameter("is_compensation_enable", is_compensation_enable_);
+>>>>>>> feature-localization-imu
 
 		printf("[DEBUG] sensor_hz: %d\n", sensor_hz_);
 
@@ -120,6 +143,10 @@ public:
 
 		rclcpp::QoS imu_qos(rclcpp::QoSInitialization::from_rmw(profile));
 		imu_data_pub = this->create_publisher<sensor_msgs::msg::Imu>("imu/data", imu_qos);
+<<<<<<< HEAD
+=======
+		variance_pub = this->create_publisher<std_msgs::msg::Float64MultiArray>("imu/variance", 10);
+>>>>>>> feature-localization-imu
 	}
 
 	////value//////////////////////////////////////////////////////////////////////////////
@@ -127,6 +154,10 @@ public:
 	geometry_msgs::msg::TransformStamped transformStamped;
 	sensor_msgs::msg::Imu imu_data_msg;
 	rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr imu_data_pub;
+<<<<<<< HEAD
+=======
+	rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr variance_pub;
+>>>>>>> feature-localization-imu
 	////function//////////////////////////////////////////////////////////////////////////////
 	int serial_open ()
 	{
@@ -267,6 +298,11 @@ public:
 	std::string serial_port_;
 	bool m_bSingle_TF_option;
 	std::string qos_reliability_;	
+<<<<<<< HEAD
+=======
+	bool is_grabity_enable_;
+	bool is_compensation_enable_;
+>>>>>>> feature-localization-imu
 private:
 
 	rclcpp::Service<interfaces::srv::ImuReset>::SharedPtr euler_angle_reset_srv_;
@@ -293,6 +329,26 @@ int main (int argc, char** argv)
 	setvbuf(stdout, NULL, _IONBF, BUFSIZ);
 	auto node = std::make_shared<IAHRS>();
 
+<<<<<<< HEAD
+=======
+	std::vector<std::array<double, 3>> accel_sample;
+	std::vector<std::array<double, 3>> gyro_sample;
+	std::array<double, 3> euler_bias = {0.0, 0.0, 0.0};
+	std::vector<std::array<double, 3>> euler_sample;
+
+	rclcpp::Time compensation_start_time;
+	bool is_compensation_finished = false;
+
+	std::array<double, 3> accel_bias = {0.0, 0.0, 0.0};
+	std::array<double, 3> gyro_bias = {0.0 ,0.0 ,0.0};
+
+	std::array<double, 3> compensated_accel = {0.0 ,0.0 ,0.0};
+	std::array<double, 3> compensated_gyro = {0.0 ,0.0 ,0.0};
+
+	std::array<double, 3> accel_variance = { 0.0, 0.0, 0.0};
+	std::array<double, 3> gyro_variance = { 0.0, 0.0, 0.0};
+
+>>>>>>> feature-localization-imu
 	// These values do not need to be converted
 	node->imu_data_msg.linear_acceleration_covariance[0] = 0.0064;
 	node->imu_data_msg.linear_acceleration_covariance[4] = 0.0063;
@@ -304,7 +360,10 @@ int main (int argc, char** argv)
 	node->imu_data_msg.orientation_covariance[4] = 0.011*(M_PI/180.0);
 	node->imu_data_msg.orientation_covariance[8] = 0.006*(M_PI/180.0);
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> feature-localization-imu
 	rclcpp::WallRate loop_rate(node->sensor_hz_);
 	node->serial_open();
 	node->SendRecv("za\n", dSend_Data, 10);	// Euler Angle -> '0.0' Reset
@@ -319,8 +378,100 @@ int main (int argc, char** argv)
 	printf("              |____iahrs___|/ \n");
 
 	while(rclcpp::ok() && !stop_requested)
-    	{
+		{
 		rclcpp::spin_some(node);
+		if(node->is_compensation_enable_ && !is_compensation_finished)
+		{
+			if(accel_sample.empty())
+			{
+				compensation_start_time = node->now();
+			}
+			rclcpp::Duration elapsed = node->now() - compensation_start_time;
+			if (elapsed.seconds() < 10.0)
+			{
+				double data[10];
+				int a_cnt = node->SendRecv("a\n", data, 10);
+				if(a_cnt>=3)
+				{
+					accel_sample.push_back({data[0], data[1], data[2]});
+				}
+				int g_cnt = node->SendRecv("g\n", data, 10);
+				if(g_cnt >= 3)
+				{
+					gyro_sample.push_back({data[0], data[1], data[2]});
+				}
+				int e_cnt = node->SendRecv("e\n", data, 10);
+				if (e_cnt >= 3) {
+					euler_sample.push_back({data[0], data[1], data[2]});
+				}
+			}
+			else
+			{
+				tf2::Quaternion q;
+				q.setRPY(_pIMU_data.dEuler_angle_Roll, _pIMU_data.dEuler_angle_Pitch, _pIMU_data.dEuler_angle_Yaw);
+				tf2::Matrix3x3 rot(q);
+				tf2::Vector3 g_world(0,0,gravity_accelation);
+				tf2::Vector3 g_imu = rot.inverse() *g_world;
+				std::array<double, 3> accel_sum = {0.0, 0.0, 0.0};
+				std::array<double, 3> gyro_sum = {0.0, 0.0, 0.0};
+				std::array<double, 3> average_accel = {0.0, 0.0, 0.0};
+				std::array<double, 3> average_gyro = {0.0, 0.0, 0.0};
+				
+				for(const auto& a : accel_sample)
+				{
+					accel_sum[0] += a[0];
+					accel_sum[1] += a[1];
+					accel_sum[2] += a[2];
+				}
+				for(const auto& g : gyro_sample)
+				{
+					gyro_sum[0] += g[0];
+					gyro_sum[1] += g[1];
+					gyro_sum[2] += g[2];
+				}
+				size_t accel_size = accel_sample.size();
+				size_t gyro_size = gyro_sample.size();
+				for(int i = 0; i < 3; i++)
+				{
+					average_accel[i] = accel_sum[i]/accel_size;
+					average_gyro[i] = gyro_sum[i]/gyro_size;
+				}
+
+				for(const auto& a : accel_sample)
+				{
+					accel_variance[0] += std::pow(a[0] - average_accel[0],2);
+					accel_variance[1] += std::pow(a[1] - average_accel[1],2);
+					accel_variance[2] += std::pow(a[2] - average_accel[2],2);
+				}
+
+				for(const auto& g : gyro_sample)
+				{
+					gyro_variance[0] += std::pow(g[0] - average_gyro[0],2);
+					gyro_variance[1] += std::pow(g[1] - average_gyro[1],2);
+					gyro_variance[2] += std::pow(g[2] - average_gyro[2],2);
+				}
+
+				for(int i = 0; i < 3; i++)
+				{
+					accel_variance[i] /= accel_size;
+					gyro_variance[i] /= gyro_size;
+					accel_bias[i] = average_accel[i] - g_imu[i];
+					gyro_bias[i] = average_gyro[i];
+				}
+				// Euler angle bias compensation
+				std::array<double, 3> euler_sum = {0.0, 0.0, 0.0};
+				for (const auto& e : euler_sample) {
+					euler_sum[0] += e[0];
+					euler_sum[1] += e[1];
+					euler_sum[2] += e[2];
+				}
+				for (int i = 0; i < 3; ++i) {
+					euler_bias[i] = (euler_sum[i] / euler_sample.size()) * (M_PI / 180.0);
+				}
+				is_compensation_finished = true;
+			}
+		}
+		
 		if (serial_fd >= 0) 
 		{
 			const int max_data = 10;
@@ -329,26 +480,58 @@ int main (int argc, char** argv)
 			no_data = node->SendRecv("g\n", data, max_data);	// Read angular_velocity _ wx, wy, wz 
 			if (no_data >= 3) 
 			{
-				// angular_velocity
-				node->imu_data_msg.angular_velocity.x = _pIMU_data.dAngular_velocity_x = data[0]*(M_PI/180.0);
-				node->imu_data_msg.angular_velocity.y = _pIMU_data.dAngular_velocity_y = data[1]*(M_PI/180.0);
-				node->imu_data_msg.angular_velocity.z = _pIMU_data.dAngular_velocity_z = data[2]*(M_PI/180.0);
+				if(node->is_compensation_enable_)
+				{
+					if(is_compensation_finished)
+					{
+						node->imu_data_msg.angular_velocity.x = _pIMU_data.dAngular_velocity_x = (data[0] - gyro_bias[0]) * (M_PI/180.0);
+				    node->imu_data_msg.angular_velocity.y = _pIMU_data.dAngular_velocity_y = (data[1] - gyro_bias[1]) * (M_PI/180.0);
+				    node->imu_data_msg.angular_velocity.z = _pIMU_data.dAngular_velocity_z = (data[2] - gyro_bias[2]) * (M_PI/180.0);
+					}
+				}
+				else	// angular_velocity
+				{
+				    node->imu_data_msg.angular_velocity.x = _pIMU_data.dAngular_velocity_x = data[0] * (M_PI/180.0);
+				    node->imu_data_msg.angular_velocity.y = _pIMU_data.dAngular_velocity_y = data[1] * (M_PI/180.0);
+				    node->imu_data_msg.angular_velocity.z = _pIMU_data.dAngular_velocity_z = data[2] * (M_PI/180.0);
+				}
 			}
 			no_data = node->SendRecv("a\n", data, max_data);	// Read linear_acceleration 	unit: m/s^2
 			if (no_data >= 3) 
 			{
 				//// linear_acceleration   g to m/s^2
-				node->imu_data_msg.linear_acceleration.x = _pIMU_data.dLinear_acceleration_x = data[0] * 9.80665;
-				node->imu_data_msg.linear_acceleration.y = _pIMU_data.dLinear_acceleration_y = data[1] * 9.80665;
-				node->imu_data_msg.linear_acceleration.z = _pIMU_data.dLinear_acceleration_z = data[2] * 9.80665;
+				if (node->is_compensation_enable_)
+				{
+					if(is_compensation_finished)
+					{
+						node->imu_data_msg.linear_acceleration.x = _pIMU_data.dLinear_acceleration_x = data[0] - accel_bias[0];
+				    node->imu_data_msg.linear_acceleration.y = _pIMU_data.dLinear_acceleration_y = data[1] - accel_bias[1];
+				    node->imu_data_msg.linear_acceleration.z = _pIMU_data.dLinear_acceleration_z = data[2] - accel_bias[2];
+					}
+				}
+				else
+				{
+				    node->imu_data_msg.linear_acceleration.x = _pIMU_data.dLinear_acceleration_x = data[0];
+				    node->imu_data_msg.linear_acceleration.y = _pIMU_data.dLinear_acceleration_y = data[1];
+				    node->imu_data_msg.linear_acceleration.z = _pIMU_data.dLinear_acceleration_z = data[2];
+				}
 			}
 			no_data = node->SendRecv("e\n", data, max_data);	// Read Euler angle
-			if (no_data >= 3) 
+			if (no_data >= 3)
 			{
-				// Euler _ rad
-				_pIMU_data.dEuler_angle_Roll  = data[0]*(M_PI/180.0);
-				_pIMU_data.dEuler_angle_Pitch = data[1]*(M_PI/180.0);
-				_pIMU_data.dEuler_angle_Yaw	  = data[2]*(M_PI/180.0);
+				double roll  = data[0]*(M_PI/180.0);
+				double pitch = data[1]*(M_PI/180.0);
+				double yaw   = data[2]*(M_PI/180.0);
+				
+				if (node->is_compensation_enable_ && is_compensation_finished) {
+					roll  = roll -euler_bias[0];
+					pitch = pitch - euler_bias[1];
+					yaw   = yaw - euler_bias[2];
+				}
+
+				_pIMU_data.dEuler_angle_Roll  = roll;
+				_pIMU_data.dEuler_angle_Pitch = pitch;
+				_pIMU_data.dEuler_angle_Yaw   = yaw;
 			}
 
 			tf2::Quaternion q;
@@ -363,6 +546,14 @@ int main (int argc, char** argv)
 
 			// publish the IMU data
 			node->imu_data_pub->publish(node->imu_data_msg);
+			// 보정 완료 시 variance 발행
+			if (is_compensation_finished) 
+			{
+					std_msgs::msg::Float64MultiArray variance_msg;
+					variance_msg.data.insert(variance_msg.data.end(), accel_variance.begin(), accel_variance.end());
+					variance_msg.data.insert(variance_msg.data.end(), gyro_variance.begin(), gyro_variance.end());
+					node->variance_pub->publish(variance_msg);
+			}
 
 			if(node->m_bSingle_TF_option)
 			{
@@ -382,7 +573,6 @@ int main (int argc, char** argv)
 				node->tf_broadcaster->sendTransform(node->transformStamped);
 			}
 		}
-
         loop_rate.sleep();
     }
 
