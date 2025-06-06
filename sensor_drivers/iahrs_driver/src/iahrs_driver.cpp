@@ -18,19 +18,13 @@
 
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/float64.hpp"
-<<<<<<< HEAD
-=======
 #include "std_msgs/msg/float64_multi_array.hpp"
->>>>>>> feature-localization-imu
 #include "sensor_msgs/msg/imu.hpp"
 #include "sensor_msgs/msg/magnetic_field.hpp"
 #include "geometry_msgs/msg/transform_stamped.hpp"
 #include "tf2_ros/transform_broadcaster.h"
 #include "tf2/LinearMath/Quaternion.h"
-<<<<<<< HEAD
-=======
 #include <tf2/LinearMath/Matrix3x3.h>
->>>>>>> feature-localization-imu
 
 //interface package srv include...
 #include "interfaces/srv/imu_reset.hpp"
@@ -38,10 +32,7 @@
 
 // #define SERIAL_PORT	"/dev/ttyUSB0"
 #define SERIAL_SPEED	B115200
-<<<<<<< HEAD
-=======
 #define gravity_accelation 9.806055
->>>>>>> feature-localization-imu
 
 typedef struct IMU_DATA
 {
@@ -106,10 +97,7 @@ public:
 		this->declare_parameter("parent_frame", "base_link");
 		this->declare_parameter("serial_port", "/dev/ttyUSB0");
 		this->declare_parameter("qos_reliability", "best_effort");
-<<<<<<< HEAD
-=======
 		this->declare_parameter("is_compensation_enable", false);
->>>>>>> feature-localization-imu
 		
 		//Get Param
 		// m_bSingle_TF_option = 
@@ -119,20 +107,12 @@ public:
 		// serial_port_ = 
 		// qos_reliability_ =
 		this->get_parameter("m_bSingle_TF_option", m_bSingle_TF_option);
-<<<<<<< HEAD
-		
-=======
->>>>>>> feature-localization-imu
 		this->get_parameter("sensor_hz", sensor_hz_);
 		this->get_parameter("child_frame", child_frame_);
 		this->get_parameter("parent_frame", parent_frame_);
 		this->get_parameter("serial_port", serial_port_);
 		this->get_parameter("qos_reliability", qos_reliability_);
-<<<<<<< HEAD
-
-=======
 		this->get_parameter("is_compensation_enable", is_compensation_enable_);
->>>>>>> feature-localization-imu
 
 		printf("[DEBUG] sensor_hz: %d\n", sensor_hz_);
 
@@ -143,10 +123,7 @@ public:
 
 		rclcpp::QoS imu_qos(rclcpp::QoSInitialization::from_rmw(profile));
 		imu_data_pub = this->create_publisher<sensor_msgs::msg::Imu>("imu/data", imu_qos);
-<<<<<<< HEAD
-=======
 		variance_pub = this->create_publisher<std_msgs::msg::Float64MultiArray>("imu/variance", 10);
->>>>>>> feature-localization-imu
 	}
 
 	////value//////////////////////////////////////////////////////////////////////////////
@@ -154,10 +131,7 @@ public:
 	geometry_msgs::msg::TransformStamped transformStamped;
 	sensor_msgs::msg::Imu imu_data_msg;
 	rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr imu_data_pub;
-<<<<<<< HEAD
-=======
 	rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr variance_pub;
->>>>>>> feature-localization-imu
 	////function//////////////////////////////////////////////////////////////////////////////
 	int serial_open ()
 	{
@@ -298,11 +272,8 @@ public:
 	std::string serial_port_;
 	bool m_bSingle_TF_option;
 	std::string qos_reliability_;	
-<<<<<<< HEAD
-=======
 	bool is_grabity_enable_;
 	bool is_compensation_enable_;
->>>>>>> feature-localization-imu
 private:
 
 	rclcpp::Service<interfaces::srv::ImuReset>::SharedPtr euler_angle_reset_srv_;
@@ -329,8 +300,6 @@ int main (int argc, char** argv)
 	setvbuf(stdout, NULL, _IONBF, BUFSIZ);
 	auto node = std::make_shared<IAHRS>();
 
-<<<<<<< HEAD
-=======
 	std::vector<std::array<double, 3>> accel_sample;
 	std::vector<std::array<double, 3>> gyro_sample;
 	std::array<double, 3> euler_bias = {0.0, 0.0, 0.0};
@@ -348,7 +317,6 @@ int main (int argc, char** argv)
 	std::array<double, 3> accel_variance = { 0.0, 0.0, 0.0};
 	std::array<double, 3> gyro_variance = { 0.0, 0.0, 0.0};
 
->>>>>>> feature-localization-imu
 	// These values do not need to be converted
 	node->imu_data_msg.linear_acceleration_covariance[0] = 0.0064;
 	node->imu_data_msg.linear_acceleration_covariance[4] = 0.0063;
@@ -360,10 +328,6 @@ int main (int argc, char** argv)
 	node->imu_data_msg.orientation_covariance[4] = 0.011*(M_PI/180.0);
 	node->imu_data_msg.orientation_covariance[8] = 0.006*(M_PI/180.0);
 
-<<<<<<< HEAD
-
-=======
->>>>>>> feature-localization-imu
 	rclcpp::WallRate loop_rate(node->sensor_hz_);
 	node->serial_open();
 	node->SendRecv("za\n", dSend_Data, 10);	// Euler Angle -> '0.0' Reset
