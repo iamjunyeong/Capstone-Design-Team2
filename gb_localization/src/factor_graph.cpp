@@ -37,7 +37,10 @@ class FactorGraphNode : public rclcpp::Node
 public:
   double datum_latitude_ = 0.0;
   double datum_longitude_ = 0.0;
+  bool is_ackerman_enable_;
+  const double wheelbase_ = 0.72;  // Set default wheelbase
   bool datum_set_ = false;
+  
   FactorGraphNode() : Node("factor_graph_node")
   {
     RCLCPP_INFO(this->get_logger(),"factor_graph_node started");
@@ -68,6 +71,7 @@ public:
     prev_pose_ = gtsam::Pose3();
     prev_velocity_ = gtsam::Vector3(0,0,0);
 
+   
     imuCovarianceParams = PreintegrationParams::MakeSharedU(9.80665);
     // acc_sigma = 0.02483647066;
     // gyro_sigma = 0.15130551861;
@@ -126,8 +130,11 @@ public:
     // Declare and get datum parameters, and set UTM origin if provided
     this->declare_parameter("datum_latitude", 0.0);
     this->declare_parameter("datum_longitude", 0.0);
+    this->declare_parameter("is_ackerman_enable", true);
     this->get_parameter("datum_latitude", datum_latitude_);
     this->get_parameter("datum_longitude", datum_longitude_);
+    this->get_parameter("is_ackerman_enable", is_ackerman_enable_);
+    RCLCPP_INFO(this->get_logger(), "Ackermann model enabled: %s", is_ackerman_enable_ ? "true" : "false");
     RCLCPP_INFO(this->get_logger(), "Loaded datum params: latitude = %.9f, longitude = %.9f", datum_latitude_, datum_longitude_);
 
     if (datum_latitude_ != 0.0 || datum_longitude_ != 0.0) {
@@ -142,6 +149,7 @@ public:
         RCLCPP_WARN(this->get_logger(), "Failed to convert datum to UTM: %s", e.what());
       }
     }
+    // Helper function for Ackermann model pose computation
   }
 
 private:
@@ -298,42 +306,13 @@ private:
 
     auto bias_noise_model = gtsam::noiseModel::Isotropic::Sigma(6,1e-3);
     graph_.add(gtsam::BetweenFactor<gtsam::imuBias::ConstantBias>(prev_bias_key, curr_bias_key, gtsam::imuBias::ConstantBias(),bias_noise_model)); // Removed per instruction
-    gtsam::Pose3 ackermann_pose;
-    {
-      // Calculate the pose change from Ackermann model
-      static bool is_first_encoder = true;
-      static rclcpp::Time prev_encoder_time;
-      rclcpp::Time encoder_time(encoder_msg->header.stamp);
+    
+    static bool is_first_encoder = true;
+    static rclcpp::Time prev_encoder_time;
+    gtsam::Pose3 ackermann_pose = is_ackerman_enable_ ?
+        computeAckermannPose(encoder_msg, prev_encoder_time, is_first_encoder) :
+        computeVelocityPose(encoder_msg, prev_encoder_time, is_first_encoder);
 
-      double dt;
-      if (is_first_encoder) {
-        prev_encoder_time = imu_buf_.front()->header.stamp;
-        dt = 0.01;
-        is_first_encoder = false;
-      } else {
-        dt = (encoder_time - prev_encoder_time).seconds();
-      }
-
-      prev_encoder_time = encoder_time;
-
-      double v_x = encoder_msg->twist.twist.linear.x;
-      double v_y = encoder_msg->twist.twist.linear.y;
-
-      double dx = v_x * dt;
-      double dy = v_y * dt;
-      
-      double L = 0.72;
-      double v = hypot(v_x, v_y);
-      if (v_x < 0) v *= -1;
-      double delta = encoder_msg->twist.twist.angular.z;  // 조향각
-      double theta_dot = (v / L) * tan(delta);
-      double dtheta = theta_dot * dt;
-
-      gtsam::Rot3 dR = gtsam::Rot3::Yaw(dtheta);
-      gtsam::Point3 dT(dx, dy, 0.0);
-
-      ackermann_pose = prev_pose_.compose(gtsam::Pose3(dR, dT));
-    }
     initial_estimate_.insert(curr_pose_key, ackermann_pose);
     initial_estimate_.insert(curr_velocity_key, estimated_state.v());
     initial_estimate_.insert(curr_bias_key,imu_bias_);
@@ -428,6 +407,19 @@ private:
     initial_estimate_.clear();
 
     gtsam::Values result = isam2_.calculateEstimate();
+      try {
+        gtsam::Pose3 optimized_pose = result.at<gtsam::Pose3>(curr_pose_key);
+        double est_x = optimized_pose.translation().x();
+        double est_y = optimized_pose.translation().y();
+        double err_x = local_x - est_x;
+        double err_y = local_y - est_y;
+        double err_dist = std::sqrt(err_x * err_x + err_y * err_y);
+        RCLCPP_INFO(this->get_logger(), "[GPS Error] dx: %.3f, dy: %.3f, dist: %.3f m", err_x, err_y, err_dist);
+      } catch (const std::exception& e) {
+        RCLCPP_WARN(this->get_logger(), "Failed to extract optimized GPS pose: %s", e.what());
+      }
+
+
     gtsam::Pose3 gps_pose = result.at<gtsam::Pose3>(curr_pose_key);
     auto q = gps_pose.rotation().toQuaternion();
 
@@ -506,7 +498,61 @@ private:
     }
     imu_variance_received_ = true;
   }
+
+  gtsam::Pose3 computeAckermannPose(const geometry_msgs::msg::TwistWithCovarianceStamped::SharedPtr& encoder_msg, rclcpp::Time& prev_encoder_time, bool& is_first_encoder) {
+    rclcpp::Time encoder_time = encoder_msg->header.stamp;
+    double dt;
+    if (is_first_encoder) {
+      dt = 0.01;
+      is_first_encoder = false;
+    } else {
+      dt = (encoder_time - prev_encoder_time).seconds();
+    }
+    prev_encoder_time = encoder_time;
+
+    double v_x = encoder_msg->twist.twist.linear.x;
+    double v_y = encoder_msg->twist.twist.linear.y;
+    double v = hypot(v_x, v_y);
+    if (v_x < 0) v *= -1;
+
+    double delta = atan2(v_x, v_y);  // steering angle delta
+    double beta = atan(tan(delta) / 2.0);  // beta computed from delta
+    double epsilon = (v / wheelbase_) * cos(beta) * tan(delta);  // angular velocity
+    
+    double dtheta = epsilon * dt;
+    double dx = v * dt * cos(dtheta + beta);
+    double dy = v * dt * sin(dtheta + beta);
+    
+    gtsam::Rot3 dR = gtsam::Rot3::Yaw(dtheta);
+    gtsam::Point3 dT(dx, dy, 0.0);
+    return prev_pose_.compose(gtsam::Pose3(dR, dT));
+  }
+
+  // Helper function for simple velocity-based pose computation
+  gtsam::Pose3 computeVelocityPose(const geometry_msgs::msg::TwistWithCovarianceStamped::SharedPtr& encoder_msg, rclcpp::Time& prev_encoder_time, bool& is_first_encoder) {
+    rclcpp::Time encoder_time = encoder_msg->header.stamp;
+    double dt;
+    if (is_first_encoder) {
+      dt = 0.01;
+      is_first_encoder = false;
+    } else {
+      dt = (encoder_time - prev_encoder_time).seconds();
+    }
+    prev_encoder_time = encoder_time;
+
+    double v_x = encoder_msg->twist.twist.linear.x;
+    double v_y = encoder_msg->twist.twist.linear.y;
+    double v = hypot(v_x, v_y);
+    double theta = atan2(v_y, v_x);
+    double dx = v * dt * cos(theta);
+    double dy = v * dt * sin(theta);
+
+    return prev_pose_.compose(gtsam::Pose3(gtsam::Rot3::Yaw(theta), gtsam::Point3(dx, dy, 0.0)));
+  }
+
+
 };
+
 
 int main(int argc, char * argv[])
 {
