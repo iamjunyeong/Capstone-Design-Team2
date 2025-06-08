@@ -368,7 +368,7 @@ private:
 
   void gpsCallback(const sensor_msgs::msg::NavSatFix::SharedPtr gps_msg)
   {
-    RCLCPP_INFO(this->get_logger(),"GPS received");
+    // RCLCPP_INFO(this->get_logger(),"GPS received");
     double latitude = gps_msg->latitude;
     double longitude = gps_msg->longitude;
     
@@ -473,9 +473,9 @@ private:
 
   rclcpp::Time getKeyframeTimestamp(const rclcpp::Time& stamp)
   {
-    RCLCPP_INFO(rclcpp::get_logger("FactorGraphNode"), "keyframe_index_map_ size: %zu", keyframe_index_map_.size());
+    // RCLCPP_INFO(rclcpp::get_logger("FactorGraphNode"), "keyframe_index_map_ size: %zu", keyframe_index_map_.size());
     if (keyframe_index_map_.empty()) {
-      RCLCPP_INFO(rclcpp::get_logger("FactorGraphNode"), "return time 0");
+      RCLCPP_WARN(rclcpp::get_logger("FactorGraphNode"), "keyframe_index_map is empty return time 0");
       return rclcpp::Time(0);
     }
 
@@ -487,7 +487,7 @@ private:
     }
 
     --it;  // Move iterator to the greatest timestamp less than 'stamp'
-    RCLCPP_INFO(rclcpp::get_logger("FactorGraphNode"), "Selected previous keyframe timestamp: %.9f", it->first.seconds());
+    // RCLCPP_INFO(rclcpp::get_logger("FactorGraphNode"), "Selected previous keyframe timestamp: %.9f", it->first.seconds());
     return it->first;
   }
 
