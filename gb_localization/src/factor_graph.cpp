@@ -38,7 +38,7 @@ public:
   double datum_latitude_ = 0.0;
   double datum_longitude_ = 0.0;
   bool is_ackerman_enable_;
-  const double wheelbase_ = 0.72;  // Set default wheelbase
+  const double wheelbase_ = 0.77;  // Set default wheelbase
   bool datum_set_ = false;
   
   FactorGraphNode() : Node("factor_graph_node")
@@ -249,7 +249,7 @@ private:
       imuCovarianceParams->gyroscopeCovariance = (gtsam::Matrix33() <<
         999.0, 0.0, 0.0,
         0.0, 999.0, 0.0,
-        0.0, 0.0, 1e-2).finished();  // Only trust yaw
+        0.0, 0.0, 0.5).finished();  // Only trust yaw
     }
 
     rclcpp::Time prev_time = imu_buf_.front()->header.stamp;
@@ -290,7 +290,7 @@ private:
     gtsam::Symbol curr_bias_key('b',keyframe_idx_+1);    
 
     auto imu_factor = gtsam::ImuFactor(prev_pose_key, prev_velocity_key, curr_pose_key, curr_velocity_key, prev_bias_key, *preIntegratedImu);
-    graph_.add(imu_factor);  // Now re-enable IMU factor
+    // graph_.add(imu_factor);  // Now re-enable IMU factor
 
     double vx = encoder_msg->twist.twist.linear.x;
     double vy = encoder_msg->twist.twist.linear.y;
@@ -418,17 +418,17 @@ private:
     initial_estimate_.clear();
 
     gtsam::Values result = isam2_.calculateEstimate();
-      // try {
-      //   gtsam::Pose3 optimized_pose = result.at<gtsam::Pose3>(curr_pose_key);
-      //   double est_x = optimized_pose.translation().x();
-      //   double est_y = optimized_pose.translation().y();
-      //   double err_x = local_x - est_x;
-      //   double err_y = local_y - est_y;
-      //   double err_dist = std::sqrt(err_x * err_x + err_y * err_y);
-      //   RCLCPP_INFO(this->get_logger(), "[GPS Error] dx: %.3f, dy: %.3f, dist: %.3f m", err_x, err_y, err_dist);
-      // } catch (const std::exception& e) {
-      //   RCLCPP_WARN(this->get_logger(), "Failed to extract optimized GPS pose: %s", e.what());
-      // }
+      try {
+        gtsam::Pose3 optimized_pose = result.at<gtsam::Pose3>(curr_pose_key);
+        double est_x = optimized_pose.translation().x();
+        double est_y = optimized_pose.translation().y();
+        double err_x = local_x - est_x;
+        double err_y = local_y - est_y;
+        double err_dist = std::sqrt(err_x * err_x + err_y * err_y);
+        RCLCPP_INFO(this->get_logger(), "[GPS Error] dx: %.3f, dy: %.3f, dist: %.3f m", err_x, err_y, err_dist);
+      } catch (const std::exception& e) {
+        RCLCPP_WARN(this->get_logger(), "Failed to extract optimized GPS pose: %s", e.what());
+      }
 
 
     gtsam::Pose3 gps_pose = result.at<gtsam::Pose3>(curr_pose_key);

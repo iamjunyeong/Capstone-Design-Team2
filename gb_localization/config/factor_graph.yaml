@@ -1,5 +1,5 @@
 factor_graph_node:
   ros__parameters:
-    is_ackerman_enable: true
+    is_ackerman_enable: false
     datum_latitude: 37.5421753
     datum_longitude: 127.0796024
