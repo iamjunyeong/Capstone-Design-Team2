@@ -77,15 +77,22 @@ class ObstacleDetector(Node):
  
             if boxes is None or len(boxes) == 0:
                 code = 1
-                self.prev_max[topic_name] = 0.0
+                self.prev_max[topic_name] = 0.0 
             else:
                 prev_h = self.prev_max[topic_name]
-                ratio = abs(max_h - prev_h) / prev_h if prev_h > EPS else 0.0
+                current_h = max_h
+
+                if prev_h < EPS:
+                    ratio = 0.0
+                else:
+                    ratio = abs(current_h - prev_h) / prev_h
                 
-                code = 0 if (prev_h > EPS and ratio >= MOVE_RATIO_THRESHOLD) else 1
-                self.prev_max[topic_name] = max_h
-          
-            self.prev_max[topic_name] = max_h
+                if ratio >= MOVE_RATIO_THRESHOLD:
+                    code = 0
+                else:
+                    code = 1
+                
+            self.prev_max[topic_name] = current_h
             self.last_codes[topic_name] = code
             final_code = 1 if all(c == 1 for c in self.last_codes.values()) else 0
             self.pub_info.publish(Int8(data=final_code))
