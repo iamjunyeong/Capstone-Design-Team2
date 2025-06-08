@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import os
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image
@@ -17,7 +18,7 @@ HEIGHT_THRESHOLDS = {
     'scooter':    40,
 }
 
-FULL_FRAME_RATIO = 0.95
+#FULL_FRAME_RATIO = 0.95
 MOVE_RATIO_THRESHOLD = 0.10
 EPS = 1e-6
 
@@ -33,31 +34,28 @@ class ObstacleDetector(Node):
         self.bridge = CvBridge()
         self.model = YOLO('/home/loe/workspace/github/Capstone-Design-Team2/vision_bringup/model/obstacle_detector_crosswalk.pt')
 
-        self.debug_publishers = {}
-        self.prev_max_height = {}
-        self.last_codes = {}
+        self.prev_max = {t: 0.0 for t in camera_topics}
+        self.last_codes = {t: 1   for t in camera_topics}
+        self.debug_pubs = {}
 
         for i, topic in enumerate(camera_topics):
-            debug_topic = f'/obstacle_crosswalk_debug_{i}'
-            self.debug_publishers[topic] = self.create_publisher(Image, debug_topic, 1)
-            self.prev_max_height[topic] = 0.0
-            self.last_codes[topic] = 1
-            self.create_subscription(Image, topic, self.make_callback(topic), 1)
-            self.get_logger().info(f'Subscribing to {topic}, publishing debug to {debug_topic}')
+            self.debug_pubs[topic] = self.create_publisher(Image, f'/obstacle_crosswalk_debug_{i}', 1)
+            self.create_subscription(Image, topic, self.make_cb(topic), 1)
+            self.get_logger().info(f'Subscribing to {topic}')
 
-    def make_callback(self, topic_name):
+    def make_cb(self, topic_name):
         def callback(msg: Image):
             try:
-                img = self.bridge.imgmsg_to_cv2(msg, 'bgr8')
+                img = self.bridge.imgmsg_to_cv2(msg, 'passthrough')
                 if msg.encoding == 'rgb8':
                     img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-                elif msg.encoding in ('mono8','8UC1'):
+                elif msg.encoding in ('mono8', '8UC1'):
                     img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
             except Exception as e:
                 self.get_logger().error(f'Image conversion failed: {e}')
                 return
 
-            h_frame = img.shape[0]
+            #h_frame = img.shape[0]
 
             res = self.model(img)[0]
             boxes = res.boxes.xyxy
@@ -76,20 +74,19 @@ class ObstacleDetector(Node):
                         continue
                     max_h = max(max_h, box_h)
 
-            prev_h = self.prev_max_height[topic_name]
-            if prev_h > EPS:
-                ratio = abs(max_h - prev_h) / prev_h
+ 
+            if boxes is None or len(boxes) == 0:
+                code = 1
+                self.prev_max[topic_name] = 0.0
             else:
-                ratio = 0.0
-
-            if prev_h > EPS and ratio >= MOVE_RATIO_THRESHOLD:
-                code = 0
-            else:
-                code = 1 if max_h >= h_frame * FULL_FRAME_RATIO else 0
-
-            self.prev_max_height[topic_name] = max_h
-            self.last_codes[topic_name]       = code
-
+                prev_h = self.prev_max[topic_name]
+                ratio = abs(max_h - prev_h) / prev_h if prev_h > EPS else 0.0
+                
+                code = 0 if (prev_h > EPS and ratio >= MOVE_RATIO_THRESHOLD) else 1
+                self.prev_max[topic_name] = max_h
+          
+            self.prev_max[topic_name] = max_h
+            self.last_codes[topic_name] = code
             final_code = 1 if all(c == 1 for c in self.last_codes.values()) else 0
             self.pub_info.publish(Int8(data=final_code))
 
