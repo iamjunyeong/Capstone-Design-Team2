@@ -7,8 +7,8 @@ from cv_bridge import CvBridge
 import cv2
 from ultralytics import YOLO
 
-names = ['car', 'truck', 'bicycle', 'motorcycle', 'bus', 'scooter']
-height_thresholds = {
+DYNAMIC_CLASSES = {'car', 'truck', 'bicycle', 'motorcycle', 'bus', 'scooter'}
+HEIGHT_THRESHOLDS = {
     'car':        60,
     'truck':      80,
     'bicycle':    50,
@@ -16,7 +16,6 @@ height_thresholds = {
     'bus':        80,
     'scooter':    40,
 }
-dynamic_labels = set(names)
 
 FULL_FRAME_RATIO = 0.95
 MOVE_RATIO_THRESHOLD = 0.10
@@ -30,10 +29,10 @@ class ObstacleDetector(Node):
         camera_topics = self.get_parameter('camera_topics').value
 
         self.pub_info = self.create_publisher(Int8, '/obstacle_crosswalk_info', 1)
+        
         self.bridge = CvBridge()
         self.model = YOLO('/home/loe/workspace/github/Capstone-Design-Team2/vision_bringup/model/obstacle_detector_crosswalk.pt')
 
-        # 퍼블리셔 및 상태 초기화
         self.debug_publishers = {}
         self.prev_max_height = {}
         self.last_codes = {}
@@ -50,72 +49,66 @@ class ObstacleDetector(Node):
         def callback(msg: Image):
             try:
                 img = self.bridge.imgmsg_to_cv2(msg, 'bgr8')
+                if msg.encoding == 'rgb8':
+                    img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+                elif msg.encoding in ('mono8','8UC1'):
+                    img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
             except Exception as e:
                 self.get_logger().error(f'Image conversion failed: {e}')
                 return
 
             h_frame = img.shape[0]
+
             res = self.model(img)[0]
             boxes = res.boxes.xyxy
             cls_ids = res.boxes.cls
 
-            # 디버깅: YOLO 감지 결과 출력
-            xyxy = boxes.cpu().numpy() if hasattr(boxes, 'cpu') else boxes
-            ids  = cls_ids.cpu().numpy() if hasattr(cls_ids, 'cpu') else cls_ids
-            conf = res.boxes.conf.cpu().numpy() if hasattr(res.boxes.conf, 'cpu') else res.boxes.conf
-
-            self.get_logger().info(f'[YOLO] from {topic_name}: {len(ids)} objects')
-            for i, ((x1, y1, x2, y2), cid, c) in enumerate(zip(xyxy, ids, conf)):
-                if i >= 5:
-                    self.get_logger().info('... (more objects omitted)')
-                    break
-                label = names[int(cid)] if int(cid) < len(names) else 'unknown'
-                self.get_logger().info(
-                    f'  [{i}] {label:<10} | conf: {c:.2f} | box: ({int(x1)}, {int(y1)}, {int(x2)}, {int(y2)})'
-                )
-
-            # 최대 높이 계산
             max_h = 0.0
-            for (x1, y1, x2, y2), cid in zip(xyxy, ids):
-                label = names[int(cid)] if int(cid) < len(names) else None
-                if label not in dynamic_labels:
-                    continue
-                box_h = float(y2 - y1)
-                if box_h < height_thresholds.get(label, float('inf')):
-                    continue
-                max_h = max(max_h, box_h)
+            if boxes is not None and len(boxes) > 0:
+                arr_xyxy = boxes.cpu().numpy() if hasattr(boxes, 'cpu') else boxes
+                arr_cls  = cls_ids.cpu().numpy() if hasattr(cls_ids, 'cpu') else cls_ids
+                for coord, cid in zip(arr_xyxy, arr_cls):
+                    label = self.model.names[int(cid)]
+                    if label not in DYNAMIC_CLASSES:
+                        continue
+                    box_h = float(coord[3] - coord[1])
+                    if box_h < HEIGHT_THRESHOLDS.get(label, float('inf')):
+                        continue
+                    max_h = max(max_h, box_h)
 
             prev_h = self.prev_max_height[topic_name]
-            ratio = abs(max_h - prev_h) / prev_h if prev_h > EPS else 0.0
-            sensor_code = 0 if prev_h > EPS and ratio >= MOVE_RATIO_THRESHOLD else 1
-            if prev_h <= EPS and max_h < h_frame * FULL_FRAME_RATIO:
-                sensor_code = 0
+            if prev_h > EPS:
+                ratio = abs(max_h - prev_h) / prev_h
+            else:
+                ratio = 0.0
+
+            if prev_h > EPS and ratio >= MOVE_RATIO_THRESHOLD:
+                code = 0
+            else:
+                code = 1 if max_h >= h_frame * FULL_FRAME_RATIO else 0
 
             self.prev_max_height[topic_name] = max_h
-            self.last_codes[topic_name] = sensor_code
+            self.last_codes[topic_name]       = code
 
             final_code = 1 if all(c == 1 for c in self.last_codes.values()) else 0
             self.pub_info.publish(Int8(data=final_code))
 
-            # 디버깅 이미지 생성
-            debug_img = img.copy()
-            for (x1, y1, x2, y2), cid in zip(xyxy, ids):
-                label = names[int(cid)] if int(cid) < len(names) else 'unknown'
-                if label not in dynamic_labels:
-                    continue
-                box_h = float(y2 - y1)
-                if box_h < height_thresholds.get(label, float('inf')):
-                    continue
-                cv2.rectangle(debug_img, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
-                cv2.putText(debug_img, label, (int(x1), int(y1) - 10),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
-
-            cv2.putText(debug_img, f"Obstacle Code: {final_code}", (10, 30),
-                        cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 2)
-
-            debug_msg = self.bridge.cv2_to_imgmsg(debug_img, 'bgr8')
-            debug_msg.header = msg.header
-            self.debug_publishers[topic_name].publish(debug_msg)
+            dbg = img.copy()
+            if boxes is not None and len(boxes) > 0:
+                for coord, cid in zip(arr_xyxy, arr_cls):
+                    label = self.model.names[int(cid)]
+                    if label not in DYNAMIC_CLASSES:
+                        continue
+                    box_h = float(coord[3] - coord[1])
+                    if box_h < HEIGHT_THRESHOLDS.get(label, float('inf')):
+                        continue
+                    x1, y1, x2, y2 = map(int, coord)
+                    cv2.rectangle(dbg, (x1, y1), (x2, y2), (0,255,0), 2)
+                    cv2.putText(dbg, label, (x1, y1-5), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255,0,0), 2)
+            cv2.putText(dbg, f"Code: {final_code}", (10,30), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0,0,255), 2)
+            dbg_msg = self.bridge.cv2_to_imgmsg(dbg, 'bgr8')
+            dbg_msg.header = msg.header
+            self.debug_pubs[topic_name].publish(dbg_msg)
 
         return callback
 
