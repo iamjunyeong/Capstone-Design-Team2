@@ -290,7 +290,7 @@ private:
     gtsam::Symbol curr_bias_key('b',keyframe_idx_+1);    
 
     auto imu_factor = gtsam::ImuFactor(prev_pose_key, prev_velocity_key, curr_pose_key, curr_velocity_key, prev_bias_key, *preIntegratedImu);
-    // graph_.add(imu_factor);  // Now re-enable IMU factor
+    graph_.add(imu_factor);  // Now re-enable IMU factor
 
     double vx = encoder_msg->twist.twist.linear.x;
     double vy = encoder_msg->twist.twist.linear.y;
@@ -401,23 +401,34 @@ private:
     rclcpp::Time gps_key_time = gps_msg->header.stamp;
     gtsam::Symbol curr_pose_key('p', keyframe_idx_);
 
+        // Compute GPS error against current pose estimate BEFORE GPS is added
+    if (isam2_.getLinearizationPoint().exists(curr_pose_key)) {
+      gtsam::Pose3 estimated_pose = isam2_.calculateEstimate<gtsam::Pose3>(curr_pose_key);
+      double est_x = estimated_pose.translation().x();
+      double est_y = estimated_pose.translation().y();
+      double err_x = local_x - est_x;
+      double err_y = local_y - est_y;
+      double err_dist = std::sqrt(err_x * err_x + err_y * err_y);
+      RCLCPP_INFO(this->get_logger(), "[GPS Error BEFORE Optimization] dx: %.3f, dy: %.3f, dist: %.3f m", err_x, err_y, err_dist);
+    }
+
     graph_.add(gtsam::PriorFactor<gtsam::Pose3>(curr_pose_key, gps_position, gps_noise));
     isam2_.update(graph_, initial_estimate_);
     graph_.resize(0);
     initial_estimate_.clear();
 
     gtsam::Values result = isam2_.calculateEstimate();
-      try {
-        gtsam::Pose3 optimized_pose = result.at<gtsam::Pose3>(curr_pose_key);
-        double est_x = optimized_pose.translation().x();
-        double est_y = optimized_pose.translation().y();
-        double err_x = local_x - est_x;
-        double err_y = local_y - est_y;
-        double err_dist = std::sqrt(err_x * err_x + err_y * err_y);
-        RCLCPP_INFO(this->get_logger(), "[GPS Error] dx: %.3f, dy: %.3f, dist: %.3f m", err_x, err_y, err_dist);
-      } catch (const std::exception& e) {
-        RCLCPP_WARN(this->get_logger(), "Failed to extract optimized GPS pose: %s", e.what());
-      }
+      // try {
+      //   gtsam::Pose3 optimized_pose = result.at<gtsam::Pose3>(curr_pose_key);
+      //   double est_x = optimized_pose.translation().x();
+      //   double est_y = optimized_pose.translation().y();
+      //   double err_x = local_x - est_x;
+      //   double err_y = local_y - est_y;
+      //   double err_dist = std::sqrt(err_x * err_x + err_y * err_y);
+      //   RCLCPP_INFO(this->get_logger(), "[GPS Error] dx: %.3f, dy: %.3f, dist: %.3f m", err_x, err_y, err_dist);
+      // } catch (const std::exception& e) {
+      //   RCLCPP_WARN(this->get_logger(), "Failed to extract optimized GPS pose: %s", e.what());
+      // }
 
 
     gtsam::Pose3 gps_pose = result.at<gtsam::Pose3>(curr_pose_key);
