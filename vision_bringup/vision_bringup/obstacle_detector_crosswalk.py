@@ -108,7 +108,7 @@ class ObstacleDetector(Node):
             cv2.putText(dbg, f"Code: {final_code}", (10,30), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0,0,255), 2)
             dbg_msg = self.bridge.cv2_to_imgmsg(dbg, 'bgr8')
             dbg_msg.header = msg.header
-            self.debug_pubs[topic_name].publish(dbg_msg)
+            self.debug_publishers[topic_name].publish(dbg_msg)
 
         return callback
 
