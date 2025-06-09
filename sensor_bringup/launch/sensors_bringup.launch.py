@@ -17,7 +17,7 @@ def generate_launch_description():
     ))
 
     rtk_launcher = IncludeLaunchDescription(PythonLaunchDescriptionSource(
-        os.path.join(launch_dir, 'rtk_launcher.py')
+        os.path.join(launch_dir, 'rtk_launcher.launch.py')
     ))
 
     return LaunchDescription([

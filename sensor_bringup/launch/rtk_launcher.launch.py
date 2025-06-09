@@ -6,6 +6,7 @@ import time
 
 # 사용할 mountpoint 목록
 MOUNTPOINT_LIST = [
+    "SONP-RTCM31",
     "SUWN-RTCM31",
     "YONS-RTCM31",
     "DAEJ-RTCM31"

@@ -10,7 +10,7 @@ setup(
         ('share/' + package_name + '/launch', [
             'launch/imu.launch.py',
             'launch/rtk_gps.launch.py',
-            'launch/rtk_launcher.py',
+            'launch/rtk_launcher.launch.py',
             'launch/sensors_bringup.launch.py',
             'launch/ublox_gps_node-launch.py',
         ]),
