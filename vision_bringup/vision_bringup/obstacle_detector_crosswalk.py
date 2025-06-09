@@ -36,26 +36,41 @@ class ObstacleDetector(Node):
 
         self.prev_max = {t: 0.0 for t in camera_topics}
         self.last_codes = {t: 1   for t in camera_topics}
-        self.debug_pubs = {}
+        self.debug_publishers = {}
 
         for i, topic in enumerate(camera_topics):
-            self.debug_pubs[topic] = self.create_publisher(Image, f'/obstacle_crosswalk_debug_{i}', 1)
+            self.debug_publishers[topic] = self.create_publisher(Image, f'/obstacle_crosswalk_debug_{i}', 1)
             self.create_subscription(Image, topic, self.make_cb(topic), 1)
             self.get_logger().info(f'Subscribing to {topic}')
 
     def make_cb(self, topic_name):
         def callback(msg: Image):
             try:
-                img = self.bridge.imgmsg_to_cv2(msg, 'passthrough')
+                img_yuv422 = self.bridge.imgmsg_to_cv2(msg, 'passthrough')
+
+                # 안전하게 채널 수 검사
+                if img_yuv422.ndim == 3 and img_yuv422.shape[2] == 2:
+                    img = cv2.cvtColor(img_yuv422, cv2.COLOR_YUV2BGR_YUY2)
+                elif img_yuv422.ndim == 3 and img_yuv422.shape[2] == 3:
+                    self.get_logger().warn('Image already 3 channels. Skipping YUV2BGR_YUY2 conversion.')
+                    img = img_yuv422
+                else:
+                    self.get_logger().error(f'Unexpected image shape: {img_yuv422.shape}')
+                    return
+
+                # 이후 encoding 조건은 유지
                 if msg.encoding == 'rgb8':
                     img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
                 elif msg.encoding in ('mono8', '8UC1'):
                     img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+
             except Exception as e:
                 self.get_logger().error(f'Image conversion failed: {e}')
                 return
 
+
             #h_frame = img.shape[0]
+            print(f"image shape: {img.shape}, encoding: {msg.encoding}")
 
             res = self.model(img)[0]
             boxes = res.boxes.xyxy
