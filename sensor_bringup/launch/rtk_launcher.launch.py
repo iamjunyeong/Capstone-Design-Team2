@@ -1,73 +1,81 @@
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, OpaqueFunction, ExecuteProcess
+from launch.actions import DeclareLaunchArgument, SetEnvironmentVariable
 from launch.substitutions import LaunchConfiguration
-import subprocess
-import time
+from launch_ros.actions import Node
 
-# 사용할 mountpoint 목록
-MOUNTPOINT_LIST = [
-    "SONP-RTCM31",
-    "SUWN-RTCM31",
-    "YONS-RTCM31",
-    "DAEJ-RTCM31"
-]
-
-MAX_RETRIES_PER_MOUNT = 3
-
-# 이 변수에 선택된 mountpoint를 저장해 다음 ExecuteProcess에서 사용
-_selected_mountpoint = None
-
-def try_launch_rtk(context, *args, **kwargs):
-    global _selected_mountpoint
-
-    for mountpoint in MOUNTPOINT_LIST:
-        for attempt in range(MAX_RETRIES_PER_MOUNT):
-            print(f"[RTK] Attempt {attempt+1}/{MAX_RETRIES_PER_MOUNT} with mountpoint: {mountpoint}")
-            try:
-                proc = subprocess.Popen([
-                    'ros2', 'launch', 'sensor_bringup', 'rtk_gps.launch.py',
-                    f'mountpoint:={mountpoint}'
-                ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-                time.sleep(6)  # RTK 노드 안정화 시간
-
-                if proc.poll() is None:
-                    print(f"[RTK] Launched successfully with mountpoint: {mountpoint}")
-                    proc.terminate()  # 이제 respawn 방식으로 다시 실행하므로 종료
-                    _selected_mountpoint = mountpoint
-                    return []
-                
-                out, err = proc.communicate(timeout=3)
-                print(f"[RTK] Failed: {err.decode()}")
-
-            except Exception as e:
-                print(f"[RTK] Exception: {e}")
-            finally:
-                if proc and proc.poll() is None:
-                    proc.terminate()
-                    time.sleep(1)
-
-        print(f"[RTK] All retries failed for mountpoint: {mountpoint}, trying next...")
-
-    print("[RTK] All mountpoints failed. Could not establish RTK connection.")
-    _selected_mountpoint = None
-    return []
 
 def generate_launch_description():
     return LaunchDescription([
-        OpaqueFunction(function=try_launch_rtk),
+        # Declare arguments with default values
+        DeclareLaunchArgument('namespace',             default_value='/'),
+        DeclareLaunchArgument('node_name',             default_value='ntrip_client'),
+        DeclareLaunchArgument('debug',                 default_value='false'),
+        DeclareLaunchArgument('host',                  default_value='gnssdata.or.kr'),
+        DeclareLaunchArgument('port',                  default_value='2101'),
+        DeclareLaunchArgument('mountpoint',            default_value='SONP-RTCM31'),
+        DeclareLaunchArgument('ntrip_version',         default_value='None'),
+        DeclareLaunchArgument('authenticate',          default_value='True'),
+        DeclareLaunchArgument('username',              default_value='dltngod2000@gmail.com'),
+        DeclareLaunchArgument('password',              default_value='gnss'),
+        DeclareLaunchArgument('ssl',                   default_value='False'),
+        DeclareLaunchArgument('cert',                  default_value='None'),
+        DeclareLaunchArgument('key',                   default_value='None'),
+        DeclareLaunchArgument('ca_cert',               default_value='None'),
+        DeclareLaunchArgument('rtcm_message_package',  default_value='rtcm_msgs'),
 
-        # RTK 노드 감시 및 자동 재시작 실행
-        # OpaqueFunction 이후에 mountpoint가 설정되어 있어야 동작
-        ExecuteProcess(
-            cmd=[
-                'ros2', 'launch', 'sensor_bringup', 'rtk_gps.launch.py',
-                f'mountpoint:={_selected_mountpoint or MOUNTPOINT_LIST[0]}'
-            ],
-            name='rtk_persistent_launcher',
-            shell=False,
+        # Pass an environment variable to the node
+        SetEnvironmentVariable(name='NTRIP_CLIENT_DEBUG', value=LaunchConfiguration('debug')),
+
+        # ******************************************************************
+        # NTRIP Client Node
+        # ******************************************************************
+        Node(
+            name=LaunchConfiguration('node_name'),
+            namespace=LaunchConfiguration('namespace'),
+            package='ntrip_client',
+            executable='ntrip_ros.py',
             output='screen',
+            parameters=[
+                {
+                    # Required parameters used to connect to the NTRIP server
+                    'host': LaunchConfiguration('host'),
+                    'port': LaunchConfiguration('port'),
+                    'mountpoint': LaunchConfiguration('mountpoint'),
+
+                    # Optional parameter that will set the NTRIP version in the initial HTTP request to the NTRIP caster.
+                    'ntrip_version': LaunchConfiguration('ntrip_version'),
+
+                    # If this is set to true, we will read the username and password and attempt to authenticate. If not, we will attempt to connect unauthenticated
+                    'authenticate': LaunchConfiguration('authenticate'),
+
+                    # If authenticate is set the true, we will use these to authenticate with the server
+                    'username': LaunchConfiguration('username'),
+                    'password': LaunchConfiguration('password'),
+
+                    # Whether to connect with SSL. cert, key, and ca_cert options will only take effect if this is true
+                    'ssl': LaunchConfiguration('ssl'),
+                    'cert': LaunchConfiguration('cert'),
+                    'key':  LaunchConfiguration('key'),
+                    'ca_cert': LaunchConfiguration('ca_cert'),
+
+                    # Not sure if this will be looked at by other nodes, but this frame ID will be added to the RTCM messages published by this node
+                    'rtcm_frame_id': 'odom',
+
+                    # Optional parameters that will allow for longer or shorter NMEA messages. Standard max length for NMEA is 82
+                    'nmea_max_length': 128,
+                    'nmea_min_length': 3,
+
+                    # Use this parameter to change the type of RTCM message published by the node. Defaults to "mavros_msgs", but we also support "rtcm_msgs"
+                    'rtcm_message_package': LaunchConfiguration('rtcm_message_package'),
+
+                    # Reconnection behavior
+                    'reconnect_attempt_max': 1000000,               # 사실상 무한 재시도
+                    'reconnect_attempt_wait_seconds': 5,
+                    'rtcm_timeout_seconds': 4
+                }
+            ],
+            # 🔥 핵심: 노드 죽으면 자동 재실행
             respawn=True,
-            respawn_delay=3.0
+            respawn_delay=5.0
         )
     ])
