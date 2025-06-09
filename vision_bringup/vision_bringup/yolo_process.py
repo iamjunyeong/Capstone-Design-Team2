@@ -106,7 +106,7 @@ class SegmentedCloudNode(Node):
         self.bridge = CvBridge()
         self.K = None
 
-        self.model = YOLO('/home/loe/workspace/github/Capstone-Design-Team2/vision_bringup/resource/best.pt')
+        self.model = YOLO('/home/ubuntu/capstone_ws/src/Capstone-Design-Team2/vision_bringup/resource/best.pt')
 
         qos = QoSProfile(history=HistoryPolicy.KEEP_LAST, depth=5)
         sub_c = Subscriber(self, Image     , '/slic/color'       , qos_profile=qos)

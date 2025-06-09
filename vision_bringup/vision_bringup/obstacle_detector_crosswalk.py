@@ -10,7 +10,7 @@ from ultralytics import YOLO
 
 DYNAMIC_CLASSES = {'car', 'truck', 'bicycle', 'motorcycle', 'bus', 'scooter'}
 HEIGHT_THRESHOLDS = {
-    'car':        60,
+    'car':        30,
     'truck':      80,
     'bicycle':    50,
     'motorcycle': 50,
@@ -19,7 +19,7 @@ HEIGHT_THRESHOLDS = {
 }
 
 #FULL_FRAME_RATIO = 0.95
-MOVE_RATIO_THRESHOLD = 0.10
+MOVE_RATIO_THRESHOLD = 0.05
 EPS = 1e-6
 
 class ObstacleDetector(Node):
@@ -32,7 +32,7 @@ class ObstacleDetector(Node):
         self.pub_info = self.create_publisher(Int8, '/obstacle_crosswalk_info', 1)
         
         self.bridge = CvBridge()
-        self.model = YOLO('/home/loe/workspace/github/Capstone-Design-Team2/vision_bringup/model/obstacle_detector_crosswalk.pt')
+        self.model = YOLO('/home/ubuntu/capstone_ws/src/Capstone-Design-Team2/vision_bringup/model/obstacle_detector_crosswalk.pt')
 
         self.prev_max = {t: 0.0 for t in camera_topics}
         self.last_codes = {t: 1   for t in camera_topics}
@@ -92,6 +92,7 @@ class ObstacleDetector(Node):
  
             if boxes is None or len(boxes) == 0:
                 code = 1
+                current_h = 0.0
                 self.prev_max[topic_name] = 0.0 
             else:
                 prev_h = self.prev_max[topic_name]
@@ -100,7 +101,7 @@ class ObstacleDetector(Node):
                 if prev_h < EPS:
                     ratio = 0.0
                 else:
-                    ratio = abs(current_h - prev_h) / prev_h
+                    ratio = (current_h - prev_h) / prev_h
                 
                 if ratio >= MOVE_RATIO_THRESHOLD:
                     code = 0
