@@ -1,6 +1,6 @@
 import rclpy
 from rclpy.node import Node
-from std_msgs.msg import String, Bool
+from std_msgs.msg import String, Bool,UInt8
 import numpy as np
 import noisereduce as nr
 import threading
@@ -13,7 +13,8 @@ import sounddevice as sd
 import vito_stt_client_pb2 as pb
 import vito_stt_client_pb2_grpc as pb_grpc
 from requests import Session
-
+from hmi_interface.msg import Heartbeat
+from builtin_interfaces.msg import Time
 # === 설정 ===
 API_BASE = "https://openapi.vito.ai"
 GRPC_SERVER_URL = "grpc-openapi.vito.ai:443"
@@ -25,7 +26,7 @@ ENCODING = pb.DecoderConfig.AudioEncoding.LINEAR16
 CHANNELS = 1
 FRAME_DURATION_MS = 30
 FRAME_SIZE = int(SAMPLE_RATE * FRAME_DURATION_MS / 1000)
-MAX_SILENCE_DURATION = 1
+MAX_SILENCE_DURATION = 2
 
 boosted_keywords = [
     "가줘:5.0", "가자:5.0", "가고:1.0", "데려다줘:5.0", "이동:5.0", "갈래:5.0", "가고싶어:5.0", "가야돼:5.0",
@@ -34,7 +35,7 @@ boosted_keywords = [
     
     "바꿔:5.0", "목적지:5.0", "변경:5.0", "바꿔줘", "바꿀래", "변경할", "변경해", "다시", 
 
-    "까지", "몇:3.0","분:2.0", "얼마나:5.0", "도착:5.0", "시간:5.0", "얼마:5.0", "남았어:5.0", "걸려:5.0","언제:5.0","예상:5.0"
+    "까지", "몇:3.0","분:2.0", "얼마나:5.0", "도착:5.0", "시간:5.0", "얼마:5.0", "남았어:5.0", "걸려:5.0","언제:5.0","예상:5.0",
      
     "현재:5.0", "위치:5.0", "어디:5.0", "어디를", "어디야:5.0", "지나:5.0", "지금:5.0", "지나고:5.0",
 
@@ -167,21 +168,22 @@ class STTNode(Node):
         super().__init__('stt_node')
         self.publisher_ = self.create_publisher(String, '/stt_text', 10)
         self.talkbutton_sub = self.create_subscription(Bool,'/talkbutton_pressed',self.talk_button_callback,10)
-        
+        self.heartbeat_pub = self.create_publisher(Heartbeat, '/heartbeat/stt_node', 10)
         self.token = None
         self._sess = Session()
+        self.get_logger().info("세션 생성 완료")
         self.is_processing = False  # 중복 실행 방지용
         self.talkbutton_pressed = False
 
-        self.token = None
-        self._sess = Session()
+        self.heartbeat = 0 
 
         # 모니터 루프 스레드 시작
         self.monitor_thread = threading.Thread(target=self.monitor_loop)
         self.monitor_thread.daemon = True
         self.monitor_thread.start()
         self.get_logger().info("STT 모니터 루프 시작, STT NODE START")
-
+        self.create_timer(1.0, self.pub_heartbeat)  # 1초마다 heartbeat 퍼블리시
+    
     def talk_button_callback(self, msg):
         self.talkbutton_pressed = msg.data
 
@@ -192,6 +194,9 @@ class STTNode(Node):
     
     def monitor_loop(self):
         while rclpy.ok():
+            
+            self.heartbeat = 1 
+
             #self.get_logger().info("STT 모니터 루프 실행 중")
             if self.talkbutton_pressed and not self.is_processing:
                 self.get_logger().info("🎤 STT 실행 시작")
@@ -244,10 +249,19 @@ class STTNode(Node):
 
                 except Exception as e:
                     self.get_logger().error(f"STT 오류: {e}")
-
+                    self.heartbeat = 0 
                 finally:
                     self.is_processing = False
                     self.get_logger().info(" STT 실행 종료 및 초기화 완료")
+    
+    def pub_heartbeat(self):
+        msg = Heartbeat()
+        now = self.get_clock().now().to_msg()
+
+        msg.timestamp = now 
+        msg.code = self.heartbeat
+       
+        self.heartbeat_pub.publish(msg)
 
     def get_token(self):
         if self.token is None or self.token["expire_at"] < time.time():

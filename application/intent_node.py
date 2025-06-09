@@ -251,7 +251,7 @@ class IntentNode(Node):
     def find_closest_word(self, text, boosted_list):
         match = []
         for word in text.split():
-            match.extend(difflib.get_close_matches(word, boosted_list, n=1, cutoff=0.6))
+            match.extend(difflib.get_close_matches(word, boosted_list, n=1, cutoff=0.66))
         if match:
             return match
         else:

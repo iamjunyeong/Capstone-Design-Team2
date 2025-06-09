@@ -29,7 +29,8 @@ class TTSNode(Node):
             11: ', 잠시 정지하겠습니다. 주행을 시작하려면 손잡이를 바르게 잡아주세요.',
             12: ', 비상정지합니다. 비상 정지합니다.',
             13: ', 주행이 완료되었습니다. 주차구역에서 대기하겠습니다.',
-            14: ', 네'
+            14: ', 네',
+            15: ', 전방에 장애물이 있습니다.'
         }
         #변수 선언
         self.intent = None
@@ -53,6 +54,7 @@ class TTSNode(Node):
         self.driving_state = 'WAITING'
         self.vision_obstacle_info = 0  # 0(장애물 없음), 1(정적), 2(동적),3(둘다)
         self.sound_file = "response.mp3"  # 효과음 파일 경로
+        self.last_output_time = 0
         # pygame mixer 초기화
         try:
             pygame.mixer.init()
@@ -71,7 +73,7 @@ class TTSNode(Node):
         self.talkbutton_sub = self.create_subscription(Bool, '/talkbutton_pressed', self.talkbutton_callback,10)
         self.handlebutton_sub = self.create_subscription(Bool, '/handlebutton_state', self.handlebutton_callback,10)
         self.emergencybutton_sub = self.create_subscription(Bool, '/emergency', self.emergency_button_callback,10)
-        self.vision_obstacle_info_sub = self.create_subscription(Int8, '/obstacle_info', self.vision_callback, 10)  # 장애물 정보 수신용
+        self.vision_obstacle_info_sub = self.create_subscription(Int8, '/obs_info', self.vision_callback, 10)  # 장애물 정보 수신용
 
         # vision/obstacle_info 값 받아오는 sub 필요, callback에서 9번 출력 
         # (보류) 속도조절 스위치 값 받아오는 sub 필요, callback에서 조건에 따라 7,8번 출력
@@ -80,7 +82,7 @@ class TTSNode(Node):
         self.intent_tts_server = self.create_service(IntentToTTS, '/intent_to_tts_plan', self.intent_tts_callback)
 
         self.get_logger().info('TTS Node thread has started.')
-
+        
     def intent_confirm_callback(self, request, response):
         self.intent = request.intent
         if request.dst == 255 :
@@ -197,21 +199,26 @@ class TTSNode(Node):
     
     # 비전 장애물 받아오는 코드, 미완성!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!, 비전에서 토픽 고쳐야함. 지금은 obstacle_info 그대로 받아오면 너무 멀때 대처 x.
     def vision_callback(self, msg):
-        last_obstacle_info = self.vision_obstacle_info
+       
         self.vision_obstacle_info = msg.data
-        
-        if self.vision_obstacle_info == 0: #장애물 없음
-            self.get_logger().info("장애물 없음")
-        elif self.vision_obstacle_info == 1: #정적 장애물
-            self.get_logger().info("정적 장애물 감지")
-        
-        elif self.vision_obstacle_info == 2: #동적 장애물
-            self.get_logger().info("동적 장애물 감지")
-        elif self.vision_obstacle_info == 3: #둘다
-            self.get_logger().info("정적 및 동적 장애물 감지")
-
-
-
+        current_time = time.time()
+        if current_time - self.last_obstacle_warning_time >= 10: #마지막 경고로부터 10초 경과 
+            
+            if self.vision_obstacle_info == 0: #장애물 없음
+                self.get_logger().info("장애물 없음")
+            
+            elif self.vision_obstacle_info == 1: #정적 장애물
+                self.clear_queue()
+                self.request_queue.put((1, self.output_text[15])) 
+                self.get_logger().info("전방에 장애물이 있습니다. ")
+                self.last_output_time = current_time
+            
+            elif self.vision_obstacle_info in (2,3): #동적 장애물
+                
+                self.clear_queue()
+                self.request_queue.put((0, self.output_text[9])) 
+                self.get_logger().info("보행 중입니다. 주의하여주세요")
+                self.last_output_time = current_time
 
     def process_queue(self):
         """우선순위 큐에서 요청을 꺼내 순차적으로 재생"""

@@ -1,7 +1,8 @@
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Bool, Int32, UInt8
-
+from hmi_interface.msg import Heartbeat
+import datetime
 class ButtonNode(Node):
     def __init__(self):
         super().__init__('button_node')
@@ -11,6 +12,11 @@ class ButtonNode(Node):
         self.last_stt_state = None
         self.last_tact_state = None
 
+        # 각 노드 heartbeat 상태 초기화 
+        self.stt_hb_state = 0 
+        self.hpl_hb_state = 0
+
+
         # emergency_state: Bool 타입
         self.emergency_sub = self.create_subscription(Bool,'/emergency_state',self.emergency_callback,10)
         # stt_button_state: Bool 타입
@@ -18,27 +24,26 @@ class ButtonNode(Node):
         # tact_switch_state: Int32
         self.tact_sub = self.create_subscription(Int32,'/tact_switch_state',self.tact_callback,10)
 
+        #heartbeat 
+        self.hb_stt_sub = self.create_subscription(Heartbeat, '/heartbeat/stt_node', self.hb_stt_callback, 10) #stt 노드 callback (이상:0, 정상:1)
+        self.hb_hpl_sub = self.create_subscription(Heartbeat, '/heartbeat/hmi_planning_node', self.hb_hpl_callback, 10) #stt 노드 callback (이상:0, 정상:1)
         # 퍼블리셔 선언 (TTSNode 구독용)
         self.talkbutton_pub = self.create_publisher(Bool, '/talkbutton_pressed', 10)
         self.emergency_pub = self.create_publisher(Bool, '/emergency', 5)
         self.handlebutton_pub = self.create_publisher(UInt8, '/handlebutton_state', 5)
         self.hmi_stop_pub = self.create_publisher(Bool, '/hmi_stop', 10) #control 로 보내는 hmi 상태 
 
-        
+        self.create_timer(0.1, self.pub_log)  # 1초마다 heartbeat 퍼블리시
+
+
 
     def emergency_callback(self, msg):
-            if msg.data:
-                self.get_logger().info('[EMERGENCY] 비상정지 발생 (TRUE)')
-            else:
-                self.get_logger().warn('[EMERGENCY] 정상 상태 (FLASE)')
-            self.last_emergency_state = msg.data  # 상태 갱신
-            self.emergency_pub.publish(Bool(data=msg.data))
+    
+        self.last_emergency_state = msg.data  # 상태 갱신
+        self.emergency_pub.publish(Bool(data=msg.data))
 
     def stt_callback(self, msg):
-            if msg.data:
-                self.get_logger().info('[talk button]')
-            else:
-                self.get_logger().info('------------')
+            
             self.last_stt_state = msg.data  # 상태 갱신
             self.talkbutton_pub.publish(Bool(data=msg.data))
 
@@ -65,9 +70,56 @@ class ButtonNode(Node):
             else:
                 self.get_logger().warn('[TACT] 상태 불명 (2)')
 
-            self.last_tact_state = tact_code  # 상태 갱신
-            self.handlebutton_pub.publish(UInt8(data=tact_code))  # 퍼블리시
+        self.last_tact_state = tact_code  # 상태 갱신
+        self.handlebutton_pub.publish(UInt8(data=tact_code))  # 퍼블리시
+    
+    def pub_log(self):
+        
+        if self.stt_hb_state == 0:
+            stt = '❌'
+        elif self.stt_hb_state == 1:
+            stt = '✅'
+        if self.hpl_hb_state == 0:
+            hpl = '❌'
+        elif self.hpl_hb_state == 1:
+            hpl = '✅'
+        if self.last_emergency_state is None or self.last_emergency_state == False:
+            emergency = '__'
+        elif self.last_emergency_state:
+            emergency = '🛑'
+        if self.last_stt_state is None or self.last_stt_state == False:
+            talk = '__'
+        elif self.last_stt_state:
+            talk = '🎤'
 
+        self.get_logger().info(f'[STT]{stt} | [HPL]{hpl} | [EMERGENCY]{emergency} | [talkbt]{talk} |[tact]{self.last_tact_state} |')    
+       
+    def hb_stt_callback(self, msg): 
+        stamp_sec = msg.timestamp.sec  
+        stamp_nanosec = msg.timestamp.nanosec
+        code = msg.code
+        ros_time = datetime.datetime.fromtimestamp(stamp_sec + stamp_nanosec * 1e-9)
+        if ros_time is not None:
+            delta = datetime.datetime.now() - ros_time
+            if delta.total_seconds() > 5:  # 5초 이상 차이가 나면 이상으로 간주
+                self.stt_hb_state = 0
+            else:
+                
+                self.stt_hb_state = 1
+        
+    def hb_hpl_callback(self, msg):
+        stamp_sec = msg.timestamp.sec  
+        stamp_nanosec = msg.timestamp.nanosec
+        code = msg.code
+        ros_time = datetime.datetime.fromtimestamp(stamp_sec + stamp_nanosec * 1e-9)
+        if ros_time is not None:
+            delta = datetime.datetime.now() - ros_time
+            if delta.total_seconds() > 5:  # 5초 이상 차이가 나면 이상으로 간주
+                self.hpl_hb_state = 0
+            else:
+                
+                self.hpl_hb_state = 1
+        
 def main(args=None):
     rclpy.init(args=args)
     node = ButtonNode()
