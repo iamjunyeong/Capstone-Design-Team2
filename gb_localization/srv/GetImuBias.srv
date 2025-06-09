@@ -1,0 +1,6 @@
+# This message is for updating bias from graph_optimization node to pre_integration node
+# Request
+---
+# Response
+float64[3] acc_bias
+float64[3] gyro_bias

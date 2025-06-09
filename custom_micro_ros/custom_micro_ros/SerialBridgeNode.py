@@ -41,7 +41,7 @@ class SerialBridgeNode(Node):
         self.mode_pub = self.create_publisher(Int32, '/vehicle/mode', 10)
 
         # 주기적으로 아두이노에 데이터 전송 (10Hz)
-        self.timer = self.create_timer(0.1, self.send_serial_data)
+        self.timer = self.create_timer(0.05, self.send_serial_data)
 
         # 시리얼 수신 스레드 시작
         self.serial_thread = threading.Thread(target=self.read_serial_loop, daemon=True)
@@ -53,6 +53,9 @@ class SerialBridgeNode(Node):
     def ackermann_callback(self, msg):       # ★
         self.angle = msg.steering_angle * 180 / math.pi
         self.speed = msg.speed
+        # self.get_logger().info(f"[ACK] speed: {self.speed:.2f}, angle: {self.angle:.2f}")
+
+        
     
     def convert_to_nav_msgs(self, speed, angle):
         linear_x = speed
@@ -210,6 +213,8 @@ class SerialBridgeNode(Node):
 
                     del buffer[:PACKET_SIZE]
                     self.get_logger().debug(f"[Buffer] Packet processed. Buffer trimmed to {len(buffer)} bytes.")
+                    
+                time.sleep(0.005)
 
             except Exception as e:
                 self.get_logger().warn(f"[Serial Error] Read loop failed: {e}")
