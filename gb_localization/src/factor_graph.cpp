@@ -431,34 +431,53 @@ private:
       }
 
 
-    gtsam::Pose3 gps_pose = result.at<gtsam::Pose3>(curr_pose_key);
-    auto q = gps_pose.rotation().toQuaternion();
+    // gtsam::Pose3 gps_pose = result.at<gtsam::Pose3>(curr_pose_key);
+    // auto q = gps_pose.rotation().toQuaternion();
 
-    geometry_msgs::msg::PoseWithCovarianceStamped global_pose_msg;
-    global_pose_msg.header.stamp = getKeyframeTimestamp(gps_msg->header.stamp);
+    // geometry_msgs::msg::PoseWithCovarianceStamped global_pose_msg;
+    // global_pose_msg.header.stamp = getKeyframeTimestamp(gps_msg->header.stamp);
 
-    global_pose_msg.pose.pose.position.x = x;
-    global_pose_msg.pose.pose.position.y = y;
-    global_pose_msg.pose.pose.position.z = 0.0;
+    // global_pose_msg.pose.pose.position.x = x;
+    // global_pose_msg.pose.pose.position.y = y;
+    // global_pose_msg.pose.pose.position.z = 0.0;
     
 
-    global_pose_msg.pose.pose.orientation.x = q.x();
-    global_pose_msg.pose.pose.orientation.y = q.y();
-    global_pose_msg.pose.pose.orientation.z = q.z();
-    global_pose_msg.pose.pose.orientation.w = q.w();
+    // global_pose_msg.pose.pose.orientation.x = q.x();
+    // global_pose_msg.pose.pose.orientation.y = q.y();
+    // global_pose_msg.pose.pose.orientation.z = q.z();
+    // global_pose_msg.pose.pose.orientation.w = q.w();
 
-    global_pose_msg.header.frame_id = "map";
-    global_pose_pub_->publish(global_pose_msg);
+    // global_pose_msg.header.frame_id = "map";
+    // global_pose_pub_->publish(global_pose_msg);
 
+    // geometry_msgs::msg::TransformStamped global_map_tf;
+    // global_map_tf.header.stamp = getKeyframeTimestamp(gps_msg->header.stamp);
+    // global_map_tf.header.frame_id = "map";
+    // global_map_tf.child_frame_id = "odom";
+
+    // global_map_tf.transform.translation.x = local_x;
+    // global_map_tf.transform.translation.y = local_y;
+    // global_map_tf.transform.translation.z = 0.0;
+    
+    // global_map_tf.transform.rotation.x = q.x();
+    // global_map_tf.transform.rotation.y = q.y();
+    // global_map_tf.transform.rotation.z = q.z();
+    // global_map_tf.transform.rotation.w = q.w();
+
+    gtsam::Pose3 gps_pose = result.at<gtsam::Pose3>(curr_pose_key);
+    gtsam::Pose3 odom_pose = prev_pose_;
+    gtsam::Pose3 map_to_odom = gps_pose.compose(odom_pose.inverse());
+
+    auto q = map_to_odom.rotation().toQuaternion();
     geometry_msgs::msg::TransformStamped global_map_tf;
     global_map_tf.header.stamp = getKeyframeTimestamp(gps_msg->header.stamp);
     global_map_tf.header.frame_id = "map";
     global_map_tf.child_frame_id = "odom";
 
-    global_map_tf.transform.translation.x = local_x;
-    global_map_tf.transform.translation.y = local_y;
-    global_map_tf.transform.translation.z = 0.0;
-    
+    global_map_tf.transform.translation.x = map_to_odom.translation().x();
+    global_map_tf.transform.translation.y = map_to_odom.translation().y();
+    global_map_tf.transform.translation.z = map_to_odom.translation().z();
+
     global_map_tf.transform.rotation.x = q.x();
     global_map_tf.transform.rotation.y = q.y();
     global_map_tf.transform.rotation.z = q.z();
