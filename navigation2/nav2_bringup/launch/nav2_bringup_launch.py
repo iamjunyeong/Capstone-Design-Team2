@@ -21,9 +21,10 @@ default_params_file = os.path.join(
 
 default_map_file = os.path.join(
     # get_package_share_directory('nav2_bringup'), 'maps', 'map_filtered.yaml')       # map 변경
-    # get_package_share_directory('nav2_bringup'), 'maps', 'testmap_B_rotated.yaml')  # map 변경
+    get_package_share_directory('nav2_bringup'), 'maps', 'testmap_B.yaml')  # map 변경
     # get_package_share_directory('nav2_bringup'), 'maps', 'konkuk_map.yaml')          # map 변경
-    get_package_share_directory('nav2_bringup'), 'maps', 'no_tf_test_map.yaml')          # map 변경
+    # get_package_share_directory('nav2_bringup'), 'maps', 'no_tf_test_map.yaml')          # map 변경
+    # get_package_share_directory('nav2_bringup'), 'maps', 'map_7.yaml')          # map 변경
 default_rviz_config_file = os.path.join(
     get_package_share_directory('nav2_bringup'),
     'rviz', 'nav2_default_view.rviz')                       # rviz 변경
@@ -41,6 +42,7 @@ def generate_launch_description():
     rviz_config_file_arg= DeclareLaunchArgument('rviz_config_file',    default_value=default_rviz_config_file)
     use_rviz_arg        = DeclareLaunchArgument('use_rviz',            default_value='True')
     log_level_arg       = DeclareLaunchArgument('log_level',           default_value='info')
+    use_scan_filter_arg = DeclareLaunchArgument('use_scan_filter',     default_value='True')
 
     # ──────────── 2. LaunchConfiguration ────────────
     namespace        = LaunchConfiguration('namespace')
@@ -53,6 +55,7 @@ def generate_launch_description():
     rviz_config_file = LaunchConfiguration('rviz_config_file')
     use_rviz         = LaunchConfiguration('use_rviz')
     log_level        = LaunchConfiguration('log_level')
+    use_scan_filter  = LaunchConfiguration('use_scan_filter')
 
     # ──────────── 3. 파라미터 치환 ────────────
     configured_params = RewrittenYaml(
@@ -101,7 +104,8 @@ def generate_launch_description():
             'autostart'     : autostart,
             'use_composition': use_composition,
             'container_name': 'nav2_container',
-            'log_level'     : log_level           # 전달
+            'log_level'     : log_level,
+            'use_scan_filter': use_scan_filter
         }.items())
 
     # ──────────── 7. Lifecycle Manager (단일) ────────────
@@ -114,11 +118,11 @@ def generate_launch_description():
             'use_sim_time': use_sim_time,
             'autostart'   : autostart,
             'node_names'  : [
+                'map_server',
                 'controller_server',
                 'smoother_server',
                 'planner_server',
-                'bt_navigator',
-                'map_server'
+                'bt_navigator'
             ]
         }])
 
@@ -142,7 +146,7 @@ def generate_launch_description():
         arguments=['--ros-args', '--log-level', log_level],
         remappings=[('nav_vel', 'cmd_vel')])
 
-    # ──────────── 10. 신규 유틸리티 노드 2종 ────────────
+    # ──────────── 10. 신규 유틸리티 노드 4종 ────────────
     obstacle_layer_toggler_node = Node(
         package='obstacle_layer_toggler',
         executable='toggle_obstacle_layer',
@@ -153,6 +157,20 @@ def generate_launch_description():
         package='costmap_clearing',
         executable='clear_costmap_timer',
         name='clear_costmap_timer',
+        output='screen')
+    
+    scan_filter_node = Node(                                         # ← 실행 조건 추가
+        package='scan_filter_pkg',
+        executable='scan_filter_node',
+        name='scan_filter_node',
+        output='screen',
+        remappings=[('/scan_input', '/scan')],
+        condition=IfCondition(use_scan_filter))                      # ★ 추가
+    
+    hmi_angle_node = Node(
+        package='ackermann_hmi',
+        executable='hmi_angle_node',
+        name='hmi_angle_node',
         output='screen')
 
     # ──────────── 11. 그룹화 ────────────
@@ -166,7 +184,9 @@ def generate_launch_description():
         rviz_cmd,
         twist_to_ackermann_node,
         obstacle_layer_toggler_node,
-        costmap_clear_timer_node
+        costmap_clear_timer_node,
+        scan_filter_node,       # ← 그대로 두되 조건이 적용됨
+        hmi_angle_node
     ])
 
     # ──────────── 12. LaunchDescription 반환 ────────────
@@ -174,5 +194,6 @@ def generate_launch_description():
         namespace_arg, use_namespace_arg, use_composition_arg, use_sim_time_arg,
         autostart_arg, params_file_arg, map_yaml_file_arg, rviz_config_file_arg,
         use_rviz_arg, log_level_arg,
+        use_scan_filter_arg,
         bringup_group
     ])
