@@ -25,7 +25,7 @@ class ObstacleDetector(Node):
         # 모델 로드
         # pkg_share = get_package_share_directory('vision_bringup')
         # model_path = os.path.join(pkg_share, 'model', 'obstacle_detector.pt')
-        model_path = '/home/loe/workspace/github/Capstone-Design-Team2/vision_bringup/model/obstacle_detector.pt'
+        model_path = '/home/ubuntu/capstone_ws/src/Capstone-Design-Team2/vision_bringup/model/obstacle_detector.pt'
         self.model = YOLO(model_path)
 
         # 퍼블리셔
@@ -42,11 +42,19 @@ class ObstacleDetector(Node):
         self.get_logger().info('ObstacleDetector with depth filtering ready.')
     def cb_synced(self, img_msg, depth_msg):
         try:
-            color = self.bridge.imgmsg_to_cv2(img_msg, 'bgr8')
-            depth = self.bridge.imgmsg_to_cv2(depth_msg, 'passthrough')
+            # 원본 encoding 그대로 변환
+            color = self.bridge.imgmsg_to_cv2(img_msg, desired_encoding='passthrough')
+            depth = self.bridge.imgmsg_to_cv2(depth_msg, desired_encoding='passthrough')
+
+            # rgb → bgr로 변환 (YOLO는 일반적으로 BGR을 기대)
+            if img_msg.encoding.lower() == 'rgb8':
+                color = cv2.cvtColor(color, cv2.COLOR_RGB2BGR)
+
+            # depth 타입 확인
             if depth.dtype != np.uint16:
-                self.get_logger().warn('Expected uint16 depth image')
+                self.get_logger().warn(f"Expected uint16 depth, got {depth.dtype}")
                 return
+
         except Exception as e:
             self.get_logger().error(f'Image conversion failed: {e}')
             return
