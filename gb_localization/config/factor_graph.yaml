@@ -2,8 +2,14 @@ factor_graph_node:
   ros__parameters:
     is_ackerman_enable: false
     # map_7
-    datum_latitude: 37.54209048
-    datum_longitude: 127.07840478
+    # datum_latitude: 37.54209048
+    # datum_longitude: 127.07840478
     # map_filtered
     # datum_latitude: 37.5421362
     # datum_longitude: 127.079565
+    # local
+    datum_latitude: 37.5421118
+    datum_longitude: 127.0784013
+    # 6.08
+    # datum_latitude: 37.5421603
+    # datum_longitude: 127.078445

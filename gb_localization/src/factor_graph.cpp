@@ -175,6 +175,10 @@ private:
   double utm_origin_x_ = 0.0;
   double utm_origin_y_ = 0.0;
 
+  double yaw_ = 0.0;
+  double local_yaw_ = 0.0;
+  gtsam::Rot3 yaw_offset_ = gtsam::Rot3::Yaw(M_PI / 2);
+
   std::map<rclcpp::Time, rclcpp::Time> keyframe_timestamps_;
   std::map<rclcpp::Time, size_t> keyframe_index_map_;
 
@@ -219,6 +223,15 @@ private:
 
   // imu callback func
   void imuCallback(const sensor_msgs::msg::Imu::SharedPtr imu_msg){
+    const auto& q = imu_msg->orientation;
+
+    yaw_ = std::atan2(2.0 * (q.w * q.z + q.x * q.y),
+                 1.0 - 2.0 * (q.y * q.y + q.z * q.z));
+
+    local_yaw_ = local_yaw_ + imu_msg->angular_velocity.z * 0.01;
+    while (local_yaw_ > M_PI) local_yaw_ -= 2 * M_PI;
+    while (local_yaw_ < -M_PI) local_yaw_ += 2 * M_PI;
+
     imu_buf_.push_back(imu_msg);
 
     const double buffer_duration_sec = 1.0;
@@ -313,7 +326,11 @@ private:
         computeAckermannPose(encoder_msg, prev_encoder_time, is_first_encoder) :
         computeVelocityPose(encoder_msg, prev_encoder_time, is_first_encoder);
 
-    initial_estimate_.insert(curr_pose_key, ackermann_pose);
+    gtsam::Rot3 imu_rot = gtsam::Rot3::Yaw(yaw_);
+    gtsam::Point3 trans = ackermann_pose.translation();
+    gtsam::Pose3 imu_corrected_pose(imu_rot, trans);
+
+    initial_estimate_.insert(curr_pose_key, imu_corrected_pose);
     initial_estimate_.insert(curr_velocity_key, estimated_state.v());
     initial_estimate_.insert(curr_bias_key,imu_bias_);
     
@@ -337,6 +354,10 @@ private:
 
     auto q = prev_pose_.rotation().toQuaternion();
     
+    // double yaw = 0.0;
+    // yaw = std::atan2(2.0 * (q.w() * q.z() + q.x() * q.y()),
+    //              1.0 - 2.0 * (q.y() * q.y() + q.z() * q.z()));
+    // RCLCPP_INFO(this->get_logger(), "current yaw_ : %f, yaw from prev_pose : %f", yaw_, yaw);
     local_pose_msg.pose.pose.position.x = prev_pose_.translation().x();
     local_pose_msg.pose.pose.position.y = prev_pose_.translation().y();
     local_pose_msg.pose.pose.position.z = prev_pose_.translation().z();
@@ -349,14 +370,19 @@ private:
     local_pose_msg.header.frame_id = "odom";
     local_pose_pub_->publish(local_pose_msg);
 
+    gtsam::Pose3 yaw_pose_correction(yaw_offset_, gtsam::Point3(0, 0, 0));  // translation은 (0,0,0)
+    gtsam::Pose3 local_tf_pose = yaw_pose_correction * prev_pose_;
+
     geometry_msgs::msg::TransformStamped local_odom_tf;
     local_odom_tf.header.stamp = encoder_msg->header.stamp;
     local_odom_tf.header.frame_id = "odom";
     local_odom_tf.child_frame_id = "base_link";
 
-    local_odom_tf.transform.translation.x = prev_pose_.translation().x();
-    local_odom_tf.transform.translation.y = prev_pose_.translation().y();
-    local_odom_tf.transform.translation.z = prev_pose_.translation().z();
+    q = local_tf_pose.rotation().toQuaternion();
+
+    local_odom_tf.transform.translation.x = local_tf_pose.translation().x();
+    local_odom_tf.transform.translation.y = local_tf_pose.translation().y();
+    local_odom_tf.transform.translation.z = local_tf_pose.translation().z();
     
     local_odom_tf.transform.rotation.x = q.x();
     local_odom_tf.transform.rotation.y = q.y();
@@ -395,8 +421,11 @@ private:
     double local_x = x - utm_origin_x_; 
     double local_y = y - utm_origin_y_;
 
-    gtsam::Pose3 gps_position(gtsam::Rot3(), gtsam::Point3(local_x, local_y, 0.0));
-    auto gps_noise = gtsam::noiseModel::Diagonal::Sigmas((Vector(6) << 0.1, 0.1, 0.1, 999, 999, 999).finished());  // 6DOF Pose3
+    gtsam::Rot3 rot = gtsam::Rot3::Yaw(yaw_);
+    gtsam::Rot3 compensated_rot = yaw_offset_ * rot;
+
+    gtsam::Pose3 gps_position(compensated_rot, gtsam::Point3(local_x, local_y, 0.0));
+    auto gps_noise = gtsam::noiseModel::Diagonal::Sigmas((Vector(6) << 0.1, 0.1, 0.1, 999, 999, 0.3).finished());  // 6DOF Pose3
 
     rclcpp::Time gps_key_time = gps_msg->header.stamp;
     gtsam::Symbol curr_pose_key('p', keyframe_idx_);
@@ -464,11 +493,39 @@ private:
     // global_map_tf.transform.rotation.z = q.z();
     // global_map_tf.transform.rotation.w = q.w();
 
-    gtsam::Pose3 gps_pose = result.at<gtsam::Pose3>(curr_pose_key);
-    gtsam::Pose3 odom_pose = prev_pose_;
-    gtsam::Pose3 map_to_odom = gps_pose.compose(odom_pose.inverse());
+
+
+    // gtsam::Pose3 gps_pose = result.at<gtsam::Pose3>(curr_pose_key);
+    // gtsam::Pose3 odom_pose = prev_pose_;
+    // gtsam::Pose3 map_to_odom = gps_pose.compose(odom_pose.inverse());
+
+    // auto q = map_to_odom.rotation().toQuaternion();
+
+    // double global_yaw = std::atan2(2.0 * (q.w() * q.z() + q.x() * q.y()),
+    //           1.0 - 2.0 * (q.y() * q.y() + q.z() * q.z()));
+    // RCLCPP_INFO(this->get_logger(), "global yaw : %f, current yaw : %f", global_yaw, yaw_);
+
+    // tf 관련 부분
+    gtsam::Pose3 odom_to_base = prev_pose_;
+    gtsam::Pose3 map_to_base = result.at<gtsam::Pose3>(curr_pose_key);
+    gtsam::Pose3 map_to_odom = map_to_base.compose(odom_to_base.inverse());
 
     auto q = map_to_odom.rotation().toQuaternion();
+
+    geometry_msgs::msg::PoseWithCovarianceStamped global_pose_msg;
+    global_pose_msg.header.stamp = getKeyframeTimestamp(gps_msg->header.stamp);
+
+    global_pose_msg.pose.pose.position.x = x;
+    global_pose_msg.pose.pose.position.y = y;
+    global_pose_msg.pose.pose.position.z = 0.0;
+
+    global_pose_msg.pose.pose.orientation.x = q.x();
+    global_pose_msg.pose.pose.orientation.y = q.y();
+    global_pose_msg.pose.pose.orientation.z = q.z();
+    global_pose_msg.pose.pose.orientation.w = q.w();
+
+    global_pose_msg.header.frame_id = "map";
+    global_pose_pub_->publish(global_pose_msg);
     geometry_msgs::msg::TransformStamped global_map_tf;
     global_map_tf.header.stamp = getKeyframeTimestamp(gps_msg->header.stamp);
     global_map_tf.header.frame_id = "map";
@@ -484,6 +541,11 @@ private:
     global_map_tf.transform.rotation.w = q.w();
 
     global_odom_broadcaster_->sendTransform(global_map_tf);
+
+    // auto q_odom = odom_pose.rotation().toQuaternion();
+    // double odom_yaw = std::atan2(2.0 * (q_odom.w() * q_odom.z() + q_odom.x() * q_odom.y()),
+    //                             1.0 - 2.0 * (q_odom.y() * q_odom.y() + q_odom.z() * q_odom.z()));
+    // RCLCPP_INFO(this->get_logger(), "odom_pose yaw: %f", odom_yaw);
   }
 
   size_t findClosestKeyframe(const rclcpp::Time& stamp) {
@@ -572,10 +634,10 @@ private:
 
     double v_x = encoder_msg->twist.twist.linear.x;
     double v_y = encoder_msg->twist.twist.linear.y;
-    double v = hypot(v_x, v_y);
+
     double theta = atan2(v_y, v_x);
-    double dx = v * dt * cos(theta);
-    double dy = v * dt * sin(theta);
+    double dx = v_x * dt;
+    double dy = v_y * dt;
 
     return prev_pose_.compose(gtsam::Pose3(gtsam::Rot3::Yaw(theta), gtsam::Point3(dx, dy, 0.0)));
   }
