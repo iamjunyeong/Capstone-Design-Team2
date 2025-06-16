@@ -52,7 +52,7 @@ class IntentNode(Node):
         self.boosted_yes = ["네", "예","어", "그래", "응","맞아", "맞습니다", "그렇습니다"]
         self.boosted_no = ["아니오", "아니", "아닌데","틀려", "틀렸어","아니야"]
         self.boosted_change_dst = ["바꿔줘", "바꾸다", "바꿀래", "변경", "변경할","바꿔", "변경해", "다시", "목적지"]
-        
+        self.boosted_stop = [ "정지", "멈춰", "정지해", "멈춰줘"]
         self.get_logger().info('Intent Node started. Waiting for STT input...')
 
     # text from STT_node 
@@ -73,6 +73,7 @@ class IntentNode(Node):
         processed_text.extend(self.find_closest_word(unprocessed_text, self.boosted_yes))
         processed_text.extend(self.find_closest_word(unprocessed_text, self.boosted_no))
         processed_text.extend(self.find_closest_word(unprocessed_text, self.boosted_change_dst))
+        processed_text.extend(self.find_closest_word(unprocessed_text, self.boosted_stop))
         user_text = ""
         
         #중복 제거 
