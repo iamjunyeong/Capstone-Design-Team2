@@ -530,7 +530,7 @@ local_costmap:
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 1.0
-        inflation_radius: 0.5
+        inflation_radius: 0.7
         enabled: true
       braille_lane_layer:
         plugin: "nav2_costmap_2d::BrailleLaneLayer"
