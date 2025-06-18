@@ -168,7 +168,8 @@ private:
 
   double yaw_ = 0.0;
   double local_yaw_ = 0.0;
-  gtsam::Rot3 yaw_offset_ = gtsam::Rot3::Yaw(M_PI / 2);
+  gtsam::Rot3 yaw_offset_ = gtsam::Rot3::Yaw(-M_PI / 2);
+  gtsam::Rot3 yaw_compensation_ = gtsam::Rot3::Yaw(M_PI / 2);
 
   std::map<rclcpp::Time, rclcpp::Time> keyframe_timestamps_;
   std::map<rclcpp::Time, size_t> keyframe_index_map_;
@@ -415,7 +416,7 @@ private:
     double local_y = y - utm_origin_y_;
 
     gtsam::Rot3 rot = gtsam::Rot3::Yaw(yaw_);
-    gtsam::Rot3 compensated_rot = yaw_offset_ * rot;
+    gtsam::Rot3 compensated_rot = yaw_compensation_ * rot;
 
     gtsam::Pose3 gps_position(compensated_rot, gtsam::Point3(local_x, local_y, 0.0));
     auto gps_noise = gtsam::noiseModel::Diagonal::Sigmas((Vector(6) << 0.1, 0.1, 0.1, 999, 999, 0.3).finished());  // 6DOF Pose3
