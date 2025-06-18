@@ -75,17 +75,6 @@ public:
 
    
     imuCovarianceParams = PreintegrationParams::MakeSharedU(9.80665);
-    // acc_sigma = 0.02483647066;
-    // gyro_sigma = 0.15130551861;
-    // if (imu_variance_received_) {
-    //   Matrix3 I_3x3 = Matrix3::Identity();
-    //   imuCovarianceParams->accelerometerCovariance = I_3x3 * imu_variance_[0];
-    //   imuCovarianceParams->gyroscopeCovariance = I_3x3 * imu_variance_[3];
-    // } else {
-    //   Matrix3 I_3x3 = Matrix3::Identity();
-    //   imuCovarianceParams->accelerometerCovariance = I_3x3 * pow(0.02483647066,2);
-    //   imuCovarianceParams->gyroscopeCovariance = I_3x3 * pow(0.15130551861,2);
-    // }
     imuCovarianceParams->accelerometerCovariance = (gtsam::Matrix33() <<
       999.0, 0.0, 0.0,
       0.0, 999.0, 0.0,
@@ -180,7 +169,6 @@ private:
   double yaw_ = 0.0;
   double local_yaw_ = 0.0;
   gtsam::Rot3 yaw_offset_ = gtsam::Rot3::Yaw(M_PI / 2);
-  // gtsam::Rot3 yaw_offset_ = gtsam::Rot3::Yaw(0.0);
 
   std::map<rclcpp::Time, rclcpp::Time> keyframe_timestamps_;
   std::map<rclcpp::Time, size_t> keyframe_index_map_;
@@ -427,7 +415,7 @@ private:
     double local_y = y - utm_origin_y_;
 
     gtsam::Rot3 rot = gtsam::Rot3::Yaw(yaw_);
-    gtsam::Rot3 compensated_rot =  rot;
+    gtsam::Rot3 compensated_rot = yaw_offset_ * rot;
 
     gtsam::Pose3 gps_position(compensated_rot, gtsam::Point3(local_x, local_y, 0.0));
     auto gps_noise = gtsam::noiseModel::Diagonal::Sigmas((Vector(6) << 0.1, 0.1, 0.1, 999, 999, 0.3).finished());  // 6DOF Pose3
@@ -435,16 +423,16 @@ private:
     rclcpp::Time gps_key_time = gps_msg->header.stamp;
     gtsam::Symbol curr_pose_key('p', keyframe_idx_);
 
-    //     // Compute GPS error against current pose estimate BEFORE GPS is added
-    // if (isam2_.getLinearizationPoint().exists(curr_pose_key)) {
-    //   gtsam::Pose3 estimated_pose = isam2_.calculateEstimate<gtsam::Pose3>(curr_pose_key);
-    //   double est_x = estimated_pose.translation().x();
-    //   double est_y = estimated_pose.translation().y();
-    //   double err_x = local_x - est_x;
-    //   double err_y = local_y - est_y;
-    //   double err_dist = std::sqrt(err_x * err_x + err_y * err_y);
-    //   RCLCPP_INFO(this->get_logger(), "[GPS Error BEFORE Optimization] dx: %.3f, dy: %.3f, dist: %.3f m", err_x, err_y, err_dist);
-    // }
+        // Compute GPS error against current pose estimate BEFORE GPS is added
+    if (isam2_.getLinearizationPoint().exists(curr_pose_key)) {
+      gtsam::Pose3 estimated_pose = isam2_.calculateEstimate<gtsam::Pose3>(curr_pose_key);
+      double est_x = estimated_pose.translation().x();
+      double est_y = estimated_pose.translation().y();
+      double err_x = local_x - est_x;
+      double err_y = local_y - est_y;
+      double err_dist = std::sqrt(err_x * err_x + err_y * err_y);
+      RCLCPP_INFO(this->get_logger(), "[GPS Error BEFORE Optimization] dx: %.3f, dy: %.3f, dist: %.3f m", err_x, err_y, err_dist);
+    }
 
     graph_.add(gtsam::PriorFactor<gtsam::Pose3>(curr_pose_key, gps_position, gps_noise));
     isam2_.update(graph_, initial_estimate_);
@@ -463,52 +451,6 @@ private:
       } catch (const std::exception& e) {
         RCLCPP_WARN(this->get_logger(), "Failed to extract optimized GPS pose: %s", e.what());
       }
-
-
-    // gtsam::Pose3 gps_pose = result.at<gtsam::Pose3>(curr_pose_key);
-    // auto q = gps_pose.rotation().toQuaternion();
-
-    // geometry_msgs::msg::PoseWithCovarianceStamped global_pose_msg;
-    // global_pose_msg.header.stamp = getKeyframeTimestamp(gps_msg->header.stamp);
-
-    // global_pose_msg.pose.pose.position.x = x;
-    // global_pose_msg.pose.pose.position.y = y;
-    // global_pose_msg.pose.pose.position.z = 0.0;
-    
-
-    // global_pose_msg.pose.pose.orientation.x = q.x();
-    // global_pose_msg.pose.pose.orientation.y = q.y();
-    // global_pose_msg.pose.pose.orientation.z = q.z();
-    // global_pose_msg.pose.pose.orientation.w = q.w();
-
-    // global_pose_msg.header.frame_id = "map";
-    // global_pose_pub_->publish(global_pose_msg);
-
-    // geometry_msgs::msg::TransformStamped global_map_tf;
-    // global_map_tf.header.stamp = getKeyframeTimestamp(gps_msg->header.stamp);
-    // global_map_tf.header.frame_id = "map";
-    // global_map_tf.child_frame_id = "odom";
-
-    // global_map_tf.transform.translation.x = local_x;
-    // global_map_tf.transform.translation.y = local_y;
-    // global_map_tf.transform.translation.z = 0.0;
-    
-    // global_map_tf.transform.rotation.x = q.x();
-    // global_map_tf.transform.rotation.y = q.y();
-    // global_map_tf.transform.rotation.z = q.z();
-    // global_map_tf.transform.rotation.w = q.w();
-
-
-
-    // gtsam::Pose3 gps_pose = result.at<gtsam::Pose3>(curr_pose_key);
-    // gtsam::Pose3 odom_pose = prev_pose_;
-    // gtsam::Pose3 map_to_odom = gps_pose.compose(odom_pose.inverse());
-
-    // auto q = map_to_odom.rotation().toQuaternion();
-
-    // double global_yaw = std::atan2(2.0 * (q.w() * q.z() + q.x() * q.y()),
-    //           1.0 - 2.0 * (q.y() * q.y() + q.z() * q.z()));
-    // RCLCPP_INFO(this->get_logger(), "global yaw : %f, current yaw : %f", global_yaw, yaw_);
 
     // tf 관련 부분
     gtsam::Pose3 odom_to_base = prev_pose_;
@@ -546,11 +488,6 @@ private:
     global_map_tf.transform.rotation.w = q.w();
 
     global_odom_broadcaster_->sendTransform(global_map_tf);
-
-    // auto q_odom = odom_pose.rotation().toQuaternion();
-    // double odom_yaw = std::atan2(2.0 * (q_odom.w() * q_odom.z() + q_odom.x() * q_odom.y()),
-    //                             1.0 - 2.0 * (q_odom.y() * q_odom.y() + q_odom.z() * q_odom.z()));
-    // RCLCPP_INFO(this->get_logger(), "odom_pose yaw: %f", odom_yaw);
   }
 
   size_t findClosestKeyframe(const rclcpp::Time& stamp) {
