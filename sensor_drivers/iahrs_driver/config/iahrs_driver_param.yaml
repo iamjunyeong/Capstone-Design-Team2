@@ -1,10 +1,10 @@
 iahrs_driver:
   ros__parameters:
     m_bSingle_TF_option: true
-    sensor_hz: 100
+    sensor_hz: 20
     child_frame: imu
     parent_frame: base_link
     serial_port: /dev/ttyUSB0
     # qos_reliability: "best_effort"
-    qos_reliability: "reliable"
+    qos_reliability: "best_effort"
     is_compensation_enable: true

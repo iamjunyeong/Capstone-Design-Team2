@@ -10,7 +10,7 @@ from ackermann_msgs.msg import AckermannDrive     # ★ 신규
 import time
 from serial import SerialException
 
-class SerialBridgeNode(Node):
+class SerialBridgeNode2(Node):
     def __init__(self):
         super().__init__('custom_micro_ros')
         self.get_logger().info("Initializing SerialBridgeNode.")
@@ -68,7 +68,7 @@ class SerialBridgeNode(Node):
     #  Ackermann 콜백
     # ──────────────────────────────
     def ackermann_callback(self, msg):       # ★
-        self.nav2_angle = msg.steering_angle * 180 / math.pi
+        self.nav2_angle = msg.steering_angle
         self.nav2_speed = msg.speed
     
     def convert_to_nav_msgs(self, speed, angle):
@@ -238,7 +238,7 @@ class SerialBridgeNode(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    node = SerialBridgeNode()
+    node = SerialBridgeNode2()
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:

@@ -45,12 +45,14 @@ public:
   {
     RCLCPP_INFO(this->get_logger(),"factor_graph_node started");
 
-    imu_sub_ = this->create_subscription<sensor_msgs::msg::Imu>("imu/data", 10, bind(&FactorGraphNode::imuCallback, this, placeholders::_1));
     encoder_sub_ = this->create_subscription<geometry_msgs::msg::TwistWithCovarianceStamped>("encoder/twist", 10, bind(&FactorGraphNode::preintegrateImu, this, placeholders::_1));
     gps_sub_ = this->create_subscription<sensor_msgs::msg::NavSatFix>("Ublox_gps/fix", 10, bind(&FactorGraphNode::gpsCallback, this, placeholders::_1));
     // rosbag qos 설정 ************************************************************************************
     rclcpp::QoS gps_qos = rclcpp::QoS(rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_sensor_data));
     gps_qos.best_effort();
+    rclcpp::QoS imu_qos = rclcpp::QoS(rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_sensor_data));
+    imu_qos.best_effort();
+    imu_sub_ = this->create_subscription<sensor_msgs::msg::Imu>("imu/data", 10, bind(&FactorGraphNode::imuCallback, this, placeholders::_1));
     gps_sub_ = this->create_subscription<sensor_msgs::msg::NavSatFix>("ublox_gps_node/fix", gps_qos, bind(&FactorGraphNode::gpsCallback, this, placeholders::_1));
     //**************************************************************************************************
     imu_variance_sub_ = this->create_subscription<std_msgs::msg::Float64MultiArray>(
@@ -178,6 +180,7 @@ private:
   double yaw_ = 0.0;
   double local_yaw_ = 0.0;
   gtsam::Rot3 yaw_offset_ = gtsam::Rot3::Yaw(M_PI / 2);
+  // gtsam::Rot3 yaw_offset_ = gtsam::Rot3::Yaw(0.0);
 
   std::map<rclcpp::Time, rclcpp::Time> keyframe_timestamps_;
   std::map<rclcpp::Time, size_t> keyframe_index_map_;
@@ -228,6 +231,8 @@ private:
     yaw_ = std::atan2(2.0 * (q.w * q.z + q.x * q.y),
                  1.0 - 2.0 * (q.y * q.y + q.z * q.z));
 
+    RCLCPP_INFO(this->get_logger(), "yaw : %f", yaw_);
+
     local_yaw_ = local_yaw_ + imu_msg->angular_velocity.z * 0.01;
     while (local_yaw_ > M_PI) local_yaw_ -= 2 * M_PI;
     while (local_yaw_ < -M_PI) local_yaw_ += 2 * M_PI;
@@ -243,7 +248,7 @@ private:
 
     imu_count_++;
     if (imu_count_ % 1000 == 0){
-      RCLCPP_INFO(this->get_logger(), "Received 1000 IMU messages");
+      RCLCPP_INFO(this->get_logger(), "Received 1000 IMU messages with yaw : %f", yaw_);
       imu_count_ = 0;
     }
   }
@@ -422,7 +427,7 @@ private:
     double local_y = y - utm_origin_y_;
 
     gtsam::Rot3 rot = gtsam::Rot3::Yaw(yaw_);
-    gtsam::Rot3 compensated_rot = yaw_offset_ * rot;
+    gtsam::Rot3 compensated_rot =  rot;
 
     gtsam::Pose3 gps_position(compensated_rot, gtsam::Point3(local_x, local_y, 0.0));
     auto gps_noise = gtsam::noiseModel::Diagonal::Sigmas((Vector(6) << 0.1, 0.1, 0.1, 999, 999, 0.3).finished());  // 6DOF Pose3
@@ -430,16 +435,16 @@ private:
     rclcpp::Time gps_key_time = gps_msg->header.stamp;
     gtsam::Symbol curr_pose_key('p', keyframe_idx_);
 
-        // Compute GPS error against current pose estimate BEFORE GPS is added
-    if (isam2_.getLinearizationPoint().exists(curr_pose_key)) {
-      gtsam::Pose3 estimated_pose = isam2_.calculateEstimate<gtsam::Pose3>(curr_pose_key);
-      double est_x = estimated_pose.translation().x();
-      double est_y = estimated_pose.translation().y();
-      double err_x = local_x - est_x;
-      double err_y = local_y - est_y;
-      double err_dist = std::sqrt(err_x * err_x + err_y * err_y);
-      RCLCPP_INFO(this->get_logger(), "[GPS Error BEFORE Optimization] dx: %.3f, dy: %.3f, dist: %.3f m", err_x, err_y, err_dist);
-    }
+    //     // Compute GPS error against current pose estimate BEFORE GPS is added
+    // if (isam2_.getLinearizationPoint().exists(curr_pose_key)) {
+    //   gtsam::Pose3 estimated_pose = isam2_.calculateEstimate<gtsam::Pose3>(curr_pose_key);
+    //   double est_x = estimated_pose.translation().x();
+    //   double est_y = estimated_pose.translation().y();
+    //   double err_x = local_x - est_x;
+    //   double err_y = local_y - est_y;
+    //   double err_dist = std::sqrt(err_x * err_x + err_y * err_y);
+    //   RCLCPP_INFO(this->get_logger(), "[GPS Error BEFORE Optimization] dx: %.3f, dy: %.3f, dist: %.3f m", err_x, err_y, err_dist);
+    // }
 
     graph_.add(gtsam::PriorFactor<gtsam::Pose3>(curr_pose_key, gps_position, gps_noise));
     isam2_.update(graph_, initial_estimate_);
