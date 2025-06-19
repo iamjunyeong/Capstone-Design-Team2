@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 import os
 import rclpy
+from std_srvs.srv import Trigger       
+from rclpy.duration import Duration                           
 from rclpy.node import Node
 from sensor_msgs.msg import Image
 from std_msgs.msg import Int8
 from cv_bridge import CvBridge
 import cv2
 from ultralytics import YOLO
+
+
 
 DYNAMIC_CLASSES = {'car', 'truck', 'bicycle', 'motorcycle', 'bus', 'scooter'}
 HEIGHT_THRESHOLDS = {
@@ -19,7 +23,7 @@ HEIGHT_THRESHOLDS = {
 }
 
 #FULL_FRAME_RATIO = 0.95
-MOVE_RATIO_THRESHOLD = 0.05
+MOVE_RATIO_THRESHOLD = 0.04
 EPS = 1e-6
 
 class ObstacleDetector(Node):
@@ -32,7 +36,7 @@ class ObstacleDetector(Node):
         self.pub_info = self.create_publisher(Int8, '/obstacle_crosswalk_info', 1)
         
         self.bridge = CvBridge()
-        self.model = YOLO('/home/ubuntu/capstone_ws/src/Capstone-Design-Team2/vision_bringup/model/obstacle_detector_crosswalk.pt')
+        self.model = YOLO('/home/loe/workspace/github/Capstone-Design-Team2/vision_bringup/model/obstacle_detector_crosswalk.pt')
 
         self.prev_max = {t: 0.0 for t in camera_topics}
         self.last_codes = {t: 1   for t in camera_topics}
@@ -42,6 +46,26 @@ class ObstacleDetector(Node):
             self.debug_publishers[topic] = self.create_publisher(Image, f'/obstacle_crosswalk_debug_{i}', 1)
             self.create_subscription(Image, topic, self.make_cb(topic), 1)
             self.get_logger().info(f'Subscribing to {topic}')
+
+
+        self.obstacle_detected = False
+        self.create_subscription(
+            Int8,
+            '/obstacle_crosswalk_info',
+            self._info_cb,
+            10,
+        )
+
+        # 2) 서비스 서버
+        self.srv = self.create_service(
+            Trigger,
+            'detect_crosswalk',
+            self.handle_detect_service,
+        )
+        self.get_logger().info('Service "detect_crosswalk" ready')
+
+
+
 
     def make_cb(self, topic_name):
         def callback(msg: Image):
@@ -131,6 +155,33 @@ class ObstacleDetector(Node):
             self.debug_publishers[topic_name].publish(dbg_msg)
 
         return callback
+    
+
+    
+    def _info_cb(self, msg: Int8):
+        if msg.data == 0:
+            self.obstacle_detected = True
+
+    def handle_detect_service(self, request, response):
+        # 초기화
+        self.obstacle_detected = False
+
+        # 3초간 spin_once
+        start = self.get_clock().now()
+        timeout = Duration(seconds=3.0)
+        while self.get_clock().now() - start < timeout:
+            rclpy.spin_once(self, timeout_sec=0.1)
+
+        # 결과 결정
+        final_code = 0 if self.obstacle_detected else 1
+        response.success = True
+        response.message = str(final_code)
+        self.get_logger().info(
+            f'Service detected {"OBSTACLE" if self.obstacle_detected else "CLEAR"} → code {final_code}'
+        )
+        return response
+
+
 
 def main(args=None):
     rclpy.init(args=args)

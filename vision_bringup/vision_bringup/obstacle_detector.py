@@ -25,7 +25,7 @@ class ObstacleDetector(Node):
         # 모델 로드
         # pkg_share = get_package_share_directory('vision_bringup')
         # model_path = os.path.join(pkg_share, 'model', 'obstacle_detector.pt')
-        model_path = '/home/ubuntu/capstone_ws/src/Capstone-Design-Team2/vision_bringup/model/obstacle_detector.pt'
+        model_path = '/home/loe/workspace/github/Capstone-Design-Team2/vision_bringup/model/obstacle_detector.pt'
         self.model = YOLO(model_path)
 
         # 퍼블리셔
