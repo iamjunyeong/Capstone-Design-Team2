@@ -17,9 +17,8 @@ class IntentNode(Node):
         self.intent_tts_client = self.create_client(IntentToTTS, '/intent_to_tts_plan') # TTS 노드로 주행 중 질문 전송 
         #pub
         self.confirm_pub = self.create_publisher(UInt8, '/confirm_request', 10)  # 확인 요청 상태 전송
-        self.dstpub = self.create_publisher(UInt8, '/dst',1) 
         self.building_id_pub = self.create_publisher(IntentToPlanningmsg, '/voice/building_id', 1)  # 건물 ID 전송
-
+        self.heartbeat_pub = self.create_publisher(UInt8, '/heartbeat/intent_node', 10)  # heartbeat 퍼블리셔
         #variables
         self.replanning = False #replanning flag 
         self.intent = None # intent now 
@@ -43,18 +42,19 @@ class IntentNode(Node):
             "수의학관":15,
             "동생대" :18,
             "동물생명과학관" :18,
-            "입학정보관" :20
+            "입학정보관" :20,
+            "정문":20 
         }
         # keywords for intent classification
         #self.boosted_dst = ["신공학관", "공학관","공대","신공", "새천년관", "학생회관", "법학관","정문", "후문", "문과대","인문학관", "경영대", "경영관"]
-        self.boosted_dst = ["신공", "신공학관", "공학관", "공대", "학생회관", "법학관", "종강", "종합강의동", "수의대", "수의학관", "동생대", "동물생명과학관", "입학정보관"]
+        self.boosted_dst = ["신공", "신공학관", "공학관", "공대", "학생회관","청심대", "법학관", "종강", "종합강의동", "수의대", "수의학관", "동생대", "동물생명과학관", "입학정보관","정문"]
         self.boosted_togo = ["가줘", "가자", "가고 싶어", "데려다줘", "이동", "갈래", "가고","가고싶어", "출발", "가야돼"]
         self.boosted_howlong = ["까지 ", "몇", "분이", "분이나", "얼마나", "도착", "시간", "걸릴까", "걸려", "남았어","얼마", "언제"]
         self.boosted_where = ["어디야", "현재 위치", "어디를", "지나고", "위치","지금", "어디", "현재", "지나"]
         self.boosted_yes = ["네", "예","어", "그래", "응","맞아", "맞습니다", "그렇습니다"]
         self.boosted_no = ["아니오", "아니", "아닌데","틀려", "틀렸어","아니야"]
         self.boosted_change_dst = ["바꿔줘", "바꾸다", "바꿀래", "변경", "변경할","바꿔", "변경해", "다시", "목적지"]
-        self.boosted_stop = ["정지", "멈춰", "정지해", "멈춰줘"]
+        self.boosted_stop = ["튜토리얼","정지", "멈춰", "정지해", "멈춰줘"]
 
         self.get_logger().info('Intent Node started. Waiting for STT input...')
 
@@ -85,7 +85,7 @@ class IntentNode(Node):
         self.get_logger().info(f"추출된 키워드: {processed_text}")
         for item in processed_text:
             user_text += item + " "
-
+        self.get_logger().info(f"user text stripped: {user_text}")
         # 가공된 문장으로 의도 분류 시작 
         intent_info = self.classify_intent(user_text) #user_text : list 
         
@@ -97,7 +97,7 @@ class IntentNode(Node):
         # 키워드 매칭을 위한 의도 키워드 사전
         intent_keywords = {
             "set_destination": ["가줘", "가자", "가고", "데려다줘", "이동", "갈래", "가고싶어", "가야돼",
-                                "새천년관", "신공학관", "공학관", "공대", "학생회관", "법학관", "종강", 
+                                "새천년관", "신공학관", "공학관", "공대", "학생회관","청심대", "법학관", "종강", 
                                 "종합강의동", "수의대", "수의학관", "동생대", "동물생명과학관", "입학정보관"],
             "change_dst" : ["바꿔", "목적지", "변경", "바꿔줘", "바꿀래",  "변경할", "변경해", "다시" ],
             "get_eta": ["까지", "몇", "분", "얼마나", "도착", "시간", "얼마", "남았어", "걸려", "언제", "예상"],
@@ -105,15 +105,18 @@ class IntentNode(Node):
             "confirm_yes" : ["네", "예", "어", "그래", "응","맞아", "맞습니다", "그렇습니다", "좋아","조아"],
             "confirm_no" : ["아니오", "아니", "아닌데","틀려", "틀렸어", "아니야"],
             "stop" : ["정지", "멈춰", "정지해", "멈춰줘"],
+            "tutorial" : ["튜토리얼"]
         }
 
         # 목적지 수령 self.dst = string 
         for dst in self.boosted_dst:
+            user_text = user_text.strip() # 공백 제거
             if dst in user_text:
                 self.dst = dst
+                break
             else: self.dst = "unknown" # 목적지 수령 실패 시
             
-            break
+            
 
         # 기타 의도 수령
         for key, keywords in intent_keywords.items():
@@ -130,6 +133,12 @@ class IntentNode(Node):
             req.dst = 255 # default: 255 (uint8)
             future = self.main_intent_client.call_async(req) 
             self.memory_clear()
+        elif self.intent == "tutorial": # 튜토리얼 의도
+            self.get_logger().info("튜토리얼 시작")
+            req = IntentResponse.Request()
+            req.intent = self.intent
+            req.dst = 255 # default: 255 (uint8)
+            future = self.main_intent_client.call_async(req) # TTS 노드로 튜토리얼 의도 전송
 
         # 목적지 설정으로 분류됐을 경우 
         elif self.intent == "set_destination":
@@ -137,9 +146,10 @@ class IntentNode(Node):
             
             if self.dst == None or self.dst == "unknown": # 목적지 수령 실패 시
                 self.get_logger().info("목적지 수령 실패, 기본 목적지로 설정")
+                self.response_state = "IDLE"
+                req = IntentResponse.Request()
                 req.intent = "unknown"
                 req.dst = 255 # default: 255 (uint8)
-                self.response_state = "IDLE"
                 
             else:
                 self.response_state = 'REQUEST_CONFIRM'
@@ -167,12 +177,13 @@ class IntentNode(Node):
 
         # 주행 중 질의 
         elif self.intent == "get_eta" or self.intent == "get_location": 
-            print("hmi planning 노드로 상태 보내주기 필요 ")
-            planning_req = IntentToPlanning.Request()
-            planning_req.intent = self.intent
-            
-            future = self.intent_planning_client.call_async(planning_req)
-            future.add_done_callback(self.planning_response_callback)
+            if self.response_state == 'CONFIRMED':
+                print("hmi planning 노드로 상태 보내주기 필요 ")
+                planning_req = IntentToPlanning.Request()
+                planning_req.intent = self.intent
+                
+                future = self.intent_planning_client.call_async(planning_req)
+                future.add_done_callback(self.planning_response_callback)
 
         # 긍/부정 판단 
         elif self.intent == "confirm_yes" or self.intent == "confirm_no":
@@ -204,10 +215,17 @@ class IntentNode(Node):
             future = self.main_intent_client.call_async(req)
 
     def confirm_action(self, yesorno):
+        
+
         req = IntentResponse.Request()
         req.intent = "confirm_yes" if yesorno else "confirm_no"
-        req.dst = self.dst_dict[self.dstmemory]
-
+        
+        if self.dstmemory == "unknown" or self.dstmemory == None: # 목적지 수령 실패 시
+            req.dst = 255
+            self.response_state = "IDLE"
+            self.get_logger().info("목적지 수령 실패 IDLE로 전환")
+        else:
+            req.dst = self.dst_dict[self.dstmemory]
         future = self.main_intent_client.call_async(req)
         future.add_done_callback(self.final_response_callback)
 
@@ -252,7 +270,7 @@ class IntentNode(Node):
             self.get_logger().error(f"서비스 호출 실패: {e}")
             self.response_state = "IDLE"
             self.memory_clear()
-            # unknown 전송 
+             
 
     
     def planning_response_callback(self,future):
@@ -261,7 +279,7 @@ class IntentNode(Node):
         self.get_logger().info(f"hmi_planning 노드로부터 서비스 응답 확인")
         
         tts_req = IntentToTTS.Request() 
-        tts_req.intent = response.intent_response
+        tts_req.intent = response.intent
         tts_req.estimated_time_remaining = response.estimated_time_remaining
         tts_req.closest_landmark = response.closest_landmark
         
@@ -292,7 +310,3 @@ def main(args=None):
 if __name__ == '__main__':
     main()
 
-#내가 처음에는 목적지를 새천연관으로 설정했었는데 신공학관으로 바꾸고 싶어졌어요 
-#엄 음 새천년관까지는 몇 분이나 걸릴지 한 번 말해보세요 
-#새청년관까지 얼마나 걸리나요?
-#어디를 어디 어디야 

@@ -53,36 +53,49 @@ class GoalSender(Node):
         self._current_goal_handle = None
         self.intent_server = self.create_service(IntentToPlanning, '/intent_to_planning', self.intent_server_callback)
         self.heartbeat_pub = self.create_publisher(UInt8, '/heartbeat/hmi_planning_node', 10)  # heartbeat 퍼블리셔
+        self.handlebutton_sub = self.create_subscription(UInt8, '/handlebutton_state', self.handlebutton_callback, 10)  # 핸들 버튼 상태 구독
         self.heartbeat = 0
+        self.handlebutton_state = 0 
+        self.target_pose = None  # 목표 위치를 저장할 변수
+        self.intent = None  # 수신된 intent를 저장할 변수
+        self.wait_for_handle_grab = False  # 핸들 버튼을 기다리는 상태를 나타내는 변수
         self.get_logger().info("hmi_planning started.")
         self.create_timer(1.0, self.pub_heartbeat)  # 1초마다 타이머 콜백 호출
+        # 생성자 내부에 타이머 추가
+        self.create_timer(0.5, self.wait_for_handle_and_send_goal)
+    def wait_for_handle_and_send_goal(self):
+        if getattr(self, 'waiting_for_handle_grab', False):
+            if self.handlebutton_state == 1:
+                self.send_goal(self.target_pose)
+                self.get_logger().info("목적지 설정 완료")
+                self.waiting_for_handle_grab = False
     
     def building_id_callback(self, msg: IntentToPlanningmsg):
         """
         /voice/building_id 토픽으로부터 intent와 building_id를 수신하는 콜백 함수.
         intent에 따라 목적지를 설정하거나 기존 goal을 취소하고 새 goal을 설정함.
         """
-        intent = msg.intent
+        self.intent = msg.intent
         building_id = msg.building_id
 
-        self.get_logger().info(f"수신된 intent: {intent}, building_id: {building_id}")
+        self.get_logger().info(f"수신된 intent: {self.intent}, building_id: {building_id}")
 
         if building_id not in BUILDING_DB:
             self.get_logger().error(f"존재하지 않는 건물 ID: {building_id}")
             return
 
-        coords = BUILDING_DB[building_id]
-        goal_pose = self.create_goal_pose(coords)
+        self.target_pose = self.create_goal_pose(BUILDING_DB[building_id])
+       
+        if self.intent in ("set_destination_confirmed", "change_dst_confirmed"):
+            if self.intent == "change_dst_confirmed":
+                self.cancel_current_goal()
+            self.waiting_for_handle_grab = True  # ✅ handlebutton 대기 시작
+            self.get_logger().info("손잡이 잡기를 대기합니다.")
 
-        if intent == "set_destination_confirmed":
-            self.get_logger().info("기존 로직대로 목적지 설정 진행")
-            self.send_goal(goal_pose)
+    def handlebutton_callback(self, msg):
+        self.handlebutton_state = msg.data
 
-        elif intent == "change_dst_confirmed":
-            self.get_logger().info("기존 goal을 취소하고 새로운 목적지로 변경")
-            self.cancel_current_goal()
-            self.send_goal(goal_pose)
-    
+
     def pub_heartbeat(self):
         msg = UInt8()
         msg.data = self.heartbeat
