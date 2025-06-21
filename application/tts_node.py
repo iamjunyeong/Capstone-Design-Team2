@@ -53,8 +53,9 @@ class TTSNode(Node):
         self.lock = threading.Lock()
         self.driving_state = 'WAITING'
         self.vision_obstacle_info = 0  # 0(장애물 없음), 1(정적), 2(동적),3(둘다)
-        self.sound_file = "response.mp3"  # 효과음 파일 경로
-        self.last_output_time = 0
+        self.sound_file = 'Capstone-Design-Team2/response.mp3'  # 효과음 파일 경로
+        self.last_output_time = {}
+
         # pygame mixer 초기화
         try:
             pygame.mixer.init()
@@ -91,19 +92,24 @@ class TTSNode(Node):
             dst = self.dst_dict[request.dst]
         
         if self.intent == "set_destination":
-            
-            self.get_logger().info(f"요청 수신: 목적지={dst})")
-            self.clear_queue()
-            self.request_queue.put((1, f", 목적지를 {dst} 으로 설정할까요? 맞으면 버튼을 누르고 '네', 아니면 '아니요'라고 말씀해주세요."))
-            self.get_logger().info(f"목적지를 {dst} 으로 설정할까요? 맞으면 버튼을 누르고 '네', 아니면 '아니요'라고 말씀해주세요.")
-            response.response_code = 1
+            if dst == None:
+                self.get_logger().info(f"요청 수신: 목적지 불분명")
+                self.stop_and_clear_queue()
+                self.request_queue.put((1, f", 목적지를 다시 말씀하여주세요"))
+                response.response_code = 255 
+            else :
+                self.get_logger().info(f"요청 수신: 목적지={dst})")
+                self.stop_and_clear_queue()
+                self.request_queue.put((1, f", 목적지를 {dst} 으로 설정할까요? 맞으면 버튼을 누르고 '네', 아니면 '아니요'라고 말씀해주세요."))
+                self.get_logger().info(f"목적지를 {dst} 으로 설정할까요? 맞으면 버튼을 누르고 '네', 아니면 '아니요'라고 말씀해주세요.")
+                response.response_code = 1
             
 
         elif self.driving_state == "DRIVING" and self.intent == "change_dst":
             ######re-planning ##########
             self.get_logger().info(f"요청 수신: 목적지 변경")
-            self.clear_queue()
-            self.request_queue.put((1, f" 버튼을 누르고 변경하실 목적지를 말씀해주세요"))
+            self.stop_and_clear_queue()
+            self.request_queue.put((0, f" 버튼을 누르고 변경하실 목적지를 말씀해주세요"))
             self.get_logger().info("버튼을 누르고 변경하실 목적지를 말씀해주세요")
             response.response_code = 2
             
@@ -127,43 +133,59 @@ class TTSNode(Node):
             self.get_logger().info("목적지를 정확히 말씀해주세요")
             response.response_code = 4
 
-        elif self.intent == "stop":
-            self.clear_queue()
+        elif self.driving_state =='DRIVING' and self.intent == "stop":
+            self.stop_and_clear_queue()
             self.request_queue.put((0, f", {self.output_text[6]}"))
             self.get_logger().info(f", {self.output_text[6]}")
             response.response_code = 5
             #self.driving_state = 'STOP'
 
-
-
             #목적지 설정 시퀀스 재진입
         elif self.intent == "unknown":
             self.get_logger().info(f"요청 수신: {self.intent}")
-            self.clear_queue()
-            self.request_queue.put((1, self.output_text[0])) 
+            self.stop_and_clear_queue()
+            self.request_queue.put((0, self.output_text[0])) 
             self.get_logger().info("이해하지 못했습니다. 다시 말씀해주시겠어요?")
 
             response.response_code = 0
         
         return response
-        
+    
+    def can_output(self, code, cooldown=10):
+        """지정한 코드가 cooldown 초 이내에 출력되었는지 확인"""
+        current_time = time.time()
+        last_time = self.last_output_time.get(code, 0)
+        if current_time - last_time >= cooldown:
+            self.last_output_time[code] = current_time
+            return True
+        return False    
+    
     def handlebutton_callback(self, msg):
         self.handlebutton_code = msg.data
-        if self.handlebutton_code == 2:
-            #정상주행.
+
+        if self.handlebutton_code == 1:
+            # 정상주행
             pass
-        elif self.handlebutton_code == 0 or self.handlebutton_code == 1:
-            #손잡이 잡아달라는 안내.
-            
-            self.request_queue.put((0, self.output_text[10]))
-            
+
+        elif self.handlebutton_code == 0:
+            # 손잡이 해제 안내
+            if self.driving_state == 'DRIVING' and self.can_output(0):
+                self.stop_and_clear_queue()
+                self.request_queue.put((0, self.output_text[11])) 
+
+        elif self.handlebutton_code == 2:
+            # 손잡이 잡아달라는 안내
+            if self.can_output(2):
+                self.stop_and_clear_queue()
+                self.request_queue.put((0, self.output_text[10]))
+
     def talkbutton_callback(self, msg):
         if msg.data and not self.last_talkbutton_state:
             self.last_talkbutton_state = True  # 눌림 감지
             
             self.stop_and_clear_queue()  # 현재 재생 중인 음성 정지
             if self.driving_state == 'DRIVING':
-                if self.intent == "change_dst":
+                if self.intent == "change_dst" or self.intent == "set_destination":
 
                     self.effect_soundplay(sound_file=self.sound_file)
                     self.get_logger().info("효과음")
@@ -171,6 +193,7 @@ class TTSNode(Node):
                     self.request_queue.put((0, f", {self.output_text[5]}"))
                     self.get_logger().info("목적지 변경, 현재 위치 확인, 예상 시간 확인, 정지 기능이 있습니다. 말씀해주세요.")
             else:
+                
                 self.effect_soundplay(sound_file=self.sound_file)
                 self.get_logger().info("효과음")
 
@@ -199,27 +222,24 @@ class TTSNode(Node):
     
     # 비전 장애물 받아오는 코드, 미완성!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!, 비전에서 토픽 고쳐야함. 지금은 obstacle_info 그대로 받아오면 너무 멀때 대처 x.
     def vision_callback(self, msg):
-       
         self.vision_obstacle_info = msg.data
-        current_time = time.time()
-        if current_time - self.last_obstacle_warning_time >= 10: #마지막 경고로부터 10초 경과 
-            
-            if self.vision_obstacle_info == 0: #장애물 없음
-                self.get_logger().info("장애물 없음")
-            
-            elif self.vision_obstacle_info == 1: #정적 장애물
-                self.clear_queue()
-                self.request_queue.put((1, self.output_text[15])) 
-                self.get_logger().info("전방에 장애물이 있습니다. ")
-                self.last_output_time = current_time
-            
-            elif self.vision_obstacle_info in (2,3): #동적 장애물
-                
-                self.clear_queue()
-                self.request_queue.put((0, self.output_text[9])) 
-                self.get_logger().info("보행 중입니다. 주의하여주세요")
-                self.last_output_time = current_time
 
+        if self.vision_obstacle_info == 0:
+            if self.can_output(100):  # 100은 장애물 없음 코드용 임의 키
+                self.get_logger().info("장애물 없음")
+
+        elif self.vision_obstacle_info == 1:  # 정적 장애물
+            if self.can_output(100 , cooldown=10):  # 5초 간격으로 출력
+                self.clear_queue()
+                self.request_queue.put((1, self.output_text[15]))
+                self.get_logger().info("전방에 장애물이 있습니다.")
+
+        elif self.vision_obstacle_info in (2, 3):  # 동적 장애물
+            if self.can_output(100, cooldown=5):  # 5초 간격으로 출력
+                self.clear_queue()
+                self.request_queue.put((1, self.output_text[9]))
+                self.get_logger().info("보행 중입니다. 주의하여주세요")
+   
     def process_queue(self):
         """우선순위 큐에서 요청을 꺼내 순차적으로 재생"""
         while True:

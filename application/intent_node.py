@@ -52,7 +52,7 @@ class IntentNode(Node):
         self.boosted_yes = ["네", "예","어", "그래", "응","맞아", "맞습니다", "그렇습니다"]
         self.boosted_no = ["아니오", "아니", "아닌데","틀려", "틀렸어","아니야"]
         self.boosted_change_dst = ["바꿔줘", "바꾸다", "바꿀래", "변경", "변경할","바꿔", "변경해", "다시", "목적지"]
-        
+        self.boosted_stop = ["정지", "멈춰", "정지해", "멈춰줘"]
         self.get_logger().info('Intent Node started. Waiting for STT input...')
 
     # text from STT_node 
@@ -73,6 +73,7 @@ class IntentNode(Node):
         processed_text.extend(self.find_closest_word(unprocessed_text, self.boosted_yes))
         processed_text.extend(self.find_closest_word(unprocessed_text, self.boosted_no))
         processed_text.extend(self.find_closest_word(unprocessed_text, self.boosted_change_dst))
+        processed_text.extend(self.find_closest_word(unprocessed_text, self.boosted_stop))
         user_text = ""
         
         #중복 제거 
@@ -93,7 +94,7 @@ class IntentNode(Node):
         # 키워드 매칭을 위한 의도 키워드 사전
         intent_keywords = {
             "set_destination": ["가줘", "가자", "가고", "데려다줘", "이동", "갈래", "가고싶어", "가야돼",
-                            "공학관","공대","신공", "신공학관", "새천년관", "학생회관", "법학관","정문", "후문", "문과대", "인문학관", "경영대", "경영관"],
+                            "공학관","공대","신공", "신공학관", "새천년관", "학생회관", "법학관", "정문", "후문", "문과대", "인문학관", "경영대", "경영관"],
             "change_dst" : ["바꿔", "목적지", "변경", "바꿔줘", "바꿀래",  "변경할", "변경해", "다시" ],
             "get_eta": ["까지", "몇", "분", "얼마나", "도착", "시간", "얼마", "남았어", "걸려", "언제", "예상"],
             "get_location": ["현재", "위치", "어디", "어디를", "어디야", "지금", "지나고", "지나"],
@@ -106,7 +107,9 @@ class IntentNode(Node):
         for dst in self.boosted_dst:
             if dst in user_text:
                 self.dst = dst
-                break
+            else: self.dst = 255 # 목적지 수령 실패 시
+            
+            break
 
         # 기타 의도 수령
         for key, keywords in intent_keywords.items():
@@ -198,8 +201,12 @@ class IntentNode(Node):
     def tts_response_callback(self, future):
         try:
             response = future.result()
-            self.response_state = "WATING_CONFIRM" 
-            self.get_logger().info(f"!!!!!!!TTS 출력 완료, WATING_CONFIRM !!!!!!")
+            if response.response_code == 255:
+                self.get_logger().error("TTS 노드 응답 실패: 잘못된 응답 코드")
+                self.response_state = "IDLE"
+            else: 
+                self.response_state = "WATING_CONFIRM" 
+                self.get_logger().info(f"!!!!!!!TTS 출력 완료, WATING_CONFIRM !!!!!!")
         except Exception as e:
             self.get_logger().error(f"서비스 호출 실패: {e}")
             self.response_state = "IDLE"
