@@ -32,20 +32,22 @@ class IntentNode(Node):
         self.dst_dict = {
             "신공" :1, 
             "신공학관" :1,
-            "공학관" :2,
-            "공대" :2,
-            "새천년관" :3,
-            "학생회관" :4,
-            "법학관" :5,
-            "정문" :6,
-            "후문" :7,
-            "문과대":8,
-            "인문학관":8,
-            "경영대" :9,
-            "경영관" :9
+            "공학관" :5,
+            "공대" :5,
+            "학생회관" :8,
+            "청심대" : 9,
+            "법학관" :11,
+            "종강" :11,
+            "종합강의동" :11,
+            "수의대" :15, 
+            "수의학관":15,
+            "동생대" :18,
+            "동물생명과학관" :18,
+            "입학정보관" :20
         }
         # keywords for intent classification
-        self.boosted_dst = ["신공학관", "공학관","공대","신공", "새천년관", "학생회관", "법학관","정문", "후문", "문과대","인문학관", "경영대", "경영관"]
+        #self.boosted_dst = ["신공학관", "공학관","공대","신공", "새천년관", "학생회관", "법학관","정문", "후문", "문과대","인문학관", "경영대", "경영관"]
+        self.boosted_dst = ["신공", "신공학관", "공학관", "공대", "학생회관", "법학관", "종강", "종합강의동", "수의대", "수의학관", "동생대", "동물생명과학관", "입학정보관"]
         self.boosted_togo = ["가줘", "가자", "가고 싶어", "데려다줘", "이동", "갈래", "가고","가고싶어", "출발", "가야돼"]
         self.boosted_howlong = ["까지 ", "몇", "분이", "분이나", "얼마나", "도착", "시간", "걸릴까", "걸려", "남았어","얼마", "언제"]
         self.boosted_where = ["어디야", "현재 위치", "어디를", "지나고", "위치","지금", "어디", "현재", "지나"]
@@ -53,6 +55,7 @@ class IntentNode(Node):
         self.boosted_no = ["아니오", "아니", "아닌데","틀려", "틀렸어","아니야"]
         self.boosted_change_dst = ["바꿔줘", "바꾸다", "바꿀래", "변경", "변경할","바꿔", "변경해", "다시", "목적지"]
         self.boosted_stop = ["정지", "멈춰", "정지해", "멈춰줘"]
+
         self.get_logger().info('Intent Node started. Waiting for STT input...')
 
     # text from STT_node 
@@ -94,7 +97,8 @@ class IntentNode(Node):
         # 키워드 매칭을 위한 의도 키워드 사전
         intent_keywords = {
             "set_destination": ["가줘", "가자", "가고", "데려다줘", "이동", "갈래", "가고싶어", "가야돼",
-                            "공학관","공대","신공", "신공학관", "새천년관", "학생회관", "법학관", "정문", "후문", "문과대", "인문학관", "경영대", "경영관"],
+                                "새천년관", "신공학관", "공학관", "공대", "학생회관", "법학관", "종강", 
+                                "종합강의동", "수의대", "수의학관", "동생대", "동물생명과학관", "입학정보관"],
             "change_dst" : ["바꿔", "목적지", "변경", "바꿔줘", "바꿀래",  "변경할", "변경해", "다시" ],
             "get_eta": ["까지", "몇", "분", "얼마나", "도착", "시간", "얼마", "남았어", "걸려", "언제", "예상"],
             "get_location": ["현재", "위치", "어디", "어디를", "어디야", "지금", "지나고", "지나"],
@@ -107,7 +111,7 @@ class IntentNode(Node):
         for dst in self.boosted_dst:
             if dst in user_text:
                 self.dst = dst
-            else: self.dst = 255 # 목적지 수령 실패 시
+            else: self.dst = "unknown" # 목적지 수령 실패 시
             
             break
 
@@ -130,11 +134,20 @@ class IntentNode(Node):
         # 목적지 설정으로 분류됐을 경우 
         elif self.intent == "set_destination":
             self.get_logger().info(f"목적지 설정: {self.dst}")
-
-            self.response_state = 'REQUEST_CONFIRM'
-            req = IntentResponse.Request()
-            req.intent = self.intent
-            req.dst = self.dst_dict[self.dst]
+            
+            if self.dst == None or self.dst == "unknown": # 목적지 수령 실패 시
+                self.get_logger().info("목적지 수령 실패, 기본 목적지로 설정")
+                req.intent = "unknown"
+                req.dst = 255 # default: 255 (uint8)
+                self.response_state = "IDLE"
+                
+            else:
+                self.response_state = 'REQUEST_CONFIRM'
+                req = IntentResponse.Request()
+                req.intent = self.intent
+                req.dst = self.dst_dict[self.dst]
+                
+                
             future = self.main_intent_client.call_async(req)
             future.add_done_callback(self.tts_response_callback)
             self.memory_clear()

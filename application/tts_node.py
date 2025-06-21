@@ -36,14 +36,13 @@ class TTSNode(Node):
         self.intent = None
         self.dst_dict = {
             1: "신공학관",
-            2: "공학관",
-            3: "새천년관",
-            4: "학생회관",
-            5: "법학관",
-            6: "정문",
-            7: "후문",
-            8: "인문학관",
-            9: "경영관"
+            5: "공학관",
+            8: "학생회관",
+            11: "법학관",
+            15: "수의학관",
+            18: "동물생명과학관",
+            20: "입학정보관",
+            
         }
         self.talkbutton_pressed = False
         self.is_playing = False  # 현재 음성이 재생 중인지 여부
