@@ -15,31 +15,25 @@ import time
 """
         1. 신공학관
         3. 공대 C동
-        4. 공대 A동
+        5. 공대 A동 (시작 지점)
         8. 학생회관
         9. 청심대
         11. 법학관
         15. 수의대
-        17. 학생회관 #테스트맵
         18. 동생대
         20. 입학정보관
+
 """
 BUILDING_DB = {
-     
-    1: {"x": 0.0, "y": 0.0, "orientation": (0.0, 0.0, 0.0, 1.0)}, #신공학관 
-    2: {"x": 1.789409, "y": 45.007426, "orientation": (0.0, 0.0, 0.0, 1.0)}, #공학관 
-    4: {"x": -60.514286, "y": 126.617229, "orientation": (0.0, 0.0, 0.0, 1.0)},
-    8: {"x": -142.485558, "y": 192.364434, "orientation": (0.0, 0.0, 0.0, 1.0)},
-    9: {"x": -193.356556, "y": 198.505700, "orientation": (0.0, 0.0, 0.0, 1.0)},
-    11: {"x": -309.681705, "y": 114.077176, "orientation": (0.0, 0.0, 0.0, 1.0)},
-    15: {"x": -443.098181, "y": -142.948562, "orientation": (0.0, 0.0, 0.0, 1.0)},
-    18: {"x": -439.816741, "y": -142.948562, "orientation": (0.0, 0.0, 0.0, 1.0)},
-    20: {"x": -487.130077, "y": -45.599748, "orientation": (0.0, 0.0, 0.0, 1.0)},
-    
-    26: {"x": 12.0184444128536, "y": -1.80122183344793, "orientation": (0.0, 0.0, 0.0, 1.0)},
-    27: {"x": 6.86329972278327, "y": -35.7083942142199, "orientation": (0.0, 0.0, -0.75839, 0.651801)},
-    29: {"x": 17.2156379441731, "y": 56.9691701928968, "orientation": (0.0, 0.0, 0.0, 1.0)},
-    17: {"x": 11.266896, "y": -6.744417, "orientation": (0.0, 0.0, -0.75839, 0.651801)}, #테스트맵
+    1: {"x": 63.4208470000303, "y": -126.286642000079, "orientation": (0.0, 0.0, 0.795833, 0.605516)},
+    3: {"x": 65.2102560000494, "y": -81.2792159998789, "orientation": (0.0, 0.0, 0.0, 1.0)},
+    5: {"x": 0, "y": 0, "orientation": (0.0, 0.0, 0.0, 1.0)},
+    8: {"x": -79.0647109999554, "y": 66.0777920000255, "orientation": (0.0, 0.0, 0.999373,0.035408)},
+    9: {"x": -129.935708999983, "y": 72.219058000017, "orientation": (0.0, 0.0, 0.998196, 0.060034)},
+    11: {"x": -246.260857999965, "y": -12.2094660000876, "orientation": (0.0, 0.0, -0.836539, 0.547907)},
+    15: {"x": -379.677333999949, "y": -269.235204000026, "orientation": (0.0, 0.0, -0.763272, 0.646078)},
+    18: {"x": -376.395893999957, "y": -169.805312000215, "orientation": (0.0, 0.0, 0.572659, 0.819793)},
+    20: {"x": -423.709229999979, "y": -171.886390000116, "orientation": (0.0, 0.0, 0.968174, 0.250278)}
 
 }
 ESTIMATED_TIME_GAIN = 1.2
@@ -59,36 +53,49 @@ class GoalSender(Node):
         self._current_goal_handle = None
         self.intent_server = self.create_service(IntentToPlanning, '/intent_to_planning', self.intent_server_callback)
         self.heartbeat_pub = self.create_publisher(UInt8, '/heartbeat/hmi_planning_node', 10)  # heartbeat 퍼블리셔
+        self.handlebutton_sub = self.create_subscription(UInt8, '/handlebutton_state', self.handlebutton_callback, 10)  # 핸들 버튼 상태 구독
         self.heartbeat = 0
+        self.handlebutton_state = 0 
+        self.target_pose = None  # 목표 위치를 저장할 변수
+        self.intent = None  # 수신된 intent를 저장할 변수
+        self.wait_for_handle_grab = False  # 핸들 버튼을 기다리는 상태를 나타내는 변수
         self.get_logger().info("hmi_planning started.")
         self.create_timer(1.0, self.pub_heartbeat)  # 1초마다 타이머 콜백 호출
+        # 생성자 내부에 타이머 추가
+        self.create_timer(0.5, self.wait_for_handle_and_send_goal)
+    def wait_for_handle_and_send_goal(self):
+        if getattr(self, 'waiting_for_handle_grab', False):
+            if self.handlebutton_state == 1:
+                self.send_goal(self.target_pose)
+                self.get_logger().info("목적지 설정 완료")
+                self.waiting_for_handle_grab = False
     
     def building_id_callback(self, msg: IntentToPlanningmsg):
         """
         /voice/building_id 토픽으로부터 intent와 building_id를 수신하는 콜백 함수.
         intent에 따라 목적지를 설정하거나 기존 goal을 취소하고 새 goal을 설정함.
         """
-        intent = msg.intent
+        self.intent = msg.intent
         building_id = msg.building_id
 
-        self.get_logger().info(f"수신된 intent: {intent}, building_id: {building_id}")
+        self.get_logger().info(f"수신된 intent: {self.intent}, building_id: {building_id}")
 
         if building_id not in BUILDING_DB:
             self.get_logger().error(f"존재하지 않는 건물 ID: {building_id}")
             return
 
-        coords = BUILDING_DB[building_id]
-        goal_pose = self.create_goal_pose(coords)
+        self.target_pose = self.create_goal_pose(BUILDING_DB[building_id])
+       
+        if self.intent in ("set_destination_confirmed", "change_dst_confirmed"):
+            if self.intent == "change_dst_confirmed":
+                self.cancel_current_goal()
+            self.waiting_for_handle_grab = True  # ✅ handlebutton 대기 시작
+            self.get_logger().info("손잡이 잡기를 대기합니다.")
 
-        if intent == "set_destination_confirmed":
-            self.get_logger().info("기존 로직대로 목적지 설정 진행")
-            self.send_goal(goal_pose)
+    def handlebutton_callback(self, msg):
+        self.handlebutton_state = msg.data
 
-        elif intent == "change_dst_confirmed":
-            self.get_logger().info("기존 goal을 취소하고 새로운 목적지로 변경")
-            self.cancel_current_goal()
-            self.send_goal(goal_pose)
-    
+
     def pub_heartbeat(self):
         msg = UInt8()
         msg.data = self.heartbeat

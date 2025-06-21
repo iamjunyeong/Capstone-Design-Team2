@@ -11,7 +11,8 @@ class ButtonNode(Node):
         self.last_emergency_state = None
         self.last_stt_state = None
         self.last_tact_state = None
-
+        self.hmi_stop_state = False  # HMI stop 상태 초기화
+        self.tact_state = 0
         # 각 노드 heartbeat 상태 초기화 
         self.stt_hb_state = 0 
         self.hpl_hb_state = 0
@@ -35,13 +36,11 @@ class ButtonNode(Node):
 
         self.create_timer(0.1, self.pub_log)  # 1초마다 heartbeat 퍼블리시
 
-
-
     def emergency_callback(self, msg):
     
         self.last_emergency_state = msg.data  # 상태 갱신
         self.emergency_pub.publish(Bool(data=msg.data))
-
+        
     def stt_callback(self, msg):
             
             self.last_stt_state = msg.data  # 상태 갱신
@@ -49,18 +48,18 @@ class ButtonNode(Node):
 
     def tact_callback(self, msg):
         # `Int32`로 받은 데이터를 `UInt8`로 변환
-        tact_state = msg.data
+        self.tact_state = msg.data
         tact_code = 0
 
         # `Int32` -> `UInt8` 변환
-        if tact_state == 0:  # 상태가 0이면
+        if self.tact_state == 0:  # 상태가 0이면
             tact_code = 0
-        elif tact_state == 1:  # 상태가 1이면
+        elif self.tact_state == 1:  # 상태가 1이면
             tact_code = 1
-        elif tact_state == 2:  # 상태가 2이면
+        elif self.tact_state == 2:  # 상태가 2이면
             tact_code = 2
         else:
-            tact_code = 0  # 예외 처리, 적절한 값으로 설정 (기본값: 0)
+            tact_code = 2  # 예외 처리, 적절한 값으로 설정 (기본값: 0)
 
         if tact_code != self.last_tact_state:  # 상태가 바뀌었을 때만 출력
             if tact_code == 0:
@@ -71,8 +70,8 @@ class ButtonNode(Node):
                 self.get_logger().warn('[TACT] 상태 불명 (2)')
 
         self.last_tact_state = tact_code  # 상태 갱신
-        self.handlebutton_pub.publish(UInt8(data=tact_code))  # 퍼블리시
-    
+        self.handlebutton_pub.publish(UInt8(data=self.tact_state))  # 퍼블리시
+
     def pub_log(self):
         
         if self.stt_hb_state == 0:
@@ -85,15 +84,23 @@ class ButtonNode(Node):
             hpl = '✅'
         if self.last_emergency_state is None or self.last_emergency_state == False:
             emergency = '__'
+            
         elif self.last_emergency_state:
             emergency = '🛑'
+            
         if self.last_stt_state is None or self.last_stt_state == False:
             talk = '__'
         elif self.last_stt_state:
             talk = '🎤'
+        
+        if self.last_tact_state == 0 or self.last_emergency_state == True:
+            self.hmi_stop_state = True
+        else: 
+            self.hmi_stop_state = False
+        
+        self.get_logger().info(f'[STT]{stt} | [HPL]{hpl} | [EMERGENCY]{emergency} | [talkbt]{talk} |[tact]{self.tact_state} | ')    
+        self.hmi_stop_pub.publish(Bool(data=self.hmi_stop_state))  # HMI stop 상태 퍼블리시
 
-        self.get_logger().info(f'[STT]{stt} | [HPL]{hpl} | [EMERGENCY]{emergency} | [talkbt]{talk} |[tact]{self.last_tact_state} |')    
-       
     def hb_stt_callback(self, msg): 
         stamp_sec = msg.timestamp.sec  
         stamp_nanosec = msg.timestamp.nanosec

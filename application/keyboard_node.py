@@ -1,6 +1,6 @@
 import rclpy
 from rclpy.node import Node
-from std_msgs.msg import Bool, UInt8
+from std_msgs.msg import Bool, UInt8, Int32
 import pygame
 import time
 import threading
@@ -9,7 +9,7 @@ class KeyboardNode(Node):
     def __init__(self):
         super().__init__('keyboard_node')
         self.talkbutton_pub = self.create_publisher(Bool, '/stt_button_state',  10)
-        self.handlebutton_pub = self.create_publisher(UInt8, '/tact_switch_state', 10)
+        self.handlebutton_pub = self.create_publisher(Int32, '/tact_switch_state', 10)
         self.emergency_pub = self.create_publisher(Bool, '/emergency_state', 10)
         self.emergency_pressed = False
         self.emergency_active = False
@@ -58,8 +58,8 @@ class KeyboardNode(Node):
                 
                 emergency_pub_time = now
     
-            # 음성 상호작용: '1' 키 (주기적 발행)
-            if keys[pygame.K_1]:
+            # 음성 상호작용: 't' 키 (주기적 발행)
+            if keys[pygame.K_t]:
                 pressed = True
             else:
                 pressed = False
@@ -72,9 +72,9 @@ class KeyboardNode(Node):
             # 핸들 버튼 코드: 'a', 's' 키 감지
             code = 0
             if keys[pygame.K_a] and keys[pygame.K_s]:
-                code = 2
-            elif keys[pygame.K_a] or keys[pygame.K_s]:
                 code = 1
+            elif keys[pygame.K_a] or keys[pygame.K_s]:
+                code = 2
             if now - handle_pub_time > pub_rate:
                 self.publish_handle(code)
                 
@@ -90,7 +90,7 @@ class KeyboardNode(Node):
         status = "음성 상호작용 시작" if state else "음성 상호작용 종료"
         #self.get_logger().info(f"[TALK] {status}")
     def publish_handle(self, state: int):
-        self.handlebutton_pub.publish(UInt8(data=state))
+        self.handlebutton_pub.publish(Int32(data=state))
         #self.get_logger().info(f"[HANDLE] {state}")
     
     def publish_emergency(self, state: bool):
