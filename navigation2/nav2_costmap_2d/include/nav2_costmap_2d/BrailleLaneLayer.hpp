@@ -10,7 +10,8 @@
 #include <vector>
 #include <mutex>
 #include <memory>
-
+#include "tf2_ros/buffer.h"
+#include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
 namespace nav2_costmap_2d
 {
 

@@ -13,13 +13,13 @@
 namespace nav2_costmap_2d
 {
 
-static constexpr double EPSILON = 1e-3;          // 거리 비교를 위한 작은 값
-static constexpr double BOUND_MARGIN = 0.5;      // updateBounds에 적용할 여유 공간 (미터)
+static constexpr double EPSILON = 1e-3;      // 거리 비교를 위한 작은 값
+static constexpr double BOUND_MARGIN = 0.5;  // updateBounds에 적용할 여유 공간 (미터)
 
 // 점(px, py)과 선분(ax, ay) -> (bx, by) 사이의 최단 유클리드 거리 계산
 double pointToSegmentDistance(double px, double py,
-                             double ax, double ay,
-                             double bx, double by)
+                              double ax, double ay,
+                              double bx, double by)
 {
   double dx = bx - ax;
   double dy = by - ay;
@@ -40,9 +40,7 @@ double pointToSegmentDistance(double px, double py,
 BrailleLaneLayer::BrailleLaneLayer()
 : CostmapLayer(),
   enabled_(true),
-  need_recalculation_(false),
-  max_influence_radius_(3), // 기본값 설정
-  max_cost_(200)              // 기본값 설정
+  need_recalculation_(false)
 {
 }
 
@@ -64,21 +62,13 @@ void BrailleLaneLayer::onInitialize()
   std::string enabled_param_name = name_ + "." + "enabled";
   node->get_parameter(enabled_param_name, enabled_);
 
-  declareParameter("max_influence_radius", rclcpp::ParameterValue(max_influence_radius_));
-  std::string max_influence_radius_param_name = name_ + "." + "max_influence_radius";
-  node->get_parameter(max_influence_radius_param_name, max_influence_radius_);
-
-  declareParameter("max_cost", rclcpp::ParameterValue(static_cast<int>(max_cost_)));
-  std::string max_cost_param_name = name_ + "." + "max_cost";
-  node->get_parameter(max_cost_param_name, max_cost_);
-
   current_ = true;
   need_recalculation_ = true;
   matchSize();
 
   RCLCPP_INFO(node->get_logger(),
-               "BrailleLaneLayer onInitialize(): layer_name='%s', enabled=%s, max_influence_radius=%.2f, max_cost=%d",
-               name_.c_str(), enabled_ ? "true" : "false", max_influence_radius_, max_cost_);
+              "BrailleLaneLayer onInitialize(): layer_name='%s', enabled=%s",
+              name_.c_str(), enabled_ ? "true" : "false");
 }
 
 void BrailleLaneLayer::activate()
@@ -87,8 +77,9 @@ void BrailleLaneLayer::activate()
   if (!node) return;
 
   auto qos = rclcpp::SensorDataQoS();
+  // Point -> PointCloud2 로 바꿉니다.
   points_sub_ = node->create_subscription<sensor_msgs::msg::PointCloud2>(
-    "/obstacle_braille_block",
+    "/center_line_point",
     qos,
     std::bind(&BrailleLaneLayer::cloudCallback, this, std::placeholders::_1)
   );
@@ -104,7 +95,7 @@ void BrailleLaneLayer::deactivate()
   if (points_sub_) {
     points_sub_.reset();
     RCLCPP_INFO(rclcpp::get_logger("BrailleLaneLayer"),
-                 "BrailleLaneLayer deactivated: subscription reset!");
+                "BrailleLaneLayer deactivated: subscription reset!");
   }
 }
 
@@ -116,7 +107,7 @@ void BrailleLaneLayer::reset()
   current_ = false;
   need_recalculation_ = true;
   RCLCPP_INFO(rclcpp::get_logger("BrailleLaneLayer"),
-               "reset(): received_points_ cleared, need_recalculation set to true");
+              "reset(): received_points_ cleared, need_recalculation set to true");
 }
 
 bool BrailleLaneLayer::isClearable()
@@ -130,24 +121,46 @@ void BrailleLaneLayer::cloudCallback(
   std::lock_guard<std::mutex> lock(mutex_);
   received_points_.clear();
 
-  // x, y, z 필드를 순회하며 geometry_msgs::Point 으로 변환
+  if (msg->width * msg->height == 0) {
+    return;
+  }
+
+  geometry_msgs::msg::TransformStamped transform;
+  try {
+    // getGlobalFrameID()를 사용하는 수정된 코드
+    transform = tf_->lookupTransform(
+      layered_costmap_->getGlobalFrameID(), msg->header.frame_id, msg->header.stamp,
+      rclcpp::Duration::from_seconds(0.5));
+  } catch (const tf2::TransformException & ex) {
+    RCLCPP_ERROR(
+      rclcpp::get_logger("BrailleLaneLayer"),
+      "Could not transform %s to %s: %s",
+      msg->header.frame_id.c_str(), layered_costmap_->getGlobalFrameID().c_str(), ex.what());
+    return;
+  }
+
+  // 이 부분부터는 원래 코드와 동일합니다.
   sensor_msgs::PointCloud2ConstIterator<float> iter_x(*msg, "x");
   sensor_msgs::PointCloud2ConstIterator<float> iter_y(*msg, "y");
   sensor_msgs::PointCloud2ConstIterator<float> iter_z(*msg, "z");
 
   for (; iter_x != iter_x.end(); ++iter_x, ++iter_y, ++iter_z) {
-    geometry_msgs::msg::Point p;
-    p.x = *iter_x;
-    p.y = *iter_y;
-    p.z = *iter_z;
-    received_points_.push_back(p);
+    geometry_msgs::msg::Point p_in;
+    p_in.x = *iter_x;
+    p_in.y = *iter_y;
+    p_in.z = *iter_z;
+
+    geometry_msgs::msg::Point p_out;
+    tf2::doTransform(p_in, p_out, transform);
+
+    received_points_.push_back(p_out);
   }
 
   need_recalculation_ = true;
 }
 
 void BrailleLaneLayer::updateBounds(double robot_x, double robot_y, double robot_yaw,
-                                     double* min_x, double* min_y, double* max_x, double* max_y)
+                                      double* min_x, double* min_y, double* max_x, double* max_y)
 {
   (void)robot_x;
   (void)robot_y;
@@ -201,6 +214,12 @@ void BrailleLaneLayer::updateCosts(Costmap2D & master_grid,
   max_i = std::min((int)size_x, max_i);
   max_j = std::min((int)size_y, max_j);
 
+  // 점자블록 좌표로부터의 거리에 따른 비용 설정을 위한 상수
+  const double distance_threshold = 0.2; // 20cm
+  const unsigned char cost_within_threshold = 0;
+  const unsigned char cost_outside_threshold = 150;
+
+
   for (int j = min_j; j < max_j; ++j) {
     for (int i = min_i; i < max_i; ++i) {
       double wx, wy;
@@ -216,14 +235,13 @@ void BrailleLaneLayer::updateCosts(Costmap2D & master_grid,
 
       unsigned char calculated_cost = nav2_costmap_2d::FREE_SPACE;
       if (min_dist != std::numeric_limits<double>::infinity()) {
-        if (min_dist <= max_influence_radius_) {
-          // 수정된 부분: 중앙에 가까울수록 낮은 비용, 멀어질수록 높은 비용
-          calculated_cost = static_cast<unsigned char>(std::round((min_dist / max_influence_radius_) * max_cost_));
+        // ### 수정된 부분 ###
+        // 최소 거리가 20cm보다 작거나 같으면 cost를 0으로, 크면 150으로 설정
+        if (min_dist <= distance_threshold) {
+          calculated_cost = cost_within_threshold;
         } else {
-          calculated_cost = max_cost_; // 영향 범위 밖은 최대 비용으로 설정 (회피)
+          calculated_cost = cost_outside_threshold;
         }
-        calculated_cost = std::min(max_cost_, calculated_cost);
-        calculated_cost = std::max((unsigned char)0, calculated_cost);
       }
 
       unsigned char old_cost = master_grid.getCost(i, j);
