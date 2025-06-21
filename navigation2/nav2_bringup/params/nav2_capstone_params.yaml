@@ -55,7 +55,7 @@ controller_server:
       stateful: True
       plugin: "nav2_controller::SimpleGoalChecker"
       xy_goal_tolerance: 0.5
-      yaw_goal_tolerance: 0.5
+      yaw_goal_tolerance: 1.0
 
     # DWB local-planner parameters (TurtleBot3 기본값)
     FollowPath:
@@ -73,10 +73,10 @@ controller_server:
       # https://github.com/ROBOTIS-GIT/turtlebot3_simulations/issues/75
       acc_lim_x: 2.5
       acc_lim_y: 0.0
-      acc_lim_theta: 3.2
+      acc_lim_theta: 0.05
       decel_lim_x: -2.5
       decel_lim_y: 0.0
-      decel_lim_theta: -3.2
+      decel_lim_theta: -0.05
       vx_samples: 20
       vy_samples: 5
       vtheta_samples: 20
@@ -91,7 +91,14 @@ controller_server:
       # critics: ["RotateToGoal", "Oscillation", "BaseObstacle",
       #           "GoalAlign", "PathAlign", "PathDist", "GoalDist"]
       critics: ["ObstacleFootprint", "RotateToGoal", "Oscillation", "BaseObstacle",
-                "GoalAlign", "PathAlign", "PathDist", "GoalDist"]
+                "GoalAlign", "PathAlign", "PathDist", "GoalDist", "ObstacleSpeedCritic"]
+      ObstacleSpeedCritic:
+        plugin: "dwb_critics::ObstacleSpeedCritic"
+        full_speed_distance: 5.0
+        stop_distance: 2.5
+        scale: 1000.0
+        obstacle_state: 0
+        obstacle_distance: 100.0
       ObstacleFootprint.scale: 1.0      # 충돌 셀은 무조건 제외
       BaseObstacle.scale: 0.5
       PathAlign.scale: 1.0
@@ -532,7 +539,7 @@ local_costmap:
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 1.0
-        inflation_radius: 1.0
+        inflation_radius: 0.5
         enabled: true
       braille_lane_layer:
         plugin: "nav2_costmap_2d::BrailleLaneLayer"
@@ -549,9 +556,9 @@ local_costmap:
           clearing: True
           marking: True
           data_type: "LaserScan"
-          raytrace_max_range: 3.0
+          raytrace_max_range: 5.0
           raytrace_min_range: 0.0
-          obstacle_max_range: 2.5
+          obstacle_max_range: 5.0
           obstacle_min_range: 0.0
         curb:
           sensor_frame: camera_color_optical_frame  
