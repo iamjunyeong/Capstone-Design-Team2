@@ -48,13 +48,18 @@ public:
     encoder_sub_ = this->create_subscription<geometry_msgs::msg::TwistWithCovarianceStamped>("encoder/twist", 10, bind(&FactorGraphNode::preintegrateImu, this, placeholders::_1));
     gps_sub_ = this->create_subscription<sensor_msgs::msg::NavSatFix>("Ublox_gps/fix", 10, bind(&FactorGraphNode::gpsCallback, this, placeholders::_1));
     // rosbag qos 설정 ************************************************************************************
-    rclcpp::QoS gps_qos = rclcpp::QoS(rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_sensor_data));
-    gps_qos.best_effort();
-    rclcpp::QoS imu_qos = rclcpp::QoS(rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_sensor_data));
-    imu_qos.best_effort();
-    imu_sub_ = this->create_subscription<sensor_msgs::msg::Imu>("imu/data", 10, bind(&FactorGraphNode::imuCallback, this, placeholders::_1));
-    gps_sub_ = this->create_subscription<sensor_msgs::msg::NavSatFix>("ublox_gps_node/fix", gps_qos, bind(&FactorGraphNode::gpsCallback, this, placeholders::_1));
+    // rclcpp::QoS gps_qos = rclcpp::QoS(rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_sensor_data));
+    // gps_qos.best_effort();
+    // rclcpp::QoS imu_qos = rclcpp::QoS(rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_sensor_data));
+    // imu_qos.best_effort();
+    // imu_sub_ = this->create_subscription<sensor_msgs::msg::Imu>("imu/data", imu_qos, bind(&FactorGraphNode::imuCallback, this, placeholders::_1));
+    // gps_sub_ = this->create_subscription<sensor_msgs::msg::NavSatFix>("ublox_gps_node/fix", gps_qos, bind(&FactorGraphNode::gpsCallback, this, placeholders::_1));
     //**************************************************************************************************
+    
+    imu_sub_ = this->create_subscription<sensor_msgs::msg::Imu>("imu/data", 10, bind(&FactorGraphNode::imuCallback, this, placeholders::_1));
+    gps_sub_ = this->create_subscription<sensor_msgs::msg::NavSatFix>("ublox_gps_node/fix", 10, bind(&FactorGraphNode::gpsCallback, this, placeholders::_1));
+    
+    
     imu_variance_sub_ = this->create_subscription<std_msgs::msg::Float64MultiArray>(
       "imu/variance", 10, std::bind(&FactorGraphNode::varianceCallback, this, std::placeholders::_1));
 
@@ -219,10 +224,7 @@ private:
 
     yaw_ = std::atan2(2.0 * (q.w * q.z + q.x * q.y),
                  1.0 - 2.0 * (q.y * q.y + q.z * q.z));
-
-    RCLCPP_INFO(this->get_logger(), "yaw : %f", yaw_);
-
-    local_yaw_ = local_yaw_ + imu_msg->angular_velocity.z * 0.01;
+    local_yaw_ = local_yaw_ + imu_msg->angular_velocity.z * 0.05;
     while (local_yaw_ > M_PI) local_yaw_ -= 2 * M_PI;
     while (local_yaw_ < -M_PI) local_yaw_ += 2 * M_PI;
 
@@ -568,7 +570,7 @@ private:
     rclcpp::Time encoder_time = encoder_msg->header.stamp;
     double dt;
     if (is_first_encoder) {
-      dt = 0.01;
+      dt = 0.067;
       is_first_encoder = false;
     } else {
       dt = (encoder_time - prev_encoder_time).seconds();

@@ -55,7 +55,7 @@ class SerialBridgeNode2(Node):
         self.twist_msgs_pub = self.create_publisher(TwistWithCovarianceStamped, '/encoder/twist', 10)
 
         # 주기적으로 아두이노에 데이터 전송 (10Hz)
-        self.timer = self.create_timer(0.05, self.send_serial_data)
+        self.timer = self.create_timer(0.067, self.send_serial_data)
 
         # 상태 출력용 Timer (0.5초마다)
         self.status_timer = self.create_timer(0.25, self.print_status)

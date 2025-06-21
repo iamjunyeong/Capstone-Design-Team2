@@ -17,7 +17,7 @@ from matplotlib.animation import FuncAnimation
 SERIAL_PORT = '/dev/ttyACM0'
 BAUD_RATE = 115200
 MAX_DATA_POINTS = 200
-NUM_DATA_STREAMS = 8
+NUM_DATA_STREAMS = 20
 DATA_TIMEOUT_SECONDS = 5.0
 
 class SerialDataSource:
@@ -132,104 +132,172 @@ class SerialDataSource:
             print("CSV 파일을 닫았습니다.")
             
 def main():
+    # --- 수정 ---
+    # 데이터 스트림 개수가 20개로 늘어났으므로, SerialDataSource 생성자를 수정합니다.
     data_source = SerialDataSource(SERIAL_PORT, BAUD_RATE, NUM_DATA_STREAMS)
     if not data_source.start():
         sys.exit(1)
 
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 10), sharex=True)
+    # --- 수정 ---
+    # 그래프 레이아웃을 2x2로 변경하고, 전체 x축을 공유합니다.
+    fig, axes = plt.subplots(2, 2, figsize=(14.5, 10), sharex=True)
+    (ax1, ax3), (ax2, ax4) = axes # 2x2 축 배열
+    
+    # 전체 라벨 목록 (속도 8개 + 조향 12개)
     labels = [
+        # Speed (0-7)
         'Filtered Speed (m/s)', 'Target Speed (m/s)', 'PID Output', 'FeedForward Output',
-        'Total Output', 'Is Break', 'Filtered PWM', 'Final PWM'
-    ]
-    lines = [
-        ax1.plot([], [], lw=2, label=labels[0])[0],
-        ax1.plot([], [], lw=2, linestyle='--', label=labels[1])[0],
-        ax2.plot([], [], lw=1, alpha=0.8, label=labels[2])[0],
-        ax2.plot([], [], lw=1, alpha=0.8, label=labels[3])[0],
-        ax2.plot([], [], lw=2, label=labels[4])[0],
-        ax2.plot([], [], lw=2, label=labels[7])[0]
+        'Total Output', 'Is Break', 'Filtered PWM', 'Final PWM',
+        # Steering (8-19)
+        'Potentiometer', 'Raw Angle', 'Filtered Angle', 'Target Angle',
+        'Steer Error', 'Steer Integral', 'Steer Derivative', 'Steer PID',
+        'Steer Target PWM', 'Steer Filt PWM', 'Steer Comp', 'Steer Final PWM'
     ]
 
-    for ax in [ax1, ax2]:
-        # --- 1. 범례(legend)를 좌측 상단으로 이동 ---
+    # --- 수정 ---
+    # 기존 속도 그래프 라인 (ax1, ax2)
+    speed_lines = [
+        ax1.plot([], [], lw=2, label=labels[0])[0],          # Filtered Speed
+        ax1.plot([], [], lw=2, linestyle='--', label=labels[1])[0], # Target Speed
+        ax2.plot([], [], lw=1, alpha=0.8, label=labels[2])[0],# PID Output
+        ax2.plot([], [], lw=1, alpha=0.8, label=labels[3])[0],# FF Output
+        ax2.plot([], [], lw=2, label=labels[4])[0],          # Total Output
+        ax2.plot([], [], lw=2, label=labels[7])[0]           # Final PWM
+    ]
+
+    steer_lines = [
+        # ax3: 조향 각도 관련 (기존과 동일)
+        ax3.plot([], [], lw=2, label=labels[10])[0],         # Filtered Angle
+        ax3.plot([], [], lw=2, linestyle='--', label=labels[11])[0], # Target Angle
+        
+        # ax4: PID 튜닝 관련 항목들
+        ax4.plot([], [], lw=1, alpha=0.7, label=labels[12])[0],# Steer Error
+        ax4.plot([], [], lw=1, alpha=0.7, label=labels[13])[0],# Steer Integral
+        ax4.plot([], [], lw=1, alpha=0.7, label=labels[14])[0],# Steer Derivative
+        ax4.plot([], [], lw=2, alpha=0.9, label=labels[15])[0],# Steer PID Output (추가)
+        ax4.plot([], [], lw=2, label=labels[19])[0]           # Steer Final PWM
+    ]
+    lines = speed_lines + steer_lines # 모든 라인을 하나의 리스트로 관리
+
+    # --- 수정 ---
+    # 4개의 모든 축에 대해 설정 적용
+    for ax in [ax1, ax2, ax3, ax4]:
         ax.legend(loc='upper left')
         ax.grid(True)
+
+    # 각 축 제목 및 Y라벨 설정
     ax1.set_title('Speed Control')
     ax1.set_ylabel('Speed (m/s)')
-    ax2.set_title('Control Output & PWM')
+    ax2.set_title('Speed Control Output')
+    ax2.set_ylabel('Value / PWM')
+    # --- 추가 ---
+    ax3.set_title('Steering Control')
+    ax3.set_ylabel('Angle (deg)')
+    ax4.set_title('Steering Control Output')
+    ax4.set_ylabel('Value / PWM')
     
-    # Y축 범위 적용
+    # Y축 범위 적용 (조향 각도 및 PWM 범위는 임의로 설정, 필요시 조절)
     ax1.set_ylim(-1.4, 1.4)
-    ax2.set_ylim(-255, 255)
+    ax2.set_ylim(-260, 260)
+    # --- 추가 ---
+    ax3.set_ylim(-35, 35) # 예: -35도 ~ +35도
+    ax4.set_ylim(-260, 260)
 
-    ax2.set_xlabel('Time (HH:MM:SS)')
-    xfmt = mdates.DateFormatter('%H:%M:%S')
-    ax2.xaxis.set_major_formatter(xfmt)
+    # X축 시간 포맷 설정 (하단 그래프들에만 xlabel 표시)
+    for ax in [ax2, ax4]:
+        ax.set_xlabel('Time (HH:MM:SS)')
+        xfmt = mdates.DateFormatter('%H:%M:%S')
+        ax.xaxis.set_major_formatter(xfmt)
     fig.autofmt_xdate()
 
-    # --- 2. 실시간 데이터 HUD를 우측 상단에 하나의 박스로 생성 ---
-    hud_style = dict(transform=ax1.transAxes, fontsize=9, va='top', ha='right',
-                     fontfamily='monospace', # 텍스트 정렬을 위해 고정폭 글꼴 사용
+    # --- 수정 ---
+    # 실시간 데이터 HUD 설정 (총 4개)
+    hud_style = dict(fontsize=9, va='top', ha='right', fontfamily='monospace',
                      bbox=dict(boxstyle='round,pad=0.4', fc='wheat', alpha=0.7))
     
-    # 상단 그래프(ax1)의 데이터 창
-    hud_ax1 = ax1.text(0.98, 0.98, '', **hud_style)
+    hud_ax1 = ax1.text(0.98, 0.98, '', transform=ax1.transAxes, **hud_style)
+    hud_ax2 = ax2.text(0.98, 0.98, '', transform=ax2.transAxes, **hud_style)
+    # --- 추가 ---
+    hud_ax3 = ax3.text(0.98, 0.98, '', transform=ax3.transAxes, **hud_style)
+    hud_ax4 = ax4.text(0.98, 0.98, '', transform=ax4.transAxes, **hud_style)
     
-    # 하단 그래프(ax2)의 데이터 창
-    hud_style['transform'] = ax2.transAxes # 기준 축을 ax2로 변경
-    hud_ax2 = ax2.text(0.98, 0.98, '', **hud_style)
+    all_huds = [hud_ax1, hud_ax2, hud_ax3, hud_ax4]
 
-    fig.tight_layout()
+    fig.tight_layout(pad=2.0)
 
     def update_plot(frame):
         time_data, streams_data = data_source.get_data()
 
         if not time_data:
-            return lines + [hud_ax1, hud_ax2]
+            return lines + all_huds
 
-        # 데이터 라인 업데이트
-        lines[0].set_data(time_data, streams_data[0])
-        lines[1].set_data(time_data, streams_data[1])
-        lines[2].set_data(time_data, streams_data[2])
-        lines[3].set_data(time_data, streams_data[3])
-        lines[4].set_data(time_data, streams_data[4])
-        lines[5].set_data(time_data, streams_data[7])
+        # --- 수정 ---
+        # 기존 속도 데이터 라인 업데이트 (인덱스 동일)
+        speed_lines[0].set_data(time_data, streams_data[0])
+        speed_lines[1].set_data(time_data, streams_data[1])
+        speed_lines[2].set_data(time_data, streams_data[2])
+        speed_lines[3].set_data(time_data, streams_data[3])
+        speed_lines[4].set_data(time_data, streams_data[4])
+        speed_lines[5].set_data(time_data, streams_data[7])
+
+        # 신규 조향 데이터 라인 업데이트 (ax4 내용 변경)
+        # ax3 (각도)
+        steer_lines[0].set_data(time_data, streams_data[10]) # Filtered Angle
+        steer_lines[1].set_data(time_data, streams_data[11]) # Target Angle
         
-        for ax in [ax1, ax2]:
+        # ax4 (PID 튜닝)
+        steer_lines[2].set_data(time_data, streams_data[12]) # Steer Error
+        steer_lines[3].set_data(time_data, streams_data[13]) # Steer Integral
+        steer_lines[4].set_data(time_data, streams_data[14]) # Steer Derivative
+        steer_lines[5].set_data(time_data, streams_data[15]) # Steer PID Output (추가)
+        steer_lines[5].set_data(time_data, streams_data[19]) # Steer Final PWM
+        
+        # --- 수정 ---
+        # 모든 축의 데이터 범위를 다시 계산
+        for ax in [ax1, ax2, ax3, ax4]:
             ax.relim()
-
+        
         # X축 범위 업데이트
         latest_time = time_data[-1]
-        start_time = latest_time - datetime.timedelta(seconds=10)
+        # 표시할 시간 범위를 15초로 늘림
+        start_time = latest_time - datetime.timedelta(seconds=15)
         ax1.set_xlim(start_time, latest_time)
 
-        # --- 3. HUD 텍스트 내용 업데이트 (이름과 값을 한 줄에 표시) ---
-        # 상단 그래프 (속도) 값
-        s_target = streams_data[1][-1]
-        s_actual = streams_data[0][-1]
-        hud_ax1.set_text(
-            f"{'Target:':<10}{s_target:>7.2f} m/s\n"
-            f"{'Actual:':<10}{s_actual:>7.2f} m/s"
-        )
-
-        # 하단 그래프 (제어 출력) 값
-        s_pid      = streams_data[2][-1]
-        s_ff       = streams_data[3][-1]
-        s_total    = streams_data[4][-1]
-        s_is_break = streams_data[5][-1]
-        s_pwm      = streams_data[7][-1]
-        break_status = "ON" if s_is_break > 0.5 else "OFF"
+        # --- 수정 ---
+        # HUD 텍스트 내용 업데이트
         
+        # 속도 HUD (ax1, ax2)
+        hud_ax1.set_text(
+            f"{'Target:':<10}{streams_data[1][-1]:>7.2f} m/s\n"
+            f"{'Actual:':<10}{streams_data[0][-1]:>7.2f} m/s"
+        )
+        break_status = "ON" if streams_data[5][-1] > 0.5 else "OFF"
         hud_ax2.set_text(
-            f"{'PID:':<8}{s_pid:>8.1f}\n"
-            f"{'FF:':<8}{s_ff:>8.1f}\n"
-            f"{'Total:':<8}{s_total:>8.1f}\n"
-            f"{'PWM:':<8}{s_pwm:>8.0f}\n"
+            f"{'PID:':<8}{streams_data[2][-1]:>8.1f}\n"
+            f"{'FF:':<8}{streams_data[3][-1]:>8.1f}\n"
+            f"{'Total:':<8}{streams_data[4][-1]:>8.1f}\n"
+            f"{'PWM:':<8}{streams_data[7][-1]:>8.0f}\n"
             f"{'Brake:':<8}{break_status:>8s}"
         )
 
-        return lines + [hud_ax1, hud_ax2]
+        # --- 추가 ---
+        # 조향 HUD (ax3, ax4)
+        hud_ax3.set_text(
+            f"{'Target:':<10}{streams_data[11][-1]:>7.2f} deg\n"
+            f"{'Actual:':<10}{streams_data[10][-1]:>7.2f} deg\n"
+            f"{'Potentiometer:':<8}{streams_data[8][-1]:>7.0f} ADC"
+        )
+        hud_ax4.set_text(
+            f"{'Error:':<10}{streams_data[12][-1]:>8.2f}\n"
+            f"{'Integral:':<10}{streams_data[13][-1]:>8.2f}\n"
+            f"{'Derivative:':<10}{streams_data[14][-1]:>8.2f}\n"
+            f"{'PID Out:':<10}{streams_data[15][-1]:>8.2f}\n"
+            f"{'FinalPWM:':<10}{streams_data[19][-1]:>8.0f}"
+        )
 
+        return lines + all_huds
+    
+    # ... (FuncAnimation 호출 및 나머지 부분은 동일) ...
     ani = FuncAnimation(fig, update_plot, interval=50, blit=False, cache_frame_data=False)
 
     try:
@@ -240,5 +308,4 @@ def main():
         data_source.stop()
 
 if __name__ == '__main__':
-    # ... (리눅스 환경 점검 안내는 이전과 동일) ...
     main()
