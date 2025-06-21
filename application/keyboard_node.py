@@ -9,7 +9,7 @@ class KeyboardNode(Node):
     def __init__(self):
         super().__init__('keyboard_node')
         self.talkbutton_pub = self.create_publisher(Bool, '/stt_button_state',  10)
-        self.handlebutton_pub = self.create_publisher(UInt8, '/tactswitch_state', 10)
+        self.handlebutton_pub = self.create_publisher(UInt8, '/tact_switch_state', 10)
         self.emergency_pub = self.create_publisher(Bool, '/emergency_state', 10)
         self.emergency_pressed = False
         self.emergency_active = False

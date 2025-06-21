@@ -26,8 +26,8 @@ import time
 """
 BUILDING_DB = {
      
-    0: {"x": 0.0, "y": 0.0, "orientation": (0.0, 0.0, 0.0, 1.0)}, #신공학관 
-    1: {"x": 1.789409, "y": 45.007426, "orientation": (0.0, 0.0, 0.0, 1.0)}, #공학관 
+    1: {"x": 0.0, "y": 0.0, "orientation": (0.0, 0.0, 0.0, 1.0)}, #신공학관 
+    2: {"x": 1.789409, "y": 45.007426, "orientation": (0.0, 0.0, 0.0, 1.0)}, #공학관 
     4: {"x": -60.514286, "y": 126.617229, "orientation": (0.0, 0.0, 0.0, 1.0)},
     8: {"x": -142.485558, "y": 192.364434, "orientation": (0.0, 0.0, 0.0, 1.0)},
     9: {"x": -193.356556, "y": 198.505700, "orientation": (0.0, 0.0, 0.0, 1.0)},
@@ -58,9 +58,11 @@ class GoalSender(Node):
         self.planning_feedback = NavigateToPose.Feedback()
         self._current_goal_handle = None
         self.intent_server = self.create_service(IntentToPlanning, '/intent_to_planning', self.intent_server_callback)
-        
+        self.heartbeat_pub = self.create_publisher(UInt8, '/heartbeat/hmi_planning_node', 10)  # heartbeat 퍼블리셔
+        self.heartbeat = 0
         self.get_logger().info("hmi_planning started.")
-
+        self.create_timer(1.0, self.pub_heartbeat)  # 1초마다 타이머 콜백 호출
+    
     def building_id_callback(self, msg: IntentToPlanningmsg):
         """
         /voice/building_id 토픽으로부터 intent와 building_id를 수신하는 콜백 함수.
@@ -86,7 +88,11 @@ class GoalSender(Node):
             self.get_logger().info("기존 goal을 취소하고 새로운 목적지로 변경")
             self.cancel_current_goal()
             self.send_goal(goal_pose)
-
+    
+    def pub_heartbeat(self):
+        msg = UInt8()
+        msg.data = self.heartbeat
+        self.heartbeat_pub.publish(msg)
 
     def create_goal_pose(self, coords: dict) -> PoseStamped:
         """
@@ -131,6 +137,7 @@ class GoalSender(Node):
 
         self.get_logger().info("액션 서버 접속을 위해 대기 중...")
         # 액션 서버가 준비될 때까지 대기
+        self.heartbeat = 0
         self._action_client.wait_for_server()
 
         self.get_logger().info("NavigateToPose 액션 Goal 전송 중...")
@@ -153,12 +160,14 @@ class GoalSender(Node):
         goal_handle = future.result()
         if not goal_handle.accepted:
             self.get_logger().error('Goal이 거부되었습니다.')
+            self.heartbeat = 0
             return
 
         self.get_logger().info('Goal이 승인되었습니다.')
         # 액션 서버로부터 결과를 비동기적으로 받아오기 위한 후속 콜백 설정
         self._current_goal_handle = goal_handle
         result_future = goal_handle.get_result_async()
+        self.heartbeat = 1
         result_future.add_done_callback(self.get_result_callback)
     
     def feedback_callback(self, feedback_msg):
@@ -184,6 +193,7 @@ class GoalSender(Node):
         """
         result = future.result().result
         self.get_logger().info(f'Navigation 완료: {result}')
+        self.heartbeat = 1
         # 추가 후속 처리나 오류 핸들링을 구현할 수 있음.
     
     def intent_server_callback(self, request, response):

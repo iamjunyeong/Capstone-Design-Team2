@@ -12,7 +12,7 @@ setup(
 	    'vito_stt_client_pb2',
 	    'vito_stt_client_pb2_grpc',
         'button_node',
-        'keyboard_node',
+        #'keyboard_node',
         'hmi_planning_node',
 	],
 
@@ -35,7 +35,7 @@ setup(
 		'tts_node = tts_node:main',
 		'intent_node = intent_node:main',
         'button_node = button_node:main',
-        'keyboard_node = keyboard_node:main',
+        #'keyboard_node = keyboard_node:main',
         'hmi_planning_node = hmi_planning_node:main'
         ],
     },
