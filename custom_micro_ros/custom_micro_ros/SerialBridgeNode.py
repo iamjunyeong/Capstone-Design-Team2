@@ -68,7 +68,7 @@ class SerialBridgeNode2(Node):
     #  Ackermann 콜백
     # ──────────────────────────────
     def ackermann_callback(self, msg):       # ★
-        self.nav2_angle = msg.steering_angle
+        self.nav2_angle = msg.steering_angle * 180 / math.pi
         self.nav2_speed = msg.speed
     
     def convert_to_nav_msgs(self, speed, angle):

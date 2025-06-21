@@ -93,7 +93,7 @@ controller_server:
       critics: ["ObstacleFootprint", "RotateToGoal", "Oscillation", "BaseObstacle",
                 "GoalAlign", "PathAlign", "PathDist", "GoalDist"]
       ObstacleFootprint.scale: 1.0      # 충돌 셀은 무조건 제외
-      BaseObstacle.scale: 10.0
+      BaseObstacle.scale: 0.5
       PathAlign.scale: 1.0
       PathAlign.forward_point_distance: 0.1
       GoalAlign.scale: 1.0
@@ -524,13 +524,15 @@ local_costmap:
       width: 7
       height: 7
       resolution: 0.05
-      robot_radius: 0.3
+      # robot_radius: 0.3
+      footprint: "[[1.0,0.4],[1.0,-0.4],[-0.3,-0.4],[-0.3,0.4]]"
+
       # 기본 static_layer를 추가한 후, inflation_layer와 braille_lane_layer를 순서대로 사용합니다.
       plugins: ["dynamic_obstacle_layer","road_obstacle_layer","braille_lane_layer","inflation_layer"]
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 1.0
-        inflation_radius: 0.7
+        inflation_radius: 1.0
         enabled: true
       braille_lane_layer:
         plugin: "nav2_costmap_2d::BrailleLaneLayer"

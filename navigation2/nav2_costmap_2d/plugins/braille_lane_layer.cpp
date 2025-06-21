@@ -79,7 +79,7 @@ void BrailleLaneLayer::activate()
   auto qos = rclcpp::SensorDataQoS();
   // Point -> PointCloud2 로 바꿉니다.
   points_sub_ = node->create_subscription<sensor_msgs::msg::PointCloud2>(
-    "/center_line_point",
+    "/obstacle_braille_block",
     qos,
     std::bind(&BrailleLaneLayer::cloudCallback, this, std::placeholders::_1)
   );
@@ -217,7 +217,7 @@ void BrailleLaneLayer::updateCosts(Costmap2D & master_grid,
   // 점자블록 좌표로부터의 거리에 따른 비용 설정을 위한 상수
   const double distance_threshold = 0.2; // 20cm
   const unsigned char cost_within_threshold = 0;
-  const unsigned char cost_outside_threshold = 150;
+  const unsigned char cost_outside_threshold = 50;
 
 
   for (int j = min_j; j < max_j; ++j) {
