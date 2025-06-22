@@ -217,7 +217,7 @@ class TTSNode(Node):
             if not self.emergencybutton_pressed:  # 비상정지 해제됨
                 self.request_queue.put((1, self.tutorial_output[7]))
                 self.driving_state = 'TUTORIAL_OVER'  # 튜토리얼 종료 상태로 변경
-                self.tutorial_step = 0  # 튜토리얼 종료
+                self.tutorial_step = -1  # 튜토리얼 종료
 
     def can_output(self, code, cooldown=10):
         """지정한 코드가 처음이면 True, 이후엔 cooldown 초 이내 출력 방지"""
@@ -413,8 +413,9 @@ class TTSNode(Node):
         elif self.driving_state == 'TUTORIAL':
             self.run_tutorial_sequence()
         elif self.driving_state == 'TUTORIAL_OVER':
-            if self.can_output(207, cooldown=20):
-                self.request_queue.put((1, self.tutorial_output[7]))
+            pass
+            # if self.can_output(207, cooldown=20):
+            #     self.request_queue.put((1, self.tutorial_output[7]))
             
         if self.is_playing:
             self.heartbeat = 1  # 현재 TTS가 재생 중임을 나타냄

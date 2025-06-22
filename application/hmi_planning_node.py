@@ -2,7 +2,7 @@ import rclpy
 from rclpy.node import Node
 
 # std_msgs/UInt8: 음성 인식 노드에서 전달하는 건물 ID (정수)
-from std_msgs.msg import UInt8
+from std_msgs.msg import UInt8, Bool
 # geometry_msgs/PoseStamped: 목표 위치와 방향 정보를 담는 메시지 타입
 from geometry_msgs.msg import PoseStamped
 # Nav2 액션 메시지: NavigateToPose 액션 인터페이스를 사용함
@@ -27,7 +27,7 @@ import time
 BUILDING_DB = {
     1: {"x": 63.4208470000303, "y": -126.286642000079, "orientation": (0.0, 0.0, 0.795833, 0.605516)},
     3: {"x": 65.2102560000494, "y": -81.2792159998789, "orientation": (0.0, 0.0, 0.0, 1.0)},
-    5: {"x": 0, "y": 0, "orientation": (0.0, 0.0, 0.0, 1.0)},
+    5: {"x": 0.0, "y": 0.0, "orientation": (0.0, 0.0, 0.0, 1.0)},
     8: {"x": -79.0647109999554, "y": 66.0777920000255, "orientation": (0.0, 0.0, 0.999373,0.035408)},
     9: {"x": -129.935708999983, "y": 72.219058000017, "orientation": (0.0, 0.0, 0.998196, 0.060034)},
     11: {"x": -246.260857999965, "y": -12.2094660000876, "orientation": (0.0, 0.0, -0.836539, 0.547907)},
@@ -59,6 +59,11 @@ class GoalSender(Node):
         self.target_pose = None  # 목표 위치를 저장할 변수
         self.intent = None  # 수신된 intent를 저장할 변수
         self.wait_for_handle_grab = False  # 핸들 버튼을 기다리는 상태를 나타내는 변수
+        
+        #테스트용
+        self.go = False 
+        self.go_pub = self.create_publisher(Bool, '/go', 10)  # go 퍼블리셔
+        
         self.get_logger().info("hmi_planning started.")
         self.create_timer(1.0, self.pub_heartbeat)  # 1초마다 타이머 콜백 호출
         # 생성자 내부에 타이머 추가
@@ -83,7 +88,7 @@ class GoalSender(Node):
         if building_id not in BUILDING_DB:
             self.get_logger().error(f"존재하지 않는 건물 ID: {building_id}")
             return
-
+        self.go = True
         self.target_pose = self.create_goal_pose(BUILDING_DB[building_id])
        
         if self.intent in ("set_destination_confirmed", "change_dst_confirmed"):
@@ -94,12 +99,17 @@ class GoalSender(Node):
 
     def handlebutton_callback(self, msg):
         self.handlebutton_state = msg.data
-
+    def pub_stopandgo(self):
+        msg = Bool()
+        msg.data = self.go
+        self.go_pub.publish(msg)
 
     def pub_heartbeat(self):
         msg = UInt8()
         msg.data = self.heartbeat
         self.heartbeat_pub.publish(msg)
+        self.pub_stopandgo()
+
 
     def create_goal_pose(self, coords: dict) -> PoseStamped:
         """
