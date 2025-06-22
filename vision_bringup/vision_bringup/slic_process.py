@@ -66,8 +66,8 @@ class SlicNode(Node):
         color_s  = cv2.resize(color_raw, (w_s, h_s), cv2.INTER_LINEAR)
         depth_s  = cv2.resize(depth_raw, (w_s, h_s), cv2.INTER_NEAREST)
 
-        # 3. GPU‑SLIC
-        n_seg = max(800, int((h_s*w_s)/(4**2)))
+        # 3. GPU‑SLIc
+        n_seg = max(400, int((h_s*w_s)/(8**2)))
         labels = gpuslic_bgr(color_s, n_segments=n_seg, compactness=5, logger=self.get_logger()) 
 
         # 4. 카메라 내부 행렬 스케일

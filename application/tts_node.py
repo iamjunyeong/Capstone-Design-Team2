@@ -37,7 +37,7 @@ class TTSNode(Node):
             1 : ', 튜토리얼을 시작하겠습니다.' , 
             2 : ', 먼저, 양쪽의 손잡이를 잡고 앞쪽에 만져지는 버튼 세개를 동시에 눌러주세요. ',
             3 : ', 잘 하셨습니다. 안전을 위해 주행중에는 이 손잡이 버튼들을 모두 누른 상태를 유지해주세요. ',  
-            4 : ', 다음은 음성인식 버튼입니다. 오른쪽 손잡이 엄지 부분의 버튼을 누른 채로, 튜토리얼? 이라고 말씀해주세요. ',
+            4 : ', 다음은 음성인식 버튼입니다. 왼쪽 손잡이 엄지 부분의 버튼을 누른 채로, 튜토리얼? 이라고 말씀해주세요. ',
             5 : ', 잘 하셨습니다. 주행 중에도 음성인식 버튼을 누른 채로 저에게 말씀해주시면 됩니다.', 
             6 : ', 손잡이 중앙에 있는 비상정지 버튼을 오른쪽으로 돌려 해제해주세요. 이 버튼은 주행 중 누르면 주행이 중지됩니다.' ,
             7 : ', 튜토리얼이 종료되었습니다. 운행을 시작하시려면 음성인식 버튼을 누른 채로 목적지를 말씀해주세요. ',
@@ -63,7 +63,7 @@ class TTSNode(Node):
         self.lock = threading.Lock()
         self.driving_state = 'WAITING'
         self.vision_obstacle_info = 0  # 0(장애물 없음), 1(정적), 2(동적),3(둘다)
-        self.sound_file = '/home/jmj/voice_ws/Capstone-Design-Team2/application/effect.mp3'
+        self.sound_file = '/home/ubuntu/capstone_ws/src/Capstone-Design-Team2/application/effect.mp3'
         self.last_output_time = {}
         self.heartbeat = 0 # heartbeat 값 초기화
         self.tutorial_step = 0  # 튜토리얼 단계 초기화
@@ -175,6 +175,7 @@ class TTSNode(Node):
             self.driving_state = 'TUTORIAL_OVER'
             self.stop_and_clear_queue()  # 현재 재생 중인 음성 정지
             self.get_logger().info("비상정지 해제로 인한 종료")
+            self.request_queue.put((1, self.tutorial_output[7]))
             return
         
         if self.tutorial_step == 0:

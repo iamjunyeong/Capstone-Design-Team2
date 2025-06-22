@@ -9,6 +9,9 @@ import math
 from ackermann_msgs.msg import AckermannDrive     # ★ 신규
 import time
 from serial import SerialException
+# 상단 import 부분에 추가
+from std_msgs.msg import Bool
+
 
 class SerialBridgeNode2(Node):
     def __init__(self):
@@ -37,6 +40,8 @@ class SerialBridgeNode2(Node):
         self.auto_speed = 0.0
         self.auto_angle = 0.0
 
+        self.hmi_speed_override_flag = False  # ★ 플래그 변수 추가
+
         # 초기값 설정
         self.nav2_speed = 0.0
         self.nav2_angle = 0.0
@@ -49,6 +54,13 @@ class SerialBridgeNode2(Node):
             AckermannDrive,
             '/ackermann_cmd',                      # 토픽 이름에 맞춰 수정
             self.ackermann_callback,
+            10)
+        
+                # ★ Boolean 플래그 구독자 추가
+        self.create_subscription(
+            Bool,
+            '/go',  # 원하시는 토픽 이름으로 변경 가능
+            self.hmi_speed_override_callback,
             10)
         
         # 퍼블리셔 설정
@@ -71,6 +83,24 @@ class SerialBridgeNode2(Node):
         self.nav2_angle = msg.steering_angle * 180 / math.pi
         self.nav2_speed = msg.speed
     
+    # ──────────────────────────────
+    #  Boolean 플래그 콜백
+    # ──────────────────────────────
+    def hmi_speed_override_callback(self, msg):   # ★ 신규
+        """
+        /speed_override 토픽(Bool)을 받아 플래그를 업데이트합니다.
+        """
+        self.hmi_speed_override_flag = msg.data
+        # self.get_logger().info(f'Speed override flag is now: {self.hmi_speed_override_flag}')
+
+        # if self.hmi_speed_override_flag:
+        #     # 플래그가 True이면 속도를 0.2로 고정
+        #     self.nav2_speed = 0.3
+        # else:
+        #     # 플래그가 False이면 ackermann_cmd 메시지의 속도 사용
+        #     self.nav2_speed = 0.0
+        
+
     def convert_to_nav_msgs(self, speed, angle):
         linear_x = speed
         angular_z = speed * math.tan(math.radians(angle)) / 0.72

@@ -105,11 +105,12 @@ class GoalSender(Node):
         self.go_pub.publish(msg)
 
     def pub_heartbeat(self):
-        msg = UInt8()
-        msg.data = self.heartbeat
-        self.heartbeat_pub.publish(msg)
+        # msg = UInt8()
+        # msg.data = self.heartbeat
+        # self.heartbeat_pub.publish(msg)
+        
         self.pub_stopandgo()
-
+    
 
     def create_goal_pose(self, coords: dict) -> PoseStamped:
         """

@@ -220,8 +220,6 @@ private:
     yaw_ = std::atan2(2.0 * (q.w * q.z + q.x * q.y),
                  1.0 - 2.0 * (q.y * q.y + q.z * q.z));
 
-    RCLCPP_INFO(this->get_logger(), "yaw : %f", yaw_);
-
     local_yaw_ = local_yaw_ + imu_msg->angular_velocity.z * 0.01;
     while (local_yaw_ > M_PI) local_yaw_ -= 2 * M_PI;
     while (local_yaw_ < -M_PI) local_yaw_ += 2 * M_PI;
@@ -238,6 +236,7 @@ private:
     imu_count_++;
     if (imu_count_ % 1000 == 0){
       RCLCPP_INFO(this->get_logger(), "Received 1000 IMU messages with yaw : %f", yaw_);
+      RCLCPP_INFO(this->get_logger(), "yaw : %f", yaw_);
       imu_count_ = 0;
     }
   }
