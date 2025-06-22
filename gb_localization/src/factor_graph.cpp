@@ -40,29 +40,21 @@ public:
   bool is_ackerman_enable_;
   const double wheelbase_ = 0.77;  // Set default wheelbase
   bool datum_set_ = false;
-
+  
   FactorGraphNode() : Node("factor_graph_node")
   {
     RCLCPP_INFO(this->get_logger(),"factor_graph_node started");
 
-    yaw_service_ = this->create_client<gb_localization::srv::GlobalYaw>("aruco/get_yaw");
-    yaw_timer_ = this->create_wall_timer( std::chrono::seconds(1), bind(&FactorGraphNode::yaw_request_, this));
-
     encoder_sub_ = this->create_subscription<geometry_msgs::msg::TwistWithCovarianceStamped>("encoder/twist", 10, bind(&FactorGraphNode::preintegrateImu, this, placeholders::_1));
     gps_sub_ = this->create_subscription<sensor_msgs::msg::NavSatFix>("Ublox_gps/fix", 10, bind(&FactorGraphNode::gpsCallback, this, placeholders::_1));
     // rosbag qos 설정 ************************************************************************************
-    // rclcpp::QoS gps_qos = rclcpp::QoS(rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_sensor_data));
-    // gps_qos.best_effort();
-    // rclcpp::QoS imu_qos = rclcpp::QoS(rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_sensor_data));
-    // imu_qos.best_effort();
-    // imu_sub_ = this->create_subscription<sensor_msgs::msg::Imu>("imu/data", imu_qos, bind(&FactorGraphNode::imuCallback, this, placeholders::_1));
-    // gps_sub_ = this->create_subscription<sensor_msgs::msg::NavSatFix>("ublox_gps_node/fix", gps_qos, bind(&FactorGraphNode::gpsCallback, this, placeholders::_1));
-    //**************************************************************************************************
-    
+    rclcpp::QoS gps_qos = rclcpp::QoS(rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_sensor_data));
+    gps_qos.best_effort();
+    rclcpp::QoS imu_qos = rclcpp::QoS(rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_sensor_data));
+    imu_qos.best_effort();
     imu_sub_ = this->create_subscription<sensor_msgs::msg::Imu>("imu/data", 10, bind(&FactorGraphNode::imuCallback, this, placeholders::_1));
-    gps_sub_ = this->create_subscription<sensor_msgs::msg::NavSatFix>("ublox_gps_node/fix", 10, bind(&FactorGraphNode::gpsCallback, this, placeholders::_1));
-    
-    
+    gps_sub_ = this->create_subscription<sensor_msgs::msg::NavSatFix>("ublox_gps_node/fix", gps_qos, bind(&FactorGraphNode::gpsCallback, this, placeholders::_1));
+    //**************************************************************************************************
     imu_variance_sub_ = this->create_subscription<std_msgs::msg::Float64MultiArray>(
       "imu/variance", 10, std::bind(&FactorGraphNode::varianceCallback, this, std::placeholders::_1));
 
@@ -80,7 +72,7 @@ public:
     isam2_ = gtsam::ISAM2(params);
     prev_pose_ = gtsam::Pose3();
     prev_velocity_ = gtsam::Vector3(0,0,0);
-    is_initialized_ = false;
+
    
     imuCovarianceParams = PreintegrationParams::MakeSharedU(9.80665);
     imuCovarianceParams->accelerometerCovariance = (gtsam::Matrix33() <<
@@ -148,6 +140,7 @@ public:
         RCLCPP_WARN(this->get_logger(), "Failed to convert datum to UTM: %s", e.what());
       }
     }
+    // Helper function for Ackermann model pose computation
   }
 
 private:
@@ -169,17 +162,12 @@ private:
   gtsam::Symbol curr_bias_key_;
 
   bool gps_origin_initialized_ = false;
-  bool is_initialized_ = false;
-
-  rclcpp::Client<gb_localization::srv::GlobalYaw>::SharedPtr yaw_service_;
-  rclcpp::TimerBase::SharedPtr yawRequestTimer_;
 
   double utm_origin_x_ = 0.0;
   double utm_origin_y_ = 0.0;
 
   double yaw_ = 0.0;
   double local_yaw_ = 0.0;
-  double initial_yaw_ = 0.0;
   gtsam::Rot3 yaw_offset_ = gtsam::Rot3::Yaw(-M_PI / 2);
   gtsam::Rot3 yaw_compensation_ = gtsam::Rot3::Yaw(M_PI / 2);
 
@@ -231,7 +219,10 @@ private:
 
     yaw_ = std::atan2(2.0 * (q.w * q.z + q.x * q.y),
                  1.0 - 2.0 * (q.y * q.y + q.z * q.z));
-    local_yaw_ = local_yaw_ + imu_msg->angular_velocity.z * 0.05;
+
+    RCLCPP_INFO(this->get_logger(), "yaw : %f", yaw_);
+
+    local_yaw_ = local_yaw_ + imu_msg->angular_velocity.z * 0.01;
     while (local_yaw_ > M_PI) local_yaw_ -= 2 * M_PI;
     while (local_yaw_ < -M_PI) local_yaw_ += 2 * M_PI;
 
@@ -253,8 +244,6 @@ private:
 
   // create keyframe when encoder topic has arrived
   void preintegrateImu(const geometry_msgs::msg::TwistWithCovarianceStamped::SharedPtr encoder_msg){
-    if (!is_initialized_) return;
-
     if (imu_buf_.size() < 2) return; // imu_buff_ must have more than 2 imu topics
 
     imuCovarianceParams = PreintegrationParams::MakeSharedU(9.80665);
@@ -399,7 +388,6 @@ private:
 
   void gpsCallback(const sensor_msgs::msg::NavSatFix::SharedPtr gps_msg)
   {
-    if (!is_initialized_) return;
     // RCLCPP_INFO(this->get_logger(),"GPS received");
     double latitude = gps_msg->latitude;
     double longitude = gps_msg->longitude;
@@ -503,43 +491,6 @@ private:
     global_odom_broadcaster_->sendTransform(global_map_tf);
   }
 
-  void FactorGraphNode::serviceCallback()
-  {
-    if (is_initialized_) return;
-    
-    RCLCPP_INFO(this->get_logger(), "Waiting for ArUco marker to determine initial yaw...");
-    
-    if (!yaw_service_->wait_for_service(std::chrono::milliseconds(500))) {
-      RCLCPP_WARN(this->get_logger(), "Waiting for ArUco yaw service...");
-      return;
-    }
-
-    auto request = std::make_shared<gb_localization::srv::GlobalYaw::Request>();
-    auto future = yaw_service_->async_send_request(request);
-
-    if (rclcpp::spin_until_future_complete(this->get_node_base_interface(), future) ==
-        rclcpp::FutureReturnCode::SUCCESS)
-    {
-      double receivedYaw = future.get()->yaw;
-      if (std::isnan(receivedYaw)) {
-        RCLCPP_WARN(this->get_logger(), "Received invalid yaw (NaN) from ArUco service.");
-        return;
-      }
-
-      RCLCPP_INFO(this->get_logger(), "Received initial yaw from ArUco: %.4f rad", receivedYaw);
-
-      local_yaw_ = receivedYaw;
-      is_initialized_ = true;
-      yawRequestTimer_->cancel();  // 요청 중지
-
-      RCLCPP_INFO(this->get_logger(), "Yaw 보정 완료. 초기 자세 업데이트됨.");
-    }
-    else {
-      RCLCPP_WARN(this->get_logger(), "Failed to receive yaw from ArUco service.");
-    }
-  }
-
-
   size_t findClosestKeyframe(const rclcpp::Time& stamp) {
     if (keyframe_index_map_.empty()) return 0;
 
@@ -617,7 +568,7 @@ private:
     rclcpp::Time encoder_time = encoder_msg->header.stamp;
     double dt;
     if (is_first_encoder) {
-      dt = 0.067;
+      dt = 0.01;
       is_first_encoder = false;
     } else {
       dt = (encoder_time - prev_encoder_time).seconds();
@@ -633,6 +584,8 @@ private:
 
     return prev_pose_.compose(gtsam::Pose3(gtsam::Rot3::Yaw(theta), gtsam::Point3(dx, dy, 0.0)));
   }
+
+
 };
 
 
