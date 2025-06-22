@@ -56,9 +56,10 @@ double ObstacleSpeedCritic::scoreTrajectory(const dwb_msgs::msg::Trajectory2D & 
   if (obstacle_state == 2 || obstacle_state == 3) {
     // (A) 완전 정지 구간 ---------------------------------------
     if (obstacle_distance <= stop_distance_) {
-      penalty += scale_ * 1e6; // 선속도 : 사실상 금지
-      penalty += std::abs(traj.velocity.theta) * yaw_scale_ * 1e6; // 각속도도 금지
-      return penalty;
+      // 속도가 0이 아닌, 즉 조금이라도 움직이는 모든 경로는 유효하지 않다고 표시
+      if (traj.velocity.x != 0.0 || traj.velocity.theta != 0.0) {
+        return -1.0; // 이 경로는 무조건 버리라는 의미
+      }
     }
 
     // (B) 감속 구간 -------------------------------------------

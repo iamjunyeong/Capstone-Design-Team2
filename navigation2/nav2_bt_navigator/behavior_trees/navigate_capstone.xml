@@ -6,7 +6,7 @@
       <!-- <GoalUpdatedController> -->
         <!-- <ComputePathToPose goal="{goal}" path="{path}" planner_id="GridBased"/> -->
         <!-- <ComputePathToPose goal="{goal}" path="{unsmoothed_path}" planner_id="GridBased"/>
-        <SmoothPath unsmoothed_path="{unsmoothed_path}" path="{path}" smoother_id="ConstrainedSmoother"/> -->
+        <SmoothPath unsmoothed_path="{unsmoothed_path}" smoothed_path="{path}" smoother_id="ConstrainedSmoother"/> -->
       <!-- </GoalUpdatedController> -->
       <!-- <FollowPath path="{path}"  controller_id="FollowPath"/>
     </PipelineSequence>
@@ -25,7 +25,7 @@
       <Sequence name="NavigateAndSmooth">
         <!-- <ComputePathToPose goal="{goal}" path="{path}" planner_id="GridBased"/> -->
         <ComputePathToPose goal="{goal}" path="{unsmoothed_path}" planner_id="GridBased"/>
-        <SmoothPath unsmoothed_path="{unsmoothed_path}" path="{path}" smoother_id="ConstrainedSmoother"/>
+        <SmoothPath unsmoothed_path="{unsmoothed_path}" smoothed_path="{path}" smoother_id="ConstrainedSmoother"/>
         <FollowPath path="{path}" controller_id="FollowPath"/>
       </Sequence>
       

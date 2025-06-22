@@ -1,7 +1,7 @@
-#include "dwb_plugins/critics/high_speed_critic.hpp"
+#include "dwb_critics/high_speed_critic.hpp"
 #include "pluginlib/class_list_macros.hpp"
 
-namespace dwb_plugins {
+namespace dwb_critics {
 
 void HighSpeedCritic::onInit()
 {
@@ -18,7 +18,6 @@ double HighSpeedCritic::scoreTrajectory(const dwb_msgs::msg::Trajectory2D & traj
   return (v_max_ - vx) * scale_;      // |vx|가 클수록 penalty ↓
 }
 
-}  // namespace dwb_plugins
+}  // namespace dwb_critics
 
-PLUGINLIB_EXPORT_CLASS(dwb_plugins::HighSpeedCritic,
-                       dwb_core::TrajectoryCritic)
+PLUGINLIB_EXPORT_CLASS(dwb_critics::HighSpeedCritic, dwb_core::TrajectoryCritic)

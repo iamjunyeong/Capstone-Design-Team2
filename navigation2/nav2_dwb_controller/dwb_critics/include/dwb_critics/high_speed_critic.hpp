@@ -1,6 +1,6 @@
 #pragma once
 #include "dwb_core/trajectory_critic.hpp"
-namespace dwb_plugins {
+namespace dwb_critics {
 
 class HighSpeedCritic : public dwb_core::TrajectoryCritic
 {
@@ -17,4 +17,4 @@ private:
   double v_max_;   // 로봇의 max_vel_x 와 동일하게
 };
 
-}  // namespace dwb_plugins
+}  // namespace dwb_critics
