@@ -34,5 +34,8 @@
     <class type="dwb_critics::ObstacleSpeedCritic" base_class_type="dwb_core::TrajectoryCritic">
         <description>Adjust speed based on obstacle distance</description>
     </class>
+    <class type="dwb_critics::HighSpeedCritic" base_class_type="dwb_core::TrajectoryCritic">
+        <description>Encourages high speed</description>
+    </class>
   </library>
   

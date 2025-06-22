@@ -11,24 +11,20 @@ from ament_index_python.packages import get_package_share_directory
 from nav2_common.launch import RewrittenYaml                 # Humble에서는 param_rewrites 필수
 
 # ──────────── 기본 파일 경로 ────────────
-default_params_file = os.path.join(
-    get_package_share_directory('nav2_bringup'),
-    'params', 'nav2_capstone_params.yaml')                   # param 변경
+default_params_file = os.path.join(                 # param 변경
+    get_package_share_directory('nav2_bringup'), 'params', 'nav2_capstone_params.yaml')                   
+    # get_package_share_directory('nav2_bringup'), 'params', 'nav2_params_costmap.yaml')
 
-# default_params_file = os.path.join(
-#     get_package_share_directory('nav2_bringup'),
-#     'params', 'nav2_params_costmap.yaml')                   # param 변경
-
-default_map_file = os.path.join(
-    # get_package_share_directory('nav2_bringup'), 'maps', 'map_filtered.yaml')       # map 변경
-    # get_package_share_directory('nav2_bringup'), 'maps', 'testmap_B.yaml')  # map 변경
-    # get_package_share_directory('nav2_bringup'), 'maps', 'konkuk_map.yaml')          # map 변경
-    # get_package_share_directory('nav2_bringup'), 'maps', 'no_tf_test_map.yaml')          # map 변경
-    get_package_share_directory('nav2_bringup'), 'maps', 'map_8.yaml')          # map 변경
-    # get_package_share_directory('nav2_bringup'), 'maps', 'map_final.yaml')          # map 변경
-default_rviz_config_file = os.path.join(
-    get_package_share_directory('nav2_bringup'),
-    'rviz', 'nav2_default_view.rviz')                       # rviz 변경
+default_map_file = os.path.join(                    # map 변경
+    # get_package_share_directory('nav2_bringup'), 'maps', 'map_filtered.yaml')       
+    # get_package_share_directory('nav2_bringup'), 'maps', 'testmap_B.yaml')
+    # get_package_share_directory('nav2_bringup'), 'maps', 'konkuk_map.yaml')
+    # get_package_share_directory('nav2_bringup'), 'maps', 'no_tf_test_map.yaml')
+    get_package_share_directory('nav2_bringup'), 'maps', 'map_8.yaml')
+    # get_package_share_directory('nav2_bringup'), 'maps', 'map_final.yaml')
+default_rviz_config_file = os.path.join(            # rviz 변경
+    # get_package_share_directory('nav2_bringup'), 'rviz', 'nav2_default_view.rviz')    
+    get_package_share_directory('nav2_bringup'), 'rviz', 'nav2_capstone_view.rviz')
 
 
 def generate_launch_description():
@@ -174,11 +170,11 @@ def generate_launch_description():
         name='hmi_angle_node',
         output='screen')
 
-    obstacle_controller_param_updater_node = Node(                  # ★ 추가
-        package='obstacle_controller_param_updater',
-        executable='obstacle_controller_param_updater',
-        name='obstacle_controller_param_updater',
-        output='screen')
+    # obstacle_controller_param_updater_node = Node(                  # ★ 추가
+    #     package='obstacle_controller_param_updater',
+    #     executable='obstacle_controller_param_updater',
+    #     name='obstacle_controller_param_updater',
+    #     output='screen')
 
     crosswalk_supervisor_node = Node(                               # ★ 추가
         package='nav2_crosswalk_supervisor',

@@ -1,14 +1,34 @@
 <!-- nav2_bt_navigator/behavior_trees/navigate_capstone.xml-->
 <!-- 1번만 글로벌 경로 계산 후 스무딩-->
-<root main_tree_to_execute="MainTree">
+<!-- <root main_tree_to_execute="MainTree">
   <BehaviorTree ID="MainTree">
-    <PipelineSequence name="NavigateWithReplanning">
+    <PipelineSequence name="NavigateWithReplanning"> -->
       <!-- <GoalUpdatedController> -->
-        <ComputePathToPose goal="{goal}" path="{path}" planner_id="GridBased"/>
+        <!-- <ComputePathToPose goal="{goal}" path="{path}" planner_id="GridBased"/> -->
         <!-- <ComputePathToPose goal="{goal}" path="{unsmoothed_path}" planner_id="GridBased"/>
         <SmoothPath unsmoothed_path="{unsmoothed_path}" path="{path}" smoother_id="ConstrainedSmoother"/> -->
       <!-- </GoalUpdatedController> -->
-      <FollowPath path="{path}"  controller_id="FollowPath"/>
+      <!-- <FollowPath path="{path}"  controller_id="FollowPath"/>
     </PipelineSequence>
+  </BehaviorTree>
+</root> -->
+
+
+
+<!-- replanning 가능하게 변경-->
+<root main_tree_to_execute="MainTree">
+  <BehaviorTree ID="MainTree">
+    <ReactiveFallback name="NavigateWithImmediateReplanning">
+      
+      <GoalUpdated/>
+      
+      <Sequence name="NavigateAndSmooth">
+        <!-- <ComputePathToPose goal="{goal}" path="{path}" planner_id="GridBased"/> -->
+        <ComputePathToPose goal="{goal}" path="{unsmoothed_path}" planner_id="GridBased"/>
+        <SmoothPath unsmoothed_path="{unsmoothed_path}" path="{path}" smoother_id="ConstrainedSmoother"/>
+        <FollowPath path="{path}" controller_id="FollowPath"/>
+      </Sequence>
+      
+    </ReactiveFallback>
   </BehaviorTree>
 </root>

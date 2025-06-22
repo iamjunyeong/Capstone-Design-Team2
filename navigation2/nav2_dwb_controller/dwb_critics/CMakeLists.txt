@@ -35,6 +35,7 @@ add_library(${PROJECT_NAME} SHARED
     src/rotate_to_goal.cpp
     src/twirling.cpp
     src/obstacle_speed_critic.cpp  # ✅ 추가된 커스텀 Critic
+    src/high_speed_critic.cpp 
 )
 
 set(dependencies
