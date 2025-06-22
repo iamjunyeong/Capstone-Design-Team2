@@ -364,8 +364,15 @@ private:
     local_pose_msg.header.frame_id = "odom";
     local_pose_pub_->publish(local_pose_msg);
 
-    gtsam::Pose3 yaw_pose_correction(yaw_offset_, gtsam::Point3(0, 0, 0));  // translation은 (0,0,0)
-    gtsam::Pose3 local_tf_pose = yaw_pose_correction * prev_pose_;
+    // 수정 전 코드 -> pose도 90도 돌아감
+    // gtsam::Pose3 yaw_pose_correction(yaw_offset_, gtsam::Point3(0, 0, 0));  // translation은 (0,0,0)
+    // gtsam::Pose3 local_tf_pose = yaw_pose_correction * prev_pose_;
+
+    gtsam::Rot3 corrected_rot = yaw_offset_ * prev_pose_.rotation();
+    gtsam::Point3 corrected_position = prev_pose_.translation();
+
+    // 3. 둘을 조합해 새로운 TF pose 구성
+    gtsam::Pose3 corrected_pose(corrected_rot, corrected_position);
 
     geometry_msgs::msg::TransformStamped local_odom_tf;
     local_odom_tf.header.stamp = encoder_msg->header.stamp;
