@@ -365,10 +365,10 @@ private:
     local_pose_pub_->publish(local_pose_msg);
 
     // 수정 전 코드 -> pose도 90도 돌아감
-    // gtsam::Pose3 yaw_pose_correction(yaw_offset_, gtsam::Point3(0, 0, 0));  // translation은 (0,0,0)
-    // gtsam::Pose3 local_tf_pose = yaw_pose_correction * prev_pose_;
+    gtsam::Pose3 yaw_pose_correction(yaw_offset_, gtsam::Point3(0, 0, 0));  // translation은 (0,0,0)
+    gtsam::Pose3 local_tf_pose = yaw_pose_correction * prev_pose_;
 
-    gtsam::Pose3 local_tf_pose = prev_pose_;
+    // gtsam::Pose3 local_tf_pose = prev_pose_;
 
     geometry_msgs::msg::TransformStamped local_odom_tf;
     local_odom_tf.header.stamp = encoder_msg->header.stamp;
@@ -459,7 +459,7 @@ private:
     // tf 관련 부분
     gtsam::Pose3 yaw_pose_correction(yaw_offset_, gtsam::Point3(0, 0, 0));  // translation은 (0,0,0)
     gtsam::Pose3 odom_to_base = yaw_pose_correction * prev_pose_;
-
+    // gtsam::Pose3 odom_to_base = prev_pose_;
     gtsam::Pose3 map_to_base = result.at<gtsam::Pose3>(curr_pose_key);
     gtsam::Pose3 map_to_odom = map_to_base.compose(odom_to_base.inverse());
 
