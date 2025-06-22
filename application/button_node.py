@@ -93,7 +93,7 @@ class ButtonNode(Node):
         elif self.last_stt_state:
             talk = '🎤'
         
-        if self.last_tact_state == 0 or self.last_emergency_state == True:
+        if self.tact_state == 0 or self.last_emergency_state == True or self.hpl_hb_state == 0 :
             self.hmi_stop_state = True
         else: 
             self.hmi_stop_state = False
