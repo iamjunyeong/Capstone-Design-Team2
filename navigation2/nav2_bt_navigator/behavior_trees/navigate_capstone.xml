@@ -5,10 +5,8 @@
     <PipelineSequence name="NavigateWithReplanning">
       <!-- <GoalUpdatedController> -->
         <ComputePathToPose goal="{goal}" path="{path}" planner_id="GridBased"/>
-        <!-- <SmoothPath
-        unsmoothed_path="{unsmoothed_path}"
-        path="{path}"
-        smoother_id="ConstrainedSmoother"/> -->
+        <!-- <ComputePathToPose goal="{goal}" path="{unsmoothed_path}" planner_id="GridBased"/>
+        <SmoothPath unsmoothed_path="{unsmoothed_path}" path="{path}" smoother_id="ConstrainedSmoother"/> -->
       <!-- </GoalUpdatedController> -->
       <FollowPath path="{path}"  controller_id="FollowPath"/>
     </PipelineSequence>

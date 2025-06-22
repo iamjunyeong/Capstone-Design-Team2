@@ -7,7 +7,11 @@
   <maintainer email="jmj8521@gmail.com">ubuntu</maintainer>
   <license>TODO: License declaration</license>
 
-  <depend>rclpy geometry_msgs std_srvs nav2_msgs rcl_interfaces</depend>
+  <depend>rclpy</depend>
+  <depend>geometry_msgs</depend>
+  <depend>std_srvs</depend>
+  <depend>nav2_msgs</depend>
+  <depend>rcl_interfaces</depend>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>

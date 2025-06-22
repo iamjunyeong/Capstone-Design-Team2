@@ -24,8 +24,8 @@ default_map_file = os.path.join(
     # get_package_share_directory('nav2_bringup'), 'maps', 'testmap_B.yaml')  # map 변경
     # get_package_share_directory('nav2_bringup'), 'maps', 'konkuk_map.yaml')          # map 변경
     # get_package_share_directory('nav2_bringup'), 'maps', 'no_tf_test_map.yaml')          # map 변경
-    get_package_share_directory('nav2_bringup'), 'maps', 'map_7.yaml')          # map 변경
-    # get_package_share_directory('nav2_bringup'), 'maps', 'map_final.yaml')          # map 변경
+    # get_package_share_directory('nav2_bringup'), 'maps', 'map_7.yaml')          # map 변경
+    get_package_share_directory('nav2_bringup'), 'maps', 'map_final.yaml')          # map 변경
 default_rviz_config_file = os.path.join(
     get_package_share_directory('nav2_bringup'),
     'rviz', 'nav2_default_view.rviz')                       # rviz 변경
@@ -147,7 +147,7 @@ def generate_launch_description():
         arguments=['--ros-args', '--log-level', log_level],
         remappings=[('nav_vel', 'cmd_vel')])
 
-    # ──────────── 10. 신규 유틸리티 노드 4종 ────────────
+    # ──────────── 10. 신규 유틸리티 노드 6종 ────────────
     obstacle_layer_toggler_node = Node(
         package='obstacle_layer_toggler',
         executable='toggle_obstacle_layer',
@@ -174,6 +174,18 @@ def generate_launch_description():
         name='hmi_angle_node',
         output='screen')
 
+    obstacle_controller_param_updater_node = Node(                  # ★ 추가
+        package='obstacle_controller_param_updater',
+        executable='obstacle_controller_param_updater',
+        name='obstacle_controller_param_updater',
+        output='screen')
+
+    crosswalk_supervisor_node = Node(                               # ★ 추가
+        package='nav2_crosswalk_supervisor',
+        executable='crosswalk_supervisor',
+        name='crosswalk_supervisor',
+        output='screen')
+
     # ──────────── 11. 그룹화 ────────────
     bringup_group = GroupAction([
         PushRosNamespace(namespace, condition=IfCondition(use_namespace)),
@@ -186,15 +198,16 @@ def generate_launch_description():
         twist_to_ackermann_node,
         obstacle_layer_toggler_node,
         costmap_clear_timer_node,
-        scan_filter_node,       # ← 그대로 두되 조건이 적용됨
-        hmi_angle_node
+        scan_filter_node,          # ← 조건 적용
+        hmi_angle_node,
+        # obstacle_controller_param_updater_node,  # ★ 추가
+        crosswalk_supervisor_node                # ★ 추가
     ])
 
     # ──────────── 12. LaunchDescription 반환 ────────────
     return LaunchDescription([
         namespace_arg, use_namespace_arg, use_composition_arg, use_sim_time_arg,
         autostart_arg, params_file_arg, map_yaml_file_arg, rviz_config_file_arg,
-        use_rviz_arg, log_level_arg,
-        use_scan_filter_arg,
+        use_rviz_arg, log_level_arg, use_scan_filter_arg,
         bringup_group
     ])

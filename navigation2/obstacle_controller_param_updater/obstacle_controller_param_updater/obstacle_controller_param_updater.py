@@ -101,16 +101,18 @@ class ObstacleParamUpdater(Node):
         # 비동기 호출
         future = self.param_client.call_async(req)
         future.add_done_callback(self.parameter_set_callback)
-        self.get_logger().info(
-            f"파라미터 설정 요청 → state={self.state}, distance={self.distance:.2f}"
-        )
+        # self.get_logger().info(
+        #     f"파라미터 설정 요청 → state={self.state}, distance={self.distance:.2f}"
+        # )
 
     def parameter_set_callback(self, future):
         try:
             resp = future.result()
-            if all(r.successful for r in resp.results):
-                self.get_logger().info("파라미터 설정 성공")
-            else:
+            # if all(r.successful for r in resp.results):
+            #     self.get_logger().info("파라미터 설정 성공")
+            # else:
+            #     self.get_logger().error("파라미터 설정 중 일부 실패")
+            if not all(r.successful for r in resp.results):
                 self.get_logger().error("파라미터 설정 중 일부 실패")
         except Exception as e:
             self.get_logger().error(f"파라미터 설정 예외: {e}")
