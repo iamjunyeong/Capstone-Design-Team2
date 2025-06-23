@@ -16,19 +16,33 @@
 
 
 <!-- replanning 가능하게 변경-->
+<!-- plan-once-per-goal.xml -->
 <root main_tree_to_execute="MainTree">
   <BehaviorTree ID="MainTree">
-    <ReactiveFallback name="NavigateWithImmediateReplanning">
-      
+
+    <!-- ① goal이 바뀌었는지 항상 먼저 확인 -->
+    <ReactiveFallback name="NavigateWithGoalPreemption">
+
+      <!-- 새 goal이면 SUCCESS → 이 틱에서 아래 시퀀스를 실행하지 않고
+           다음 틱에 시퀀스를 처음부터 다시 시작 -->
       <GoalUpdated/>
-      
-      <Sequence name="NavigateAndSmooth">
-        <!-- <ComputePathToPose goal="{goal}" path="{path}" planner_id="GridBased"/> -->
-        <ComputePathToPose goal="{goal}" path="{unsmoothed_path}" planner_id="GridBased"/>
-        <SmoothPath unsmoothed_path="{unsmoothed_path}" smoothed_path="{path}" smoother_id="ConstrainedSmoother"/>
+
+      <!-- ② 새 goal이 들어오면 한 번만 Plan → Smooth → Follow -->
+      <PipelineSequence name="PlanOnceThenFollow">
+
+        <!-- 경로 계산·후처리는 딱 한 번 실행 -->
+        <ComputePathToPose goal="{goal}"
+                           path="{unsmoothed_path}"
+                           planner_id="GridBased"/>
+
+        <SmoothPath unsmoothed_path="{unsmoothed_path}"
+                    smoothed_path="{path}"
+                    smoother_id="ConstrainedSmoother"/>
+
+        <!-- 경로가 바뀌지 않는 한 FollowPath 가 RUNNING 상태 유지 -->
         <FollowPath path="{path}" controller_id="FollowPath"/>
-      </Sequence>
-      
+
+      </PipelineSequence>
     </ReactiveFallback>
   </BehaviorTree>
 </root>

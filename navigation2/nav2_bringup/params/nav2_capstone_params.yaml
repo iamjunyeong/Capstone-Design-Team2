@@ -24,6 +24,7 @@ bt_navigator:
       - nav2_goal_updated_condition_bt_node
       - nav2_rate_controller_bt_node
       - nav2_pipeline_sequence_bt_node
+      - nav2_back_up_action_bt_node
 
 bt_navigator_navigate_through_poses_rclcpp_node:
   ros__parameters:
@@ -38,9 +39,9 @@ controller_server:
   ros__parameters:
     use_sim_time: True
     controller_frequency: 20.0
-    min_x_velocity_threshold: 0.01
-    min_y_velocity_threshold: 0.01
-    min_theta_velocity_threshold: 0.01
+    min_x_velocity_threshold: 0.05
+    min_y_velocity_threshold: 0.05
+    min_theta_velocity_threshold: 0.1
     failure_tolerance: -1.0
     progress_checker_plugin: "progress_checker"
     goal_checker_plugins: ["general_goal_checker"]  # "precise_goal_checker"
@@ -49,13 +50,13 @@ controller_server:
     # Progress checker parameters
     progress_checker:
       plugin: "nav2_controller::SimpleProgressChecker"
-      required_movement_radius: 0.1
+      required_movement_radius: 0.5
       movement_time_allowance: 30.0
 
     general_goal_checker:
       stateful: True
       plugin: "nav2_controller::SimpleGoalChecker"
-      xy_goal_tolerance: 0.5
+      xy_goal_tolerance: 0.3
       yaw_goal_tolerance: 1.0
 
     # DWB local-planner parameters (TurtleBot3 기본값 변형)
@@ -79,42 +80,57 @@ controller_server:
       vx_samples: 20
       vy_samples: 1
       vtheta_samples: 20
-      sim_time: 5.0
+      sim_time: 3.0
       linear_granularity: 0.05
       angular_granularity: 0.025
       transform_tolerance: 1.5
-      xy_goal_tolerance: 0.25
-      trans_stopped_velocity: 0.25
+      xy_goal_tolerance: 0.5
+      trans_stopped_velocity: 0.05
       short_circuit_trajectory_evaluation: True
       stateful: True
 
-      critics: ["ObstacleFootprint", "RotateToGoal", "Oscillation", "BaseObstacle",
+      critics: ["ObstacleFootprint", "Oscillation", "BaseObstacle",
                 "GoalAlign", "PathAlign", "PathDist", "GoalDist", "ObstacleSpeedCritic", "HighSpeedCritic"]
-      ObstacleSpeedCritic:
-        plugin: "dwb_critics::ObstacleSpeedCritic"
-        full_speed_distance: 4.0   # 4 m 밖엔 제한 없음
-        stop_distance:       2.0   # 2 m 이내 완전 정지
-        scale:               5.0 # 선속도 가중치
-        yaw_scale:           0.5 # 각속도 가중치
-        obstacle_state: 0
-        obstacle_distance: 100.0
+      # ObstacleSpeedCritic:
+      #   plugin: "dwb_critics::ObstacleSpeedCritic"
+      #   full_speed_distance: 4.0   # 4 m 밖엔 제한 없음
+      #   stop_distance: 2.5   # 2 m 이내 완전 정지
+      #   scale: 1.0 # 선속도 가중치
+      #   yaw_scale: 0.2 # 각속도 가중치
+      #   obstacle_state: 0
+      #   obstacle_distance: 100.0
 
-      HighSpeedCritic:
-        plugin: "dwb_critics::HighSpeedCritic"
-        v_max: 0.8      # 로봇 최고 속도
-        scale: 5.0    # (300~800 사이로 조정하며 실험)
+      # HighSpeedCritic:
+      #   plugin: "dwb_critics::HighSpeedCritic"
+      #   scale: 0.01    # (300~800 사이로 조정하며 실험)
+      #   v_max: 0.8     # 로봇 최고 속도
       
+
+      # ---------- ObstacleSpeedCritic ----------
+      ObstacleSpeedCritic.plugin:           "dwb_critics::ObstacleSpeedCritic"
+      ObstacleSpeedCritic.full_speed_distance: 4.0
+      ObstacleSpeedCritic.stop_distance:       2.0
+      ObstacleSpeedCritic.scale:               2.75
+      ObstacleSpeedCritic.yaw_scale:           0.2
+
+      # ---------- HighSpeedCritic ----------
+      HighSpeedCritic.plugin:  "dwb_critics::HighSpeedCritic"
+      HighSpeedCritic.scale:   0.01
+      HighSpeedCritic.v_max:   0.8
+
+
+
       ObstacleFootprint.scale: 1.0      # 충돌 셀은 무조건 제외
-      BaseObstacle.scale: 1.0
-      PathAlign.scale: 2.0
-      PathAlign.forward_point_distance: 0.5
-      GoalAlign.scale: 1.0
-      GoalAlign.forward_point_distance: 0.5
-      PathDist.scale: 2.0
-      GoalDist.scale: 1.0
-      RotateToGoal.scale: 2.0
-      RotateToGoal.slowing_factor: 1.0
-      RotateToGoal.lookahead_time: -1.0
+      BaseObstacle.scale: 2.0
+      PathAlign.scale: 1.0
+      PathAlign.forward_point_distance: 0.1
+      GoalAlign.scale: 0.5
+      GoalAlign.forward_point_distance: 0.1
+      PathDist.scale: 0.5
+      GoalDist.scale: 2.0
+      # RotateToGoal.scale: 2.0
+      # RotateToGoal.slowing_factor: 1.0
+      # RotateToGoal.lookahead_time: -1.0
 
     # # DWB (남욱 4/28)
     # FollowPath:
@@ -544,7 +560,7 @@ local_costmap:
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 1.0
-        inflation_radius: 0.5
+        inflation_radius: 0.8
         enabled: true
       braille_lane_layer:
         plugin: "nav2_costmap_2d::BrailleLaneLayer"
