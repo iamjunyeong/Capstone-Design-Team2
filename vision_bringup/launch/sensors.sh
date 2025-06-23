@@ -4,9 +4,9 @@ set -e  # 오류 발생 시 즉시 종료
 ##########################
 # 1. SLLIDAR A3
 ##########################
-echo "[INFO] Starting SLLIDAR node..."
-ros2 launch sllidar_ros2 view_sllidar_a3_launch.py &
-LIDAR_PID=$!
+# echo "[INFO] Starting SLLIDAR node..."
+# ros2 launch sllidar_ros2 view_sllidar_a3_launch.py &
+# LIDAR_PID=$!
 
 ##########################
 # 2. Intel RealSense D455

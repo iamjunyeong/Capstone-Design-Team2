@@ -728,6 +728,7 @@ planner_server:
 # smoother server 파라미터
 smoother_server:
   ros__parameters:
+    speed_limit: -1.0
     smoother_plugins: ["ConstrainedSmoother"]
     ConstrainedSmoother:
       plugin: "nav2_constrained_smoother/ConstrainedSmoother"

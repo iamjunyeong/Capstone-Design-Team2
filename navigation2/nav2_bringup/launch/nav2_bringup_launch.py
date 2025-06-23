@@ -20,8 +20,8 @@ default_map_file = os.path.join(                    # map 변경
     # get_package_share_directory('nav2_bringup'), 'maps', 'testmap_B.yaml')
     # get_package_share_directory('nav2_bringup'), 'maps', 'konkuk_map.yaml')
     # get_package_share_directory('nav2_bringup'), 'maps', 'no_tf_test_map.yaml')
-    get_package_share_directory('nav2_bringup'), 'maps', 'map_8.yaml')
-    # get_package_share_directory('nav2_bringup'), 'maps', 'map_final.yaml')
+    # get_package_share_directory('nav2_bringup'), 'maps', 'map_8.yaml')
+    get_package_share_directory('nav2_bringup'), 'maps', 'map_final.yaml')
 default_rviz_config_file = os.path.join(            # rviz 변경
     # get_package_share_directory('nav2_bringup'), 'rviz', 'nav2_default_view.rviz')    
     get_package_share_directory('nav2_bringup'), 'rviz', 'nav2_capstone_view.rviz')
@@ -170,11 +170,11 @@ def generate_launch_description():
         name='hmi_angle_node',
         output='screen')
 
-    # obstacle_controller_param_updater_node = Node(                  # ★ 추가
-    #     package='obstacle_controller_param_updater',
-    #     executable='obstacle_controller_param_updater',
-    #     name='obstacle_controller_param_updater',
-    #     output='screen')
+    obstacle_controller_param_updater_node = Node(                  # ★ 추가
+        package='obstacle_controller_param_updater',
+        executable='obstacle_controller_param_updater',
+        name='obstacle_controller_param_updater',
+        output='screen')
 
     crosswalk_supervisor_node = Node(                               # ★ 추가
         package='nav2_crosswalk_supervisor',
@@ -196,7 +196,7 @@ def generate_launch_description():
         costmap_clear_timer_node,
         scan_filter_node,          # ← 조건 적용
         hmi_angle_node,
-        # obstacle_controller_param_updater_node,  # ★ 추가
+        obstacle_controller_param_updater_node,  # ★ 추가
         crosswalk_supervisor_node                # ★ 추가
     ])
 

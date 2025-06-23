@@ -35,7 +35,7 @@ MAP_PATH = (
 )
 
 # velocity_smoother 파라미터 이름 (Humble 기본)
-VS_NODE    = '/velocity_smoother'
+VS_NODE    = '/smoother_server'
 VS_PARAM   = 'speed_limit'          # 0.0: 정지,  -1.0: 제한 해제
 
 class CrosswalkSupervisor(Node):

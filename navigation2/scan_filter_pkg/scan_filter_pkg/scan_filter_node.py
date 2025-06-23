@@ -20,8 +20,8 @@ class ScanFilterNode(Node):
             10)
 
         # 필터 각도 (도 → 라디안)
-        self.angle_min_deg = -60.0
-        self.angle_max_deg =  60.0
+        self.angle_min_deg = -75.0
+        self.angle_max_deg =  75.0
         self.angle_min_rad = math.radians(self.angle_min_deg)
         self.angle_max_rad = math.radians(self.angle_max_deg)
 

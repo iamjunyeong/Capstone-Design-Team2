@@ -89,21 +89,47 @@
   <origin xyz="0.25 0 0.075" rpy="0 0 0"/> 
 </joint>
 
-<!-- 2D Lidar -->
+<!-- 라이다 받침 프로파일 직육면체 -->
+<link name="lidar_horizontal">
+  <visual>
+    <origin xyz="0 0 0.06" rpy="0 1.5708 0"/> 
+    <geometry>
+      <cylinder length="0.16" radius="0.01"/> 
+    </geometry>
+    <material name="black"/>
+  </visual>
+</link>
+
+<joint name="lidar_horizontal_joint" type="fixed">
+  <parent link="front_bumper"/>
+  <child link="lidar_horizontal"/>
+  <origin xyz="0 0 0.04" rpy="0 0 0"/>
+</joint>
+
+
+<!-- 2D Lidar(노랑) -->
 <link name="sensor_tip">
   <visual>
-    <origin xyz="0 0 0.175" rpy="0 0 0"/> 
+    <origin xyz="0.06 0 -0.02" rpy="0 0 0"/> 
     <geometry>
-      <cylinder radius="0.02" length="0.05"/>
+      <cylinder radius="0.02" length="0.02"/>
     </geometry>
     <material name="yellow"/>
   </visual>
 </link>
 
 <joint name="sensor_tip_joint" type="fixed">
-  <parent link="sensor_box"/>
+	<parent link="lidar_horizontal"/>
   <child link="sensor_tip"/>
   <origin xyz="0 0 0.1" rpy="0 0 0"/> 
+</joint>
+
+<!-- Laser frame for Lidar -->
+<link name="laser"/>
+<joint name="laser_joint" type="fixed">  
+	<parent link="base_link"/>  
+	<child link="laser"/>  
+	<origin xyz="1.0 0 0" rpy="0 0 3.14"/>
 </joint>
 
 
@@ -202,7 +228,6 @@
   <child link="front_bumper_ball_right"/>
   <origin xyz="0 0 0" rpy="0 0 0"/>
 </joint>
-
 
 <!-- Depth Camera-->
 <link name="front_bumper_top_box">

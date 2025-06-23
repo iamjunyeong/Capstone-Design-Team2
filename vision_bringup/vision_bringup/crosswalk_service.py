@@ -35,26 +35,29 @@ class CrosswalkService(Node):
         self.latest_code = msg.data         # 0 또는 1
 
     def handle_detect_crosswalk(self, request, response):
+        timeout = Duration(seconds=3)   # int형 seconds 사용
+
         while True:
-            self.get_logger().info('Start 3-second observation')
-            # 3초간 값 관찰
+            self.get_logger().info('3초간 관찰 시작')
             start = self.get_clock().now()
-            timeout = Duration(seconds=3.0)
             saw_zero = False
+
+            # 3초 관찰
             while self.get_clock().now() - start < timeout:
                 rclpy.spin_once(self, timeout_sec=0.1)
                 if self.latest_code == 0:
                     saw_zero = True
+                    self.get_logger().info('0 감지 → 다시 관찰')
                     break
 
-            if saw_zero:
-                self.get_logger().info('0 detected → retry')
-                continue            # 다시 3초 관찰
-            # 여기까지 왔으면 3초 동안 모두 1
-            response.success = True
-            response.message = '1'
-            self.get_logger().info('All clear → return 1')
-            return response
+            # 3초 내내 1만 나왔으면 루프 종료
+            if not saw_zero:
+                self.get_logger().info('3초간 모두 1 → 서비스 응답')
+                response.success = True
+                response.message = '1'
+                return response
+            # saw_zero=True 면 while True가 다시 반복되어 관찰 재시작
+
 
 def main():
     rclpy.init()
