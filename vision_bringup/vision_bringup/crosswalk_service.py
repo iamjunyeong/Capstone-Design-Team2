@@ -39,7 +39,7 @@ class CrosswalkService(Node):
             self.get_logger().info('Start 3-second observation')
             # 3초간 값 관찰
             start = self.get_clock().now()
-            timeout = Duration(seconds=2.0)
+            timeout = Duration(seconds=3.0)
             saw_zero = False
             while self.get_clock().now() - start < timeout:
                 rclpy.spin_once(self, timeout_sec=0.1)

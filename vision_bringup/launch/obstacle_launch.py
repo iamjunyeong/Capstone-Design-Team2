@@ -27,6 +27,7 @@ def generate_launch_description():
         Node(package='vision_bringup', executable='yolo_process',      **common),
         Node(package='vision_bringup', executable='obstacle_detector', **common),
         Node(package='vision_bringup', executable='obstacle_detector_crosswalk', **common),
+        Node(package='vision_bringup', executable='lanenet_process',   **common)
     ]
 
     return LaunchDescription([

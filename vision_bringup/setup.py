@@ -9,14 +9,18 @@ setup(
     data_files=[
         # keep ament registration
         ('share/ament_index/resource_index/packages',
-         ['resource/vision_bringup']),
+        ['resource/vision_bringup']),
         # install package.xml
         ('share/vision_bringup', ['package.xml']),
         # install all launch files
-        ('share/vision_bringup/launch',
-         ['launch/obstacle_launch.py']),
-        ('share/' + package_name + '/model', ['model/obstacle_detector.pt']),
+        ('share/vision_bringup/launch', ['launch/obstacle_launch.py']),
+        # ✅ 모델 2개를 한꺼번에 등록
+        ('share/' + package_name + '/model', [
+            'model/obstacle_detector.pt',
+            'model/best_model.pth'
+        ]),
     ],
+
     install_requires=['setuptools'],
     zip_safe=True,
     maintainer='loe',

@@ -1,171 +1,180 @@
 #!/usr/bin/env python3
-import os
-import sys
-
-# ----------------------------------------
-# 1) 프로젝트 루트 경로를 PYTHONPATH에 추가
-#    └ vision_bringup 패키지 상위 디렉토리 (lanenet_model, model, resource 등 포함)
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-if BASE_DIR not in sys.path:
-    sys.path.append(BASE_DIR)
-# ----------------------------------------
-
 import rclpy
 from rclpy.node import Node
+from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy
+from rclpy.qos import qos_profile_sensor_data
 
-from sensor_msgs.msg import Image
-from geometry_msgs.msg import Point
-
-import torch
-import cv2
+from sensor_msgs.msg import Image, PointCloud2, PointField, CameraInfo
 from cv_bridge import CvBridge
+import message_filters
+import sensor_msgs_py.point_cloud2 as pc2
+
+import os
+import sys
+import cv2
+import torch
 import numpy as np
+import struct
 from PIL import Image as PilImage
 from torchvision import transforms
+from ament_index_python.packages import get_package_share_directory
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'lanenet_model'))
+from lanenet.LaneNet import LaneNet  # ✅ 변경된 import
 
-# 프로젝트 내에 정의된 LaneNet 클래스 및 기타 유틸을 불러옵니다.
-from lanenet_model.lanenet.LaneNet import LaneNet
-from lanenet_model.utils.cli_helper_test import parse_args  # 필요에 따라 CLI 파라미터 사용 가능
+def rgb_to_float(r, g, b):
+    return struct.unpack('f', struct.pack('I', (r << 16) | (g << 8) | b))[0]
 
-# CUDA 장치 설정
-DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+class CenterLineContourNode(Node):
+    def __init__(self):
+        super().__init__('center_line_contour_node')
 
-# 이미지 전처리를 위한 transform 정의 (모델 입력 크기에 맞게 Resize, ToTensor, Normalize)
-data_transform = transforms.Compose([
-    transforms.Resize((256, 512)),  # 모델 입력 크기 (height, width)
-    transforms.ToTensor(),
-    transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-])
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.model = LaneNet(arch='ENet').to(self.device).eval()
+        model_path = os.path.join(
+            get_package_share_directory('vision_bringup'),
+            'model', 'best_model.pth'
+        )
+        self.model.load_state_dict(torch.load(model_path, map_location=self.device))
+        self.get_logger().info('LaneNet 모델 로드 완료')
 
-def load_model(model_path, model_type):
-    """
-    주어진 모델 경로와 모델 타입에 따라 LaneNet 모델을 생성하고,
-    state_dict를 로드한 후, 평가 모드로 전환합니다.
-    """
-    model = LaneNet(arch=model_type)
-    state_dict = torch.load(model_path, map_location=DEVICE)
-    model.load_state_dict(state_dict)
-    model.eval()
-    model.to(DEVICE)
-    return model
-
-class BrailleBlockDetector(Node):
-    def __init__(self, model, device):
-        super().__init__('braille_block_detector')
-
-        # 이미지 토픽 구독 (/camera/camera/color/image_raw)
-        self.subscription = self.create_subscription(
-            Image,
-            '/camera/camera/color/image_raw',
-            self.listener_callback,
-            10)
-        
-        # 중앙 좌표 퍼블리시를 위한 Publisher (Point 메시지)
-        self.publisher_ = self.create_publisher(Point, '/braille_block/center_point', 10)
-
-        # ROS 이미지 메시지를 OpenCV 이미지로 변환하기 위한 CvBridge
+        self.transform = transforms.Compose([
+            transforms.Resize((256, 512)),
+            transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+        ])
         self.bridge = CvBridge()
 
-        self.device = device
-        self.model = model
+        self.fx = self.fy = self.cx = self.cy = None
+        self.camera_info_received = False
 
-        self.get_logger().info('LaneNet 모델이 성공적으로 로드되었습니다.')
+        self.create_subscription(
+            CameraInfo,
+            '/camera/camera/color/camera_info',
+            self.camera_info_callback,
+            qos_profile_sensor_data
+        )
 
-    def listener_callback(self, msg):
-        # ROS 이미지 메시지를 OpenCV 이미지로 변환
+        color_sub = message_filters.Subscriber(
+            self, Image, '/camera/camera/color/image_raw', qos_profile=qos_profile_sensor_data)
+        depth_sub = message_filters.Subscriber(
+            self, Image, '/camera/camera/aligned_depth_to_color/image_raw', qos_profile=qos_profile_sensor_data)
+
+        self.ts = message_filters.ApproximateTimeSynchronizer([color_sub, depth_sub], queue_size=10, slop=0.1)
+        self.ts.registerCallback(self.callback)
+
+        qos = QoSProfile(reliability=ReliabilityPolicy.RELIABLE,
+                         durability=DurabilityPolicy.VOLATILE,
+                         depth=10)
+        self.pub = self.create_publisher(PointCloud2, '/center_line_point', qos)
+        self.overlay_pub = self.create_publisher(Image, '/lanenet/overlay_image', qos)
+
+    def camera_info_callback(self, msg):
+        if not self.camera_info_received:
+            self.fx = msg.k[0]
+            self.fy = msg.k[4]
+            self.cx = msg.k[2]
+            self.cy = msg.k[5]
+            self.camera_info_received = True
+            self.get_logger().info(
+                f'Camera 파라미터: fx={self.fx:.2f}, fy={self.fy:.2f}, cx={self.cx:.2f}, cy={self.cy:.2f}'
+            )
+
+    def callback(self, color_msg, depth_msg):
+        if not self.camera_info_received:
+            self.get_logger().warn('카메라 정보 대기 중...')
+            return
+
         try:
-            cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
+            color_img = self.bridge.imgmsg_to_cv2(color_msg, 'bgr8')
+            depth_img = self.bridge.imgmsg_to_cv2(depth_msg, desired_encoding='passthrough')
         except Exception as e:
             self.get_logger().error(f'이미지 변환 실패: {e}')
             return
 
-        # 전처리: OpenCV 이미지를 PIL 이미지로 변환 후, 데이터 transform 적용
-        input_tensor = self.preprocess(cv_image)
-
-        # 모델 추론
+        input_tensor = self.preprocess(color_img)
         with torch.no_grad():
-            outputs = self.model(input_tensor)
+            out = self.model(input_tensor)['binary_seg_pred']
 
-        # 후처리: binary_seg_pred를 이용해 컨투어 검출 후, 양쪽 경계의 중앙 좌표 산출
-        center_x, center_y = self.postprocess(outputs['binary_seg_pred'], cv_image.shape)
+        mask = (out.squeeze().cpu().numpy().astype(np.uint8) * 255)
+        mask = cv2.resize(mask, (color_img.shape[1], color_img.shape[0]))
+        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-        # 중앙 좌표를 Point 메시지로 만들어 퍼블리시
-        point_msg = Point()
-        point_msg.x = center_x
-        point_msg.y = center_y
-        point_msg.z = 0.0  # 2D 평면이므로 z=0
+        if len(contours) < 2:
+            self.get_logger().warn('contour 2개 이하')
+            return
 
-        self.publisher_.publish(point_msg)
-        self.get_logger().info(f'중앙 좌표 퍼블리시: ({center_x:.1f}, {center_y:.1f})')
+        contours = sorted(contours, key=cv2.contourArea, reverse=True)[:2]
+        contours = sorted(contours, key=lambda c: cv2.boundingRect(c)[0])
+
+        points = []
+        overlay_img = color_img.copy()
+
+        for v in range(2, color_img.shape[0]-2, 10):
+            x1 = x2 = -1
+            for c in contours:
+                for pt in c[:, 0, :]:
+                    if abs(int(pt[1]) - v) < 5:
+                        if x1 < 0:
+                            x1 = int(pt[0])
+                        else:
+                            x2 = int(pt[0])
+                            break
+            if x1 >= 0 and x2 >= 0:
+                u = (x1 + x2) / 2.0
+
+                if 2 <= int(u) < depth_img.shape[1] - 2:
+                    patch = depth_img[v-2:v+3, int(u)-2:int(u)+3]
+                    valid = patch[patch > 0]
+                    if len(valid) == 0:
+                        continue
+                    z = np.median(valid) * 0.001
+                    if np.std(valid) * 0.001 > 0.02:
+                        continue
+
+                    x = (u - self.cx) * z / self.fx
+                    y = (v - self.cy) * z / self.fy
+                    rgb = rgb_to_float(255, 0, 0)  # 빨간색
+                    points.append((x, y, z, rgb))
+
+                if 0 <= v < overlay_img.shape[0] and 0 <= int(u) < overlay_img.shape[1]:
+                    cv2.circle(overlay_img, (int(x1), v), 3, (0, 255, 0), -1)  # 왼쪽 초록
+                    cv2.circle(overlay_img, (int(x2), v), 3, (0, 255, 0), -1)  # 오른쪽 초록
+                    cv2.circle(overlay_img, (int(u), v), 3, (0, 0, 255), -1)  # 중앙 빨강
+
+        if not points:
+            self.get_logger().warn('3D point 없음')
+            return
+
+        header = depth_msg.header
+        fields = [
+            PointField(name='x', offset=0, datatype=PointField.FLOAT32, count=1),
+            PointField(name='y', offset=4, datatype=PointField.FLOAT32, count=1),
+            PointField(name='z', offset=8, datatype=PointField.FLOAT32, count=1),
+            PointField(name='rgb', offset=12, datatype=PointField.FLOAT32, count=1),
+        ]
+
+        cloud = pc2.create_cloud(header, fields, points)
+        self.pub.publish(cloud)
+        self.get_logger().info(f'{len(points)} 개의 중심선 포인트 퍼블리시 완료')
+
+        overlay_msg = self.bridge.cv2_to_imgmsg(overlay_img, encoding='bgr8')
+        overlay_msg.header = color_msg.header
+        self.overlay_pub.publish(overlay_msg)
 
     def preprocess(self, cv_image):
-        """
-        OpenCV 이미지(BGR)를 PIL 이미지(RGB)로 변환하고,
-        데이터 전처리를 수행하여 모델에 넣을 수 있는 Tensor를 반환합니다.
-        """
-        pil_image = PilImage.fromarray(cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB))
-        image_transformed = data_transform(pil_image).to(self.device)
-        # 배치 차원 추가 (1, C, H, W)
-        return image_transformed.unsqueeze(0)
-
-    def postprocess(self, binary_seg_pred, original_shape):
-        """
-        binary_seg_pred: 모델에서 반환한 binary segmentation 예측 (Tensor)
-        original_shape: 원본 이미지 크기 (H, W, C)
-        """
-        # Tensor → NumPy, thresholding → 이진 마스크
-        binary_pred_np = binary_seg_pred.squeeze().cpu().numpy()
-        _, binary_mask = cv2.threshold(binary_pred_np, 0.5, 255, cv2.THRESH_BINARY)
-        binary_mask = binary_mask.astype(np.uint8)
-
-        # 원본 크기로 리사이즈
-        h, w = original_shape[0], original_shape[1]
-        binary_mask = cv2.resize(binary_mask, (w, h))
-
-        # 컨투어 검출
-        contours, _ = cv2.findContours(binary_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        
-        # 큰 두 컨투어의 중심 계산
-        if len(contours) >= 2:
-            # 면적 기준 내림차순 정렬 후 상위 2개 선택
-            contours = sorted(contours, key=cv2.contourArea, reverse=True)[:2]
-            centers = []
-            for cnt in contours:
-                M = cv2.moments(cnt)
-                if M['m00'] != 0:
-                    cx = M['m10'] / M['m00']
-                    cy = M['m01'] / M['m00']
-                    centers.append((cx, cy))
-            # 좌우 순서대로 정렬 후 중점 계산
-            centers = sorted(centers, key=lambda pt: pt[0])
-            center_x = (centers[0][0] + centers[1][0]) / 2.0
-            center_y = (centers[0][1] + centers[1][1]) / 2.0
-            return center_x, center_y
-
-        # 컨투어가 부족하면 -1 반환
-        return -1.0, -1.0
+        pil = PilImage.fromarray(cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB))
+        return self.transform(pil).unsqueeze(0).to(self.device)
 
 def main(args=None):
     rclpy.init(args=args)
-
-    # ▶ CLI 파라미터 사용 예시
-    # cli_args = parse_args()
-    # model_path = cli_args.model
-    # model_type = cli_args.model_type
-
-    # 하드코딩 대신, 상대 경로로 모델 로드
-    model_path = os.path.join(BASE_DIR, 'model', 'best_model.pth')
-    model_type = 'ENet'  # 필요에 따라 실제 아키텍처 이름으로 변경
-
-    model = load_model(model_path, model_type)
-    node = BrailleBlockDetector(model, DEVICE)
+    node = CenterLineContourNode()
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:
         pass
-
-    node.destroy_node()
-    rclpy.shutdown()
+    finally:
+        node.destroy_node()
+        rclpy.shutdown()
 
 if __name__ == '__main__':
     main()

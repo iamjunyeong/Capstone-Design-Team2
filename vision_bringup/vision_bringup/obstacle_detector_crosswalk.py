@@ -19,7 +19,7 @@ HEIGHT_THRESHOLDS = {
 }
 
 #FULL_FRAME_RATIO = 0.95
-MOVE_RATIO_THRESHOLD = 0.05
+MOVE_RATIO_THRESHOLD = 0.01
 EPS = 1e-6
 
 class ObstacleDetector(Node):
@@ -30,7 +30,10 @@ class ObstacleDetector(Node):
         camera_topics = self.get_parameter('camera_topics').value
 
         self.pub_info = self.create_publisher(Int8, '/obstacle_crosswalk_info', 1)
-
+        self.rotations = {
+            '/usb_cam_0/image_raw': 'ccw',    # usb_cam0  ⟶  −90°
+            '/usb_cam_1/image_raw': 'cw',     # usb_cam1  ⟶  +90°
+        }
         self.bridge = CvBridge()
         self.model = YOLO('/home/ubuntu/capstone_ws/src/Capstone-Design-Team2/vision_bringup/model/obstacle_detector_crosswalk.pt')
 
@@ -67,7 +70,11 @@ class ObstacleDetector(Node):
             except Exception as e:
                 self.get_logger().error(f'Image conversion failed: {e}')
                 return
-
+            rot = self.rotations.get(topic_name)
+            if rot == 'cw':
+                img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
+            elif rot == 'ccw':
+                img = cv2.rotate(img, cv2.ROTATE_90_COUNTERCLOCKWISE)
 
             #h_frame = img.shape[0]
             print(f"image shape: {img.shape}, encoding: {msg.encoding}")
