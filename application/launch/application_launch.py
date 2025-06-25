@@ -15,7 +15,7 @@ def generate_launch_description():
 
         ExecuteProcess(
             cmd=[
-                'ros2', 'run', 'micro-ros-agent', 'micro-ros-agent', 'serial',
+                'ros2', 'run', 'micro_ros_agent', 'micro_ros_agent', 'serial',
                 '--dev', ['/dev/ttyACM', acm_number],
                 '-v6'
             ],
