@@ -45,25 +45,25 @@
     </joint>
   </xacro:macro>
 
-  <!-- 차체 -->
+  <!-- 차체  -->
   <link name="base_link">
     <visual>
       <origin xyz="0 0 0.075" rpy="0 0 0"/>
       <geometry>
-        <box size="0.6 0.3 0.15"/>
+        <box size="0.65 0.3 0.15"/>
       </geometry>
-      <material name="blue"/>
+      <material name="black"/>
     </visual>
   </link>
 
-  <!-- 앞 범퍼  -->
+  <!-- 앞 부분 프로파일 직육면체  -->
   <link name="front_bumper">
     <visual>
-      <origin xyz="0.024 0 0.03" rpy="0 0 0"/>
+      <origin xyz="-0.2 0 0.15" rpy="0 0 0"/>
       <geometry>
-        <box size="0.08 0.3 0.15"/>
+        <box size="0.27 0.23 0.15"/>
       </geometry>
-      <material name="black"/>
+      <material name="gray"/>
     </visual>
   </link>
   <joint name="front_bumper_joint" type="fixed">
@@ -72,22 +72,6 @@
     <origin xyz="0.315 0 0.05" rpy="0 0 0"/>
   </joint>
 
-<!-- 원통형 박스 -->
-<link name="sensor_box">
-  <visual>
-    <origin xyz="0 0 0.1" rpy="0 0 0"/> 
-    <geometry>
-      <cylinder radius="0.05" length="0.3"/> 
-    </geometry>
-    <material name="gray"/>
-  </visual>
-</link>
-
-<joint name="sensor_box_joint" type="fixed">
-  <parent link="base_link"/>
-  <child link="sensor_box"/>
-  <origin xyz="0.25 0 0.075" rpy="0 0 0"/> 
-</joint>
 
 <!-- 라이다 받침 프로파일 직육면체 -->
 <link name="lidar_horizontal">
@@ -133,12 +117,12 @@
 </joint>
 
 
-  <!--  뒷 상자 박스 -->
+ <!--  뒷 부분 프로파일 직육면체 -->
 <link name="rear_box">
   <visual>
     <origin xyz="0 0 0.05" rpy="0 0 0"/>
     <geometry>
-      <box size="0.3 0.3 0.22"/>
+      <box size="0.3 0.23 0.33"/>
     </geometry>
     <material name="gray"/>
   </visual>
@@ -149,7 +133,7 @@
   <origin xyz="-0.15 0 0.20" rpy="0 0 0"/>
 </joint>
 
-<!-- 수직 막대 -->
+<!-- 손잡이 수직 프로파일 -->
 <link name="handle_vertical">
   <visual>
     <origin xyz="-0.15 0 0.04" rpy="0 0 0"/>
@@ -165,7 +149,7 @@
   <origin xyz="0 0 0.11" rpy="0 0 0"/> 
 </joint>
 
-<!-- 손잡이 -->
+<!-- 손잡이  -->
 <link name="handle_horizontal">
   <visual>
     <origin xyz="-0.15 0 0.2" rpy="1.5708 0 0"/> 
@@ -182,11 +166,12 @@
   <origin xyz="0 0 0.04" rpy="0 0 0"/>
 </joint>
 
-<!-- Mono Camera 3개 -->
+
+<!-- Mono Camera 2개(빨강) -->
 
 <link name="front_bumper_ball_left">
   <visual>
-    <origin xyz="0.06 0.1 0.005" rpy="0 0 0"/>
+    <origin xyz="-0.06 0.1 0.16" rpy="0 0 0"/>
     <geometry>
       <sphere radius="0.02"/>
     </geometry>
@@ -199,24 +184,10 @@
   <origin xyz="0 0 0" rpy="0 0 0"/>
 </joint>
 
-<link name="front_bumper_ball_center">
-  <visual>
-    <origin xyz="0.06 0 0.005" rpy="0 0 0"/>
-    <geometry>
-      <sphere radius="0.02"/>
-    </geometry>
-    <material name="red"/>
-  </visual>
-</link>
-<joint name="front_bumper_ball_center_joint" type="fixed">
-  <parent link="front_bumper"/>
-  <child link="front_bumper_ball_center"/>
-  <origin xyz="0 0 0" rpy="0 0 0"/>
-</joint>
 
 <link name="front_bumper_ball_right">
   <visual>
-    <origin xyz="0.06 -0.1 0.005" rpy="0 0 0"/>
+    <origin xyz="-0.06 -0.1 0.16" rpy="0 0 0"/>
     <geometry>
       <sphere radius="0.02"/>
     </geometry>
@@ -229,10 +200,10 @@
   <origin xyz="0 0 0" rpy="0 0 0"/>
 </joint>
 
-<!-- Depth Camera-->
+<!-- Depth Camera(초록)-->
 <link name="front_bumper_top_box">
   <visual>
-    <origin xyz="0.06 0 0.08" rpy="0 0 0"/>
+    <origin xyz="-0.06 0 0.21" rpy="0 0 0"/>
     <geometry>
       <box size="0.04 0.1 0.02"/>
     </geometry>
