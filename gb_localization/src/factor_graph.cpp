@@ -305,10 +305,11 @@ private:
     // 노이즈 모델 설정 및 factor 추가
     auto encoder_noise = gtsam::noiseModel::Isotropic::Sigma(3, 0.1);
 
-    graph_.add(gtsam::PriorFactor<gtsam::Vector3>(curr_velocity_key, encoder_velocity_, encoder_noise));
-        // Add velocity smoothness between factor using encoder velocity
     auto velocity_between_noise = gtsam::noiseModel::Isotropic::Sigma(3, 1e-2);
+
+    // 주석 안정확하다면 바로 아래거 주석 취소하고 그 아래에 있는 graph.add 주석처리하기
     // graph_.add(gtsam::BetweenFactor<gtsam::Vector3>(prev_velocity_key, curr_velocity_key, encoder_velocity_, velocity_between_noise));
+    graph_.add(gtsam::PriorFactor<gtsam::Vector3>(curr_velocity_key, encoder_velocity_, encoder_noise));
 
     auto bias_noise_model = gtsam::noiseModel::Isotropic::Sigma(6,1e-3);
     graph_.add(gtsam::BetweenFactor<gtsam::imuBias::ConstantBias>(prev_bias_key, curr_bias_key, gtsam::imuBias::ConstantBias(),bias_noise_model)); // Removed per instruction

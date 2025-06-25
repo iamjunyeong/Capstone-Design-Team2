@@ -81,7 +81,10 @@ class SerialBridgeNode2(Node):
     # ──────────────────────────────
     def ackermann_callback(self, msg):       # ★
         self.nav2_angle = msg.steering_angle * 180 / math.pi
-        self.nav2_speed = msg.speed
+        if (self.hmi_speed_override_flag) :
+            self.nav2_speed = 0
+        else :
+            self.nav2_speed = msg.speed
     
     # ──────────────────────────────
     #  Boolean 플래그 콜백
