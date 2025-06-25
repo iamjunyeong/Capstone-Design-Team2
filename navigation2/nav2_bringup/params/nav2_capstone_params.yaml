@@ -91,19 +91,19 @@ controller_server:
 
       critics: ["ObstacleFootprint", "Oscillation", "BaseObstacle",
                 "GoalAlign", "PathAlign", "PathDist", "GoalDist", "ObstacleSpeedCritic", "HighSpeedCritic"]
-      # ObstacleSpeedCritic:
-      #   plugin: "dwb_critics::ObstacleSpeedCritic"
-      #   full_speed_distance: 4.0   # 4 m 밖엔 제한 없음
-      #   stop_distance: 2.5   # 2 m 이내 완전 정지
-      #   scale: 1.0 # 선속도 가중치
-      #   yaw_scale: 0.2 # 각속도 가중치
-      #   obstacle_state: 0
-      #   obstacle_distance: 100.0
+      ObstacleSpeedCritic:
+        plugin: "dwb_critics::ObstacleSpeedCritic"
+        full_speed_distance: 4.0   # 4 m 밖엔 제한 없음
+        stop_distance: 2.5   # 2 m 이내 완전 정지
+        scale: 1.0 # 선속도 가중치
+        yaw_scale: 0.2 # 각속도 가중치
+        obstacle_state: 0
+        obstacle_distance: 100.0
 
-      # HighSpeedCritic:
-      #   plugin: "dwb_critics::HighSpeedCritic"
-      #   scale: 0.01    # (300~800 사이로 조정하며 실험)
-      #   v_max: 0.8     # 로봇 최고 속도
+      HighSpeedCritic:
+        plugin: "dwb_critics::HighSpeedCritic"
+        scale: 0.01    # (300~800 사이로 조정하며 실험)
+        v_max: 0.8     # 로봇 최고 속도
       
 
       # ---------- ObstacleSpeedCritic ----------
