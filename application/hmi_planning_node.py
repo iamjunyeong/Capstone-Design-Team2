@@ -61,20 +61,22 @@ class GoalSender(Node):
         self.wait_for_handle_grab = False  # 핸들 버튼을 기다리는 상태를 나타내는 변수
         
         #테스트용
-        self.go = False 
-        self.go_pub = self.create_publisher(Bool, '/go', 10)  # go 퍼블리셔
+        #self.go = False 
+        #self.go_pub = self.create_publisher(Bool, '/go', 10)  # go 퍼블리셔
         
         self.get_logger().info("hmi_planning started.")
         self.create_timer(1.0, self.pub_heartbeat)  # 1초마다 타이머 콜백 호출
         # 생성자 내부에 타이머 추가
         self.create_timer(0.5, self.wait_for_handle_and_send_goal)
+    
     def wait_for_handle_and_send_goal(self):
         if getattr(self, 'waiting_for_handle_grab', False):
             if self.handlebutton_state == 1:
                 self.send_goal(self.target_pose)
                 self.get_logger().info("목적지 설정 완료")
                 self.waiting_for_handle_grab = False
-    
+                self.heartbeat = 1  # 목표 설정 후 heartbeat를 1로 설정
+                
     def building_id_callback(self, msg: IntentToPlanningmsg):
         """
         /voice/building_id 토픽으로부터 intent와 building_id를 수신하는 콜백 함수.
@@ -99,17 +101,17 @@ class GoalSender(Node):
 
     def handlebutton_callback(self, msg):
         self.handlebutton_state = msg.data
-    def pub_stopandgo(self):
-        msg = Bool()
-        msg.data = self.go
-        self.go_pub.publish(msg)
+    # def pub_stopandgo(self):
+    #     msg = Bool()
+    #     msg.data = self.go
+    #     self.go_pub.publish(msg)
 
     def pub_heartbeat(self):
-        # msg = UInt8()
-        # msg.data = self.heartbeat
-        # self.heartbeat_pub.publish(msg)
+        msg = UInt8()
+        msg.data = self.heartbeat
+        self.heartbeat_pub.publish(msg)
         
-        self.pub_stopandgo()
+        # self.pub_stopandgo()
     
 
     def create_goal_pose(self, coords: dict) -> PoseStamped:
@@ -205,15 +207,25 @@ class GoalSender(Node):
                 self.get_logger().info('----------------------------')
 
     def get_result_callback(self, future):
-        """
-        액션 결과를 수신하는 콜백 함수.
-        결과 메시지에서 필요한 정보를 로거로 출력.
-        """
         result = future.result().result
-        self.get_logger().info(f'Navigation 완료: {result}')
-        self.heartbeat = 1
-        # 추가 후속 처리나 오류 핸들링을 구현할 수 있음.
-    
+        status = result.result  # 상태 코드
+
+        if status == 4:
+            self.get_logger().info("✅ 목적지 도착 (SUCCEEDED)")
+        
+        elif status == 6:
+            self.get_logger().error("❌ 탐색 실패 (ABORTED)")
+            # 여기서 알림 전송!!! 
+            # and replanning 
+            if self.target_pose is not None:
+                
+                self.send_goal(self.target_pose)  # 재탐색을 위해 현재 목표 위치로 다시 Goal 전송
+            # 실패 알림 전송 가능
+            
+
+        else:
+            self.get_logger().warn(f"⚠️ 미확인 상태 코드: {status}")
+
     def intent_server_callback(self, request, response):
         """
         IntentToPlanning 서비스 요청을 처리하는 콜백 함수.

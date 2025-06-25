@@ -305,10 +305,10 @@ private:
     // 노이즈 모델 설정 및 factor 추가
     auto encoder_noise = gtsam::noiseModel::Isotropic::Sigma(3, 0.1);
 
-    // graph_.add(gtsam::PriorFactor<gtsam::Vector3>(curr_velocity_key, encoder_velocity_, encoder_noise));
+    graph_.add(gtsam::PriorFactor<gtsam::Vector3>(curr_velocity_key, encoder_velocity_, encoder_noise));
         // Add velocity smoothness between factor using encoder velocity
     auto velocity_between_noise = gtsam::noiseModel::Isotropic::Sigma(3, 1e-2);
-    graph_.add(gtsam::BetweenFactor<gtsam::Vector3>(prev_velocity_key, curr_velocity_key, encoder_velocity_, velocity_between_noise));
+    // graph_.add(gtsam::BetweenFactor<gtsam::Vector3>(prev_velocity_key, curr_velocity_key, encoder_velocity_, velocity_between_noise));
 
     auto bias_noise_model = gtsam::noiseModel::Isotropic::Sigma(6,1e-3);
     graph_.add(gtsam::BetweenFactor<gtsam::imuBias::ConstantBias>(prev_bias_key, curr_bias_key, gtsam::imuBias::ConstantBias(),bias_noise_model)); // Removed per instruction
@@ -572,7 +572,7 @@ private:
     rclcpp::Time encoder_time = encoder_msg->header.stamp;
     double dt;
     if (is_first_encoder) {
-      dt = 0.01;
+      dt = 0.067;
       is_first_encoder = false;
     } else {
       dt = (encoder_time - prev_encoder_time).seconds();
@@ -588,10 +588,7 @@ private:
 
     return prev_pose_.compose(gtsam::Pose3(gtsam::Rot3::Yaw(theta), gtsam::Point3(dx, dy, 0.0)));
   }
-
-
 };
-
 
 int main(int argc, char * argv[])
 {

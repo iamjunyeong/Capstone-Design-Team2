@@ -66,11 +66,11 @@ class SerialDataSource:
             header_line = self.serial_connection.readline().decode('utf-8').strip()
             print(f"수신된 헤더: {header_line}")
             self.csv_header = ['iso_timestamp'] + header_line.split(',')
-            self._setup_csv_file()
+            # self._setup_csv_file()
         except (UnicodeDecodeError, serial.SerialException):
             print("경고: 헤더를 수신하지 못했습니다. 기본 헤더를 사용합니다.")
             self.csv_header = ['iso_timestamp'] + [f'value_{i+1}' for i in range(self.num_streams)]
-            self._setup_csv_file()
+            # self._setup_csv_file()
 
         self.last_receive_time = time.time()
 
