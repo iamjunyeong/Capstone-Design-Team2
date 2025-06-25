@@ -1,7 +1,7 @@
 iahrs_driver:
   ros__parameters:
     m_bSingle_TF_option: true
-    sensor_hz: 20
+    sensor_hz: 100
     child_frame: imu
     parent_frame: base_link
     serial_port: /dev/ttyUSB0

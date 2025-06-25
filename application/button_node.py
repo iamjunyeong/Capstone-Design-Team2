@@ -69,7 +69,7 @@ class ButtonNode(Node):
                 self.get_logger().info('[TACT] 손잡이 정상 인식 (1)')
             else:
                 self.get_logger().warn('[TACT] 상태 불명 (2)')
-        self.tact_state = True
+        #self.tact_state = True
         self.last_tact_state = tact_code  # 상태 갱신
         self.handlebutton_pub.publish(UInt8(data=self.tact_state))  # 퍼블리시
 

@@ -572,7 +572,7 @@ private:
     rclcpp::Time encoder_time = encoder_msg->header.stamp;
     double dt;
     if (is_first_encoder) {
-      dt = 0.01;
+      dt = 0.067;
       is_first_encoder = false;
     } else {
       dt = (encoder_time - prev_encoder_time).seconds();
