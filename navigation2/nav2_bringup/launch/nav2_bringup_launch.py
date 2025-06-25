@@ -20,8 +20,12 @@ default_map_file = os.path.join(                    # map 변경
     # get_package_share_directory('nav2_bringup'), 'maps', 'testmap_B.yaml')
     # get_package_share_directory('nav2_bringup'), 'maps', 'konkuk_map.yaml')
     # get_package_share_directory('nav2_bringup'), 'maps', 'no_tf_test_map.yaml')
+    # get_package_share_directory('nav2_bringup'), 'maps', 'map_7.yaml')
     # get_package_share_directory('nav2_bringup'), 'maps', 'map_8.yaml')
-    get_package_share_directory('nav2_bringup'), 'maps', 'map_final.yaml')
+    # get_package_share_directory('nav2_bringup'), 'maps', 'map_final.yaml')
+    get_package_share_directory('nav2_bringup'), 'maps', 'map_final1.yaml')
+    # get_package_share_directory('nav2_bringup'), 'maps', 'map_final2.yaml')
+
 default_rviz_config_file = os.path.join(            # rviz 변경
     # get_package_share_directory('nav2_bringup'), 'rviz', 'nav2_default_view.rviz')    
     get_package_share_directory('nav2_bringup'), 'rviz', 'nav2_capstone_view.rviz')

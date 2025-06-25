@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 """
 crosswalk_supervisor.py
-ROS 2 Humble (Python rclpy)
+ROS 2 Humble (Python rclpy)
 
-변경 사항 — 2025-06-22
+변경 사항 — 2025‑06‑25
 ────────────────────
-* SetSpeedLimit.srv 제거 → velocity_smoother.speed_limit 파라미터 방식 유지
-* MAP_PATH 를 build 경로 대신 **패키지 share 디렉터리**에서 찾도록 수정
-    - ament_index_python.get_package_share_directory('nav2_bringup')
+* velocity_smoother.speed_limit 파라미터 **폐지** → /crosswalk_stop Bool 토픽으로 제어
+* 기존 로직·주석 최대한 유지, 추가 부분은  ### NEW  로 표시
 """
 
 import math, yaml, pathlib
@@ -18,32 +17,32 @@ from rclpy.node import Node
 from rclpy.callback_groups import ReentrantCallbackGroup
 
 from geometry_msgs.msg import PoseWithCovarianceStamped
+from std_msgs.msg import Bool                     # ### NEW
 from std_srvs.srv import Trigger
 from rcl_interfaces.srv import SetParameters
 from rcl_interfaces.msg import Parameter, ParameterValue, ParameterType
 from nav2_msgs.srv import ClearEntireCostmap
-from ament_index_python.packages import get_package_share_directory   # ### NEW
+from ament_index_python.packages import get_package_share_directory
 
 # ---------------------------------------------------------------- 설정 상수
 UTM_TOPIC  = '/odometry/global'     # PoseWithCovarianceStamped, frame_id "map"
-IN_THRESH  = 1.5                    # [m]  ≤ 1.5 m → “횡단보도 안”
+IN_THRESH  = 1.5                    # [m]  ≤ 1.5 m → “횡단보도 안”
 
-# ### FIX — 패키지 share 디렉터리에서 맵 경로 가져오기 (src 원본이 symlink-install 로 노출)
+# ### FIX — 패키지 share 디렉터리에서 맵 경로 가져오기 (src 원본이 symlink‑install 로 노출)
 MAP_PATH = (
     pathlib.Path(get_package_share_directory('nav2_bringup')) /
     'maps' / 'global_map.yaml'
 )
 
-# velocity_smoother 파라미터 이름 (Humble 기본)
-VS_NODE    = '/smoother_server'
-VS_PARAM   = 'speed_limit'          # 0.0: 정지,  -1.0: 제한 해제
+# /crosswalk_stop 토픽 (Bool)
+STOP_TOPIC = '/crosswalk_stop'
 
 class CrosswalkSupervisor(Node):
     def __init__(self):
         super().__init__('crosswalk_supervisor')
         cbg = ReentrantCallbackGroup()
 
-        # ─ detect_crosswalk 서비스
+        # ─ detect_crosswalk 서비스 (Vision 노드 안전 판단)
         self.detect_cli = self.create_client(Trigger,
                                              '/detect_crosswalk',
                                              callback_group=cbg)
@@ -54,15 +53,14 @@ class CrosswalkSupervisor(Node):
         self.clear_cli  = self.create_client(ClearEntireCostmap,
             '/local_costmap/clear_entirely_local_costmap', callback_group=cbg)
 
-        # ─ velocity_smoother 파라미터 클라이언트
-        self.vs_param_cli = self.create_client(SetParameters,
-                                               f'{VS_NODE}/set_parameters',
-                                               callback_group=cbg)
+        # ### NEW — /crosswalk_stop 퍼블리셔 (True 정지 / False 주행)
+        self.stop_pub = self.create_publisher(Bool, STOP_TOPIC, 10, callback_group=cbg)
+        self._publish_stop(False)        # 초기값 : 주행 허용
 
         # ─ crosswalk 좌표 로드
         self.wpts = self._load_crosswalk_points(MAP_PATH)
 
-        # ─ UTM 포즈 (1 Hz) 구독
+        # ─ UTM 포즈 (1 Hz) 구독
         self.curr_pos = None
         self.create_subscription(PoseWithCovarianceStamped, UTM_TOPIC,
                                  self._pose_cb, 10, callback_group=cbg)
@@ -71,10 +69,10 @@ class CrosswalkSupervisor(Node):
         self.get_logger().info(f'CrosswalkSupervisor ready  |  MAP={MAP_PATH}')
 
     # ---------------------------------------------------- YAML 파싱
-    def _load_crosswalk_points(self, path: pathlib.Path) -> List[Tuple[float,float]]:
-        data      = yaml.safe_load(path.read_text())
-        node_tbl  = {n['id']:(n['x'], n['y']) for n in data.get('nodes', [])}
-        pts: List[Tuple[float,float]] = []
+    def _load_crosswalk_points(self, path: pathlib.Path) -> List[Tuple[float, float]]:
+        data     = yaml.safe_load(path.read_text())
+        node_tbl = {n['id']: (n['x'], n['y']) for n in data.get('nodes', [])}
+        pts: List[Tuple[float, float]] = []
         for e in data.get('edges', []):
             if not e.get('crosswalk', False):
                 continue
@@ -86,7 +84,7 @@ class CrosswalkSupervisor(Node):
         self.get_logger().info(f'Loaded {len(pts)} crosswalk points')
         return pts
 
-    # ---------------------------------------------------- 포즈 콜백 (1 Hz)
+    # ---------------------------------------------------- 포즈 콜백 (1 Hz)
     def _pose_cb(self, msg: PoseWithCovarianceStamped):
         self.curr_pos = (msg.pose.pose.position.x, msg.pose.pose.position.y)
         dist  = self._closest_dist()
@@ -103,20 +101,20 @@ class CrosswalkSupervisor(Node):
         if self.curr_pos is None or not self.wpts:
             return math.inf
         cx, cy = self.curr_pos
-        return min(math.hypot(cx-x, cy-y) for x,y in self.wpts)
+        return min(math.hypot(cx - x, cy - y) for x, y in self.wpts)
 
     # ---------------------------------------------------- 상태 전환
     def _on_entry(self):
         self.get_logger().info('▶ ENTRY: stop & road layer OFF')
-        self._set_speed_limit(0.0)
+        self._publish_stop(True)                 # ### NEW 정지
         self._toggle_road_layer(False)
 
         fut = self.detect_cli.call_async(Trigger.Request())
         fut.add_done_callback(self._on_detect_done)
 
     def _on_exit(self):
-        self.get_logger().info('↩ EXIT: road layer ON & speed_limit OFF')
-        self._set_speed_limit(-1.0)
+        self.get_logger().info('↩ EXIT: road layer ON & resume')
+        self._publish_stop(False)                # ### NEW 주행 재개
         self._toggle_road_layer(True)
 
     def _on_detect_done(self, fut):
@@ -128,22 +126,14 @@ class CrosswalkSupervisor(Node):
 
         if safe:
             self.get_logger().info('SAFE: resume (road layer still OFF)')
-            self._set_speed_limit(-1.0)
+            self._publish_stop(False)            # ### NEW 주행 재개
+        else:
+            self.get_logger().info('UNSAFE: keep waiting')
 
     # ---------------------------------------------------- 헬퍼
-    def _set_speed_limit(self, limit: float):
-        """velocity_smoother.speed_limit 파라미터 토글 (0.0=stop, -1.0=unlimited)"""
-        if not self.vs_param_cli.service_is_ready():
-            self.get_logger().warn('velocity_smoother param service not ready')
-            return
-        p = Parameter(
-            name=VS_PARAM,
-            value=ParameterValue(
-                type=ParameterType.PARAMETER_DOUBLE,
-                double_value=limit
-            )
-        )
-        self.vs_param_cli.call_async(SetParameters.Request(parameters=[p]))
+    def _publish_stop(self, flag: bool):        # ### NEW
+        """True : 정지  |  False : 주행"""
+        self.stop_pub.publish(Bool(data=flag))
 
     def _toggle_road_layer(self, enable: bool):
         param = Parameter(
@@ -164,4 +154,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-    
