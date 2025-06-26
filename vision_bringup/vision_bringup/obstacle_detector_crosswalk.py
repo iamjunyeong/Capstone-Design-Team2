@@ -120,6 +120,26 @@ class ObstacleDetector(Node):
             final_code = 1 if all(c == 1 for c in self.last_codes.values()) else 0
             self.pub_info.publish(Int8(data=final_code))
 
+            filename = '/home/ubuntu/capstone_ws/src/Capstone-Design-Team2/vision_bringup/vision_bringup/crosswalk_info_log_30.txt'
+
+            try:
+                with open(filename, 'r') as f:
+                    lines = f.readlines()
+            except FileNotFoundError:
+                lines = []
+
+            # 현재 발행된 final_code 추가
+            lines.append(f"{final_code}\n")
+
+            # 최대 30줄로 자르기 (최신 30줄 유지)
+            if len(lines) > 750:
+                lines = lines[-750:]
+
+            # 다시 저장
+            with open(filename, 'w') as f:
+                f.writelines(lines)
+
+
             dbg = img.copy()
             if boxes is not None and len(boxes) > 0:
                 for coord, cid in zip(arr_xyxy, arr_cls):

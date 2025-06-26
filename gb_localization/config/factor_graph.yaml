@@ -14,5 +14,8 @@ factor_graph_node:
     # datum_latitude: 37.5421603
     # datum_longitude: 127.078445
     # map_final
-    datum_latitude: 37.5417568
-    datum_longitude: 127.0786372
+    # datum_latitude: 37.5417568
+    # datum_longitude: 127.0786372
+    # map_new_v1
+    datum_latitude: 37.542323 
+    datum_longitude: 127.078077

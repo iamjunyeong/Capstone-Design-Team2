@@ -234,7 +234,7 @@ private:
     }
 
     imu_count_++;
-    if (imu_count_ % 1000 == 0){
+    if (imu_count_ % 100 == 0){
       RCLCPP_INFO(this->get_logger(), "Received 1000 IMU messages with yaw : %f", yaw_);
       RCLCPP_INFO(this->get_logger(), "yaw : %f", yaw_);
       imu_count_ = 0;
@@ -255,7 +255,7 @@ private:
       imuCovarianceParams->gyroscopeCovariance = (gtsam::Matrix33() <<
         999.0, 0.0, 0.0,
         0.0, 999.0, 0.0,
-        0.0, 0.0, 0.5).finished();  // Only trust yaw
+        0.0, 0.0, 0.9).finished();  // Only trust yaw
     }
 
     rclcpp::Time prev_time = imu_buf_.front()->header.stamp;
@@ -422,7 +422,7 @@ private:
     gtsam::Rot3 compensated_rot = yaw_compensation_ * rot;
 
     gtsam::Pose3 gps_position(compensated_rot, gtsam::Point3(local_x, local_y, 0.0));
-    auto gps_noise = gtsam::noiseModel::Diagonal::Sigmas((Vector(6) << 0.1, 0.1, 0.1, 999, 999, 0.3).finished());  // 6DOF Pose3
+    auto gps_noise = gtsam::noiseModel::Diagonal::Sigmas((Vector(6) << 0.1, 0.1, 0.1, 999, 999, 0.9).finished());  // 6DOF Pose3
 
     rclcpp::Time gps_key_time = gps_msg->header.stamp;
     gtsam::Symbol curr_pose_key('p', keyframe_idx_);

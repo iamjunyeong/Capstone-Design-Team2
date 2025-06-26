@@ -1,69 +1,70 @@
 #!/usr/bin/env python3
 import rclpy
 from rclpy.node import Node
-from rclpy.duration import Duration
-from std_msgs.msg import Int8
 from std_srvs.srv import Trigger
+import time  # ✅ 추가
 
 class CrosswalkService(Node):
-    """
-    /obstacle_crosswalk_info (Int8) 를 구독하여
-    서비스 요청 시점부터 3 초 동안 값을 관찰,
-    0이 한 번이라도 나오면 다시 3초 관찰,
-    최종적으로 1만 관찰되면 "1" 을 응답.
-    """
-
     def __init__(self):
         super().__init__('crosswalk_service_server')
 
-        # 최근 수신 값을 저장 (초기값 1)
-        self.latest_code = 1
-        self.create_subscription(
-            Int8,
-            '/obstacle_crosswalk_info',
-            self._info_cb,
-            10
-        )
         self.srv = self.create_service(
             Trigger,
             'detect_crosswalk',
             self.handle_detect_crosswalk
         )
-        self.get_logger().info('Crosswalk service ready')
-
-    def _info_cb(self, msg: Int8):
-        self.latest_code = msg.data         # 0 또는 1
+        self.count = 0
+        self.get_logger().info('🚦 Crosswalk service (file-read only) ready')
 
     def handle_detect_crosswalk(self, request, response):
-        timeout = Duration(seconds=3)   # int형 seconds 사용
+        filename = '/home/ubuntu/capstone_ws/src/Capstone-Design-Team2/vision_bringup/vision_bringup/crosswalk_info_log_30.txt'
 
         while True:
-            self.get_logger().info('3초간 관찰 시작')
-            start = self.get_clock().now()
-            saw_zero = False
+            self.get_logger().info('📂 TXT 파일 읽는 중...')
 
-            # 3초 관찰
-            while self.get_clock().now() - start < timeout:
-                rclpy.spin_once(self, timeout_sec=0.1)
-                if self.latest_code == 0:
-                    saw_zero = True
-                    self.get_logger().info('0 감지 → 다시 관찰')
-                    break
-
-            # 3초 내내 1만 나왔으면 루프 종료
-            if not saw_zero:
-                self.get_logger().info('3초간 모두 1 → 서비스 응답')
-                response.success = True
-                response.message = '1'
+            try:
+                with open(filename, 'r') as f:
+                    lines = [line.strip() for line in f.readlines()]
+                    collected_values = [int(v) for v in lines if v in ('0', '1')]
+            except FileNotFoundError:
+                self.get_logger().warn(f'파일 없음: {filename}')
+                response.success = False
+                response.message = 'Log file not found'
                 return response
-            # saw_zero=True 면 while True가 다시 반복되어 관찰 재시작
+            except Exception as e:
+                self.get_logger().error(f'파일 읽기 오류: {e}')
+                response.success = False
+                response.message = 'File read error'
+                return response
+            # 0 포함 여부 판단
+            if any(v == 0 for v in collected_values):
+                self.get_logger().info(f'❌ 0 감지됨 → 1초 후 다시 확인')
+                time.sleep(1.0)  # ✅ 1초 대기 추가
+                count += 1
+                continue
+            else:
+                self.get_logger().info(f'✅ 모두 1 → 응답 반환. [수집값: {collected_values}]')
+                response.success = True
+                response.message = f'1 (Values: {collected_values})'
+                return response
+            
+            if (count >= 10):
+                self.get_logger().info(f'✅ 10번 카운트 오버 그냥 지나갑니다.ㅜㅜㅜㅜㅜㅜㅜㅜㅜㅜㅜㅜㅜㅜㅜㅜㅜㅜㅜㅜㅜㅜㅜㅜㅜㅜㅜㅜㅜㅜㅜㅜㅜㅜ')
+                response.success = True
+                response.message = f'1 (Values: {collected_values})'
+                return response
 
 
 def main():
     rclpy.init()
     node = CrosswalkService()
+
+    from rclpy.executors import MultiThreadedExecutor
+    executor = MultiThreadedExecutor()
+    executor.add_node(node)
+
     try:
-        rclpy.spin(node)
+        executor.spin()
     finally:
         node.destroy_node()
         rclpy.shutdown()

@@ -51,7 +51,7 @@ controller_server:
     progress_checker:
       plugin: "nav2_controller::SimpleProgressChecker"
       required_movement_radius: 0.5
-      movement_time_allowance: 3.0   # 테스트용이면 3으로 해버리기
+      movement_time_allowance: 30.0   # 테스트용이면 3으로 해버리기
 
     general_goal_checker:
       stateful: True
@@ -65,11 +65,11 @@ controller_server:
       debug_trajectory_details: True
       min_vel_x: 0.0
       min_vel_y: 0.0
-      max_vel_x: 0.8
+      max_vel_x: 0.6
       max_vel_y: 0.0
       max_vel_theta: 1.0
       min_speed_xy: 0.0
-      max_speed_xy: 0.8
+      max_speed_xy: 0.6
       min_speed_theta: 0.0
       acc_lim_x: 2.0
       acc_lim_y: 0.0

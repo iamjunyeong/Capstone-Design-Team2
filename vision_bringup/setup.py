@@ -14,6 +14,7 @@ setup(
         ('share/vision_bringup', ['package.xml']),
         # install all launch files
         ('share/vision_bringup/launch', ['launch/obstacle_launch.py']),
+        ('share/vision_bringup/launch', ['launch/grad_final_vis.py']),
         # ✅ 모델 2개를 한꺼번에 등록
         ('share/' + package_name + '/model', [
             'model/obstacle_detector.pt',

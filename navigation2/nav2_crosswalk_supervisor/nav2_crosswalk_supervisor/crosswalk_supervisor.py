@@ -26,7 +26,7 @@ from ament_index_python.packages import get_package_share_directory
 
 # ---------------------------------------------------------------- 설정 상수
 UTM_TOPIC  = '/odometry/global'     # PoseWithCovarianceStamped, frame_id "map"
-IN_THRESH  = 1.5                    # [m]  ≤ 1.5 m → “횡단보도 안”
+IN_THRESH  = 1                    # [m]  ≤ 1     m → “횡단보도 안”
 
 # ### FIX — 패키지 share 디렉터리에서 맵 경로 가져오기 (src 원본이 symlink‑install 로 노출)
 MAP_PATH = (
