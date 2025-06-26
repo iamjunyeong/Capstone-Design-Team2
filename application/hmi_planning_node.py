@@ -55,14 +55,18 @@ class GoalSender(Node):
         self.planning_feedback = NavigateToPose.Feedback()
         self._current_goal_handle = None
         self.intent_server = self.create_service(IntentToPlanning, '/intent_to_planning', self.intent_server_callback)
-        self.heartbeat_pub = self.create_publisher(UInt8, '/heartbeat/hmi_planning_node', 10)  # heartbeat 퍼블리셔
         self.handlebutton_sub = self.create_subscription(UInt8, '/handlebutton_state', self.handlebutton_callback, 10)  # 핸들 버튼 상태 구독
+        self.intent_client_to_intent_node = self.create_client(IntentToPlanning, '/intent_to_planning')
+        self.heartbeat_pub = self.create_publisher(UInt8, '/heartbeat/hmi_planning_node', 10)  # heartbeat 퍼블리셔
+        self.arrived_pub = self.create_publisher(Bool, '/arrived_at_destination', 10)
+        
         self.heartbeat = 0
         self.handlebutton_state = 0 
         self.target_pose = None  # 목표 위치를 저장할 변수
         self.intent = None  # 수신된 intent를 저장할 변수
         self.wait_for_handle_grab = False  # 핸들 버튼을 기다리는 상태를 나타내는 변수
         
+
         #테스트용
         #self.go = False 
         #self.go_pub = self.create_publisher(Bool, '/go', 10)  # go 퍼블리셔
@@ -173,6 +177,8 @@ class GoalSender(Node):
             self.get_logger().info("replanning, 현재 goal 취소")
             future = self._current_goal_handle.cancel_goal_async()
             rclpy.spin_until_future_complete(self, future)
+
+    
     
     def goal_response_callback(self, future):
         """
@@ -209,13 +215,21 @@ class GoalSender(Node):
                 self.get_logger().info(f'  - estimated time remaining: {self.feedback.estimated_time_remaining.sec:.2f}m')
                 self.get_logger().info('----------------------------')
 
+
     def get_result_callback(self, future):
         result = future.result().result
         status = result.result  # 상태 코드
-
+#############################
         if status == 4:
             self.get_logger().info("✅ 목적지 도착 (SUCCEEDED)")
-        
+
+            msg = Bool()
+            msg.data = True
+            self.arrived_pub.publish(msg)
+            self.get_logger().info("목적지 도착 알림 토픽 발행 완료.")
+
+#############################
+
         elif status == 6:
             self.get_logger().error("❌ 탐색 실패 (ABORTED)")
             # 여기서 알림 전송!!! 

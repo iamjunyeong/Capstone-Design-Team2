@@ -108,6 +108,7 @@ class IntentNode(Node):
             "tutorial" : ["튜토리얼"]
         }
 
+        
         # 목적지 수령 self.dst = string 
         for dst in self.boosted_dst:
             user_text = user_text.strip() # 공백 제거
@@ -123,7 +124,7 @@ class IntentNode(Node):
             if any(k in user_text for k in keywords):
                 self.intent = key
                 break
-            
+
         if self.intent == None or self.intent == "unknown": 
             self.intent = "unknown"
             self.get_logger().info("알 수 없는 요청")

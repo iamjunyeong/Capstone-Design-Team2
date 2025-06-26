@@ -30,7 +30,8 @@ class TTSNode(Node):
             12: ', 비상정지합니다. 비상 정지합니다.',
             13: ', 주행이 완료되었습니다. 주차구역에서 대기하겠습니다.',
             14: ', 네',
-            15: ', 전방에 장애물이 있습니다.'
+            15: ', 전방에 장애물이 있습니다.',
+            16: ', 목적지에 도착하였습니다. 운행을 종료합니다. '
         }
         self.tutorial_output = { 
             0 : ', 주행을 시작하시려면 손잡이 가운데 버튼을 눌러주세요. 스킵하려면 비상정지 버튼을 오른쪽으로 돌려 해제해주세요',
@@ -88,8 +89,10 @@ class TTSNode(Node):
         self.emergencybutton_sub = self.create_subscription(Bool, '/emergency', self.emergency_button_callback,10)
         self.vision_obstacle_info_sub = self.create_subscription(Int8, '/obs_info', self.vision_callback, 10)  # 장애물 정보 수신용
         self.heartbeat_pub = self.create_publisher(UInt8, '/heartbeat/tts_node', 10)  # heartbeat 퍼블리셔
+        self.arrived_sub = self.create_subscription(Bool, '/arrived_at_destination',self.arrived_callback(),10) #최종 완
         # vision/obstacle_info 값 받아오는 sub 필요, callback에서 9번 출력 
         # (보류) 속도조절 스위치 값 받아오는 sub 필요, callback에서 조건에 따라 7,8번 출력
+
         #srv 
         self.req_server = self.create_service(IntentResponse, '/confirm_service', self.intent_confirm_callback)
         self.intent_tts_server = self.create_service(IntentToTTS, '/intent_to_tts_plan', self.intent_tts_callback)
@@ -234,7 +237,15 @@ class TTSNode(Node):
             return True
 
         return False  # 🔸 cooldown 미만이면 False
-    
+
+#############################
+    def arrived_callback(self,msg):
+        """최종 완료, 도착 알림"""
+        if (msg):
+            self.stop_and_clear_queue()
+            self.request_queue.put((0, self.output_text[16]))
+#############################
+
     def handlebutton_callback(self, msg):
         self.handlebutton_code = msg.data
         if self.driving_state == 'DRIVING':
@@ -385,7 +396,7 @@ class TTSNode(Node):
                 text = f"도착까지 약 {request.estimated_time_remaining}분 남았습니다."
             elif request.intent == "get_location":
                 text = f"{request.closest_landmark} 근처를 지나고 있습니다."
-
+            
             # TTS 재생
             self.request_queue.put((2, text))
             
