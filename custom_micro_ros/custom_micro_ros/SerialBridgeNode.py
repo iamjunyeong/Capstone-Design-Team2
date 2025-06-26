@@ -81,10 +81,10 @@ class SerialBridgeNode2(Node):
     # ──────────────────────────────
     def ackermann_callback(self, msg):       # ★
         self.nav2_angle = msg.steering_angle * 180 / math.pi
-        # if (self.hmi_speed_override_flag) :
-        #     self.nav2_speed = 0
-        # else :
-        #     self.nav2_speed = msg.speed
+        if (self.hmi_speed_override_flag) :
+            self.nav2_speed = 0
+        else :
+            self.nav2_speed = msg.speed
     
     # ──────────────────────────────
     #  Boolean 플래그 콜백
@@ -96,12 +96,12 @@ class SerialBridgeNode2(Node):
         self.hmi_speed_override_flag = msg.data
         # self.get_logger().info(f'Speed override flag is now: {self.hmi_speed_override_flag}')
 
-        if self.hmi_speed_override_flag:
-            # 플래그가 True이면 속도를 0.2로 고정
-            self.nav2_speed = 0.0
-        else:
-            # 플래그가 False이면 ackermann_cmd 메시지의 속도 사용
-            self.nav2_speed = 0.3
+        # if self.hmi_speed_override_flag:
+        #     # 플래그가 True이면 속도를 0.2로 고정
+        #     self.nav2_speed = 0.0
+        # else:
+        #     # 플래그가 False이면 ackermann_cmd 메시지의 속도 사용
+        #     self.nav2_speed = 0.3
         
 
     def convert_to_nav_msgs(self, speed, angle):
