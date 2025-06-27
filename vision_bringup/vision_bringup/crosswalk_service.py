@@ -84,7 +84,7 @@ class CrosswalkService(Node):
                 for v in values:
                     if v == 0:
                         count += 1
-                        if count >= 3:
+                        if count >= 4:
                             return True
                     else:
                         count = 0

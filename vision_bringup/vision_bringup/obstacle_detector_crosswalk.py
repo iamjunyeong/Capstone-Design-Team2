@@ -132,8 +132,8 @@ class ObstacleDetector(Node):
             lines.append(f"{final_code}\n")
 
             # 최대 30줄로 자르기 (최신 30줄 유지)
-            if len(lines) > 300:
-                lines = lines[-300:]
+            if len(lines) > 200:
+                lines = lines[-200:]
 
             # 다시 저장
             with open(filename, 'w') as f:

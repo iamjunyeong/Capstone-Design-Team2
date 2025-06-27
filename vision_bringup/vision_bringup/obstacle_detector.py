@@ -12,7 +12,7 @@ from ament_index_python.packages import get_package_share_directory
 # 클래스 이름 및 필터링 기준
 NAMES = ['pole','person','bollard','bicycle','motorcycle','bench','barricade','scooter']
 STATIC_LABELS = {'pole','bollard','bench','barricade'}
-DYNAMIC_LABELS = {'person','bicycle','motorcycle','scooter'}
+DYNAMIC_LABELS =  {'person'} #{'person','bicycle','motorcycle','scooter'}
 RELEVANT = STATIC_LABELS | DYNAMIC_LABELS
 
 DISTANCE_THRESHOLD = 5.0  # meter
