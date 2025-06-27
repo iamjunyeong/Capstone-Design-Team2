@@ -26,7 +26,7 @@ class TTSNode(Node):
             8: ', 감속하겠습니다.',
             9: ', 보행 중입니다. 주의하여주세요.',
             10: ', 양쪽 손잡이를 꼭 잡아주세요.',
-            11: ', 손잡이가 떨어져 정지하겠습니다. ',
+            11: ', 손잡이를 잡아주세요. ',
             12: ', 비상정지합니다. 비상 정지합니다.',
             13: ', 주행이 완료되었습니다. 주차구역에서 대기하겠습니다.',
             14: ', 네',
@@ -87,9 +87,9 @@ class TTSNode(Node):
         self.talkbutton_sub = self.create_subscription(Bool, '/talkbutton_pressed', self.talkbutton_callback,10)
         self.handlebutton_sub = self.create_subscription(UInt8, '/handlebutton_state', self.handlebutton_callback,10)
         self.emergencybutton_sub = self.create_subscription(Bool, '/emergency', self.emergency_button_callback,10)
-        self.vision_obstacle_info_sub = self.create_subscription(Int8, '/obs_info', self.vision_callback, 10)  # 장애물 정보 수신용
+        self.vision_obstacle_info_sub = self.create_subscription(Int8, '/obstacle_info', self.vision_callback, 10)  # 장애물 정보 수신용
         self.heartbeat_pub = self.create_publisher(UInt8, '/heartbeat/tts_node', 10)  # heartbeat 퍼블리셔
-        self.arrived_sub = self.create_subscription(Bool, '/arrived_at_destination',self.arrived_callback(),10) #최종 완
+        self.arrived_sub = self.create_subscription(Bool, '/arrived_at_destination',self.arrived_callback,10) #최종 완
         # vision/obstacle_info 값 받아오는 sub 필요, callback에서 9번 출력 
         # (보류) 속도조절 스위치 값 받아오는 sub 필요, callback에서 조건에 따라 7,8번 출력
 
@@ -238,13 +238,12 @@ class TTSNode(Node):
 
         return False  # 🔸 cooldown 미만이면 False
 
-#############################
     def arrived_callback(self,msg):
         """최종 완료, 도착 알림"""
         if (msg):
             self.stop_and_clear_queue()
             self.request_queue.put((0, self.output_text[16]))
-#############################
+
 
     def handlebutton_callback(self, msg):
         self.handlebutton_code = msg.data
@@ -255,7 +254,7 @@ class TTSNode(Node):
 
             elif self.handlebutton_code == 0:
                 # 손잡이 해제 안내
-                if self.can_output(111, 10):
+                if self.can_output(111, 20):
                     self.stop_and_clear_queue()
                     self.request_queue.put((0, self.output_text[11])) 
 

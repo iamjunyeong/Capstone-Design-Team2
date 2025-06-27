@@ -65,7 +65,7 @@ class GoalSender(Node):
         self.target_pose = None  # 목표 위치를 저장할 변수
         self.intent = None  # 수신된 intent를 저장할 변수
         self.wait_for_handle_grab = False  # 핸들 버튼을 기다리는 상태를 나타내는 변수
-        
+        self.feedback = None
 
         #테스트용
         #self.go = False 
@@ -214,7 +214,11 @@ class GoalSender(Node):
                 self.get_logger().info(f'  - Recoveries: {self.feedback.number_of_recoveries}')
                 self.get_logger().info(f'  - estimated time remaining: {self.feedback.estimated_time_remaining.sec:.2f}m')
                 self.get_logger().info('----------------------------')
-
+            if (self.feedback.distance_remaining<1.0):
+                msg = Bool()
+                msg.data = True
+                self.arrived_pub.publish(msg)
+                self.get_logger().info("목적지 도착 알림 토픽 발행 완료.")
 
     def get_result_callback(self, future):
         result = future.result().result

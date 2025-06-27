@@ -181,11 +181,11 @@ def generate_launch_description():
         name='obstacle_controller_param_updater',
         output='screen')
 
-    crosswalk_supervisor_node = Node(                               # ★ 추가
-        package='nav2_crosswalk_supervisor',
-        executable='crosswalk_supervisor',
-        name='crosswalk_supervisor',
-        output='screen')
+    # crosswalk_supervisor_node = Node(                               # ★ 추가
+    #     package='nav2_crosswalk_supervisor',
+    #     executable='crosswalk_supervisor',
+    #     name='crosswalk_supervisor',
+    #     output='screen')
 
     # ──────────── 11. 그룹화 ────────────
     bringup_group = GroupAction([
@@ -201,8 +201,8 @@ def generate_launch_description():
         costmap_clear_timer_node,
         scan_filter_node,          # ← 조건 적용
         hmi_angle_node,
-        obstacle_controller_param_updater_node,  # ★ 추가
-        crosswalk_supervisor_node                # ★ 추가
+        obstacle_controller_param_updater_node  # ★ 추가
+        # crosswalk_supervisor_node                # ★ 추가
     ])
 
     # ──────────── 12. LaunchDescription 반환 ────────────

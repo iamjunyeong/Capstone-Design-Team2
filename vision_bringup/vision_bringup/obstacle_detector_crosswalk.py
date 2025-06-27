@@ -19,7 +19,7 @@ HEIGHT_THRESHOLDS = {
 }
 
 #FULL_FRAME_RATIO = 0.95
-MOVE_RATIO_THRESHOLD = 0.01
+MOVE_RATIO_THRESHOLD = 0.03
 EPS = 1e-6
 
 class ObstacleDetector(Node):
@@ -132,8 +132,8 @@ class ObstacleDetector(Node):
             lines.append(f"{final_code}\n")
 
             # 최대 30줄로 자르기 (최신 30줄 유지)
-            if len(lines) > 750:
-                lines = lines[-750:]
+            if len(lines) > 300:
+                lines = lines[-300:]
 
             # 다시 저장
             with open(filename, 'w') as f:

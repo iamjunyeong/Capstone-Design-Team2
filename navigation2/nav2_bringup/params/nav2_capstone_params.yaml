@@ -561,7 +561,7 @@ local_costmap:
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 0.2
-        inflation_radius: 0.6
+        inflation_radius: 0.8
         enabled: true
       braille_lane_layer:
         plugin: "nav2_costmap_2d::BrailleLaneLayer"
@@ -719,9 +719,9 @@ planner_server:
       minimum_turning_radius: 2.0  # 최소 회전 반경 (m)
       angle_quantization_bins: 72  # 360도를 몇 등분할지 (예: 5도 간격)
       allow_reverse: false  # 후진 허용 여부
-      max_iterations: 500000000000000  # 최대 반복 횟수
+      max_planning_time: 30.0        # ← 30 초로 변경
+      max_iterations: -1             # 또는 현실적인 값으로
       collision_check_resolution: 0.1  # 충돌 검사 해상도 (m)
-      search_timeout: 30.0  # 경로 탐색 시간 제한 (초)
       smoothing_enabled: false  # 기본 smoothing 활성화
       cost_penalty: 1.2  # 장애물 근처를 피하기 위한 비용 패널티
       traversal_search: false  # 맵의 경계를 벗어나는 경로 허용 여부
