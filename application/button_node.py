@@ -99,7 +99,7 @@ class ButtonNode(Node):
         else: 
             self.hmi_stop_state = False
         
-        self.get_logger().info(f'[STT]{stt} | [HPL]{hpl} | [EMERGENCY]{emergency} | [talkbt]{talk} |[tact]{self.tact_state} | ')    
+        #self.get_logger().info(f'[STT]{stt} | [HPL]{hpl} | [EMERGENCY]{emergency} | [talkbt]{talk} |[tact]{self.tact_state} | ')    
         self.hmi_stop_pub.publish(Bool(data=self.hmi_stop_state))  # HMI stop 상태 퍼블리시
 
     def hb_stt_callback(self, msg): 

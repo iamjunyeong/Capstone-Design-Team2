@@ -30,7 +30,7 @@ BUILDING_DB = {
     # 5: {"x": 0.0, "y": 0.0, "orientation": (0.0, 0.0, 0.0, 1.0)},
     5: {"x": 39.8891853134264, "y": -72.1832431419753, "orientation": (0.0, 0.0, -0.752556,0.658528)},
     # 8: {"x": -79.0647109999554, "y": 66.0777920000255, "orientation": (0.0, 0.0, 0.999373,0.035408)},
-    8: {"x": 0, "y": 0, "orientation": (0.0, 0.0, 0.930787,0.365561)},
+    8: {"x": 0.0, "y": 0.0, "orientation": (0.0, 0.0, 0.930787,0.365561)},
     9: {"x": -129.935708999983, "y": 72.219058000017, "orientation": (0.0, 0.0, 0.998196, 0.060034)},
     11: {"x": -246.260857999965, "y": -12.2094660000876, "orientation": (0.0, 0.0, -0.836539, 0.547907)},
     15: {"x": -379.677333999949, "y": -269.235204000026, "orientation": (0.0, 0.0, -0.763272, 0.646078)},
@@ -59,13 +59,17 @@ class GoalSender(Node):
         self.intent_client_to_intent_node = self.create_client(IntentToPlanning, '/intent_to_planning')
         self.heartbeat_pub = self.create_publisher(UInt8, '/heartbeat/hmi_planning_node', 10)  # heartbeat 퍼블리셔
         self.arrived_pub = self.create_publisher(Bool, '/arrived_at_destination', 10)
-        
+        self._last_feedback_time = None
+        self._first_feedback_time = None 
+
         self.heartbeat = 0
         self.handlebutton_state = 0 
         self.target_pose = None  # 목표 위치를 저장할 변수
         self.intent = None  # 수신된 intent를 저장할 변수
         self.wait_for_handle_grab = False  # 핸들 버튼을 기다리는 상태를 나타내는 변수
-        
+        ##########################
+        self.feedback = None
+        ##########################
         #테스트용
         #self.go = False 
         #self.go_pub = self.create_publisher(Bool, '/go', 10)  # go 퍼블리셔
@@ -79,6 +83,8 @@ class GoalSender(Node):
         if getattr(self, 'waiting_for_handle_grab', False):
             if self.handlebutton_state == 1:
                 self.send_goal(self.target_pose)
+                self._first_feedback_time = time.time()
+                self._last_feedback_time = time.time()
                 self.get_logger().info("목적지 설정 완료")
                 self.waiting_for_handle_grab = False
                 self.heartbeat = 1  # 목표 설정 후 heartbeat를 1로 설정
@@ -165,12 +171,14 @@ class GoalSender(Node):
         # 액션 서버가 준비될 때까지 대기
         self.heartbeat = 0
         self._action_client.wait_for_server()
+        
 
-        self.get_logger().info("NavigateToPose 액션 Goal 전송 중...")
+        
         # 비동기 방식으로 액션 Goal 전송 및 결과 처리 콜백 설정
         send_goal_future = self._action_client.send_goal_async(goal_msg,feedback_callback=self.feedback_callback)
         send_goal_future.add_done_callback(self.goal_response_callback)
-    
+        self.get_logger().info("NavigateToPose 액션 Goal 전송 중...")
+        
     def cancel_current_goal(self):
         if self._current_goal_handle is not None:
             self.get_logger().info("replanning, 현재 goal 취소")
@@ -197,12 +205,21 @@ class GoalSender(Node):
         result_future = goal_handle.get_result_async()
         self.heartbeat = 1
         result_future.add_done_callback(self.get_result_callback)
-    
+        
+   
     def feedback_callback(self, feedback_msg):
             self.feedback = feedback_msg.feedback
             current_time = time.time()
-
+            
             # 2초가 지났을 때만 출력
+            if current_time - self._first_feedback_time >= 10.0:
+                if self.feedback is not None:
+                    if (self.feedback.distance_remaining<1.0):
+                        msg = Bool()
+                        msg.data = True
+                        self.arrived_pub.publish(msg)
+                        self.get_logger().info("목적지 도착 알림 토픽 발행 완료.")
+
             if current_time - self._last_feedback_time >= 2.0:
                 self._last_feedback_time = current_time
 
@@ -213,27 +230,22 @@ class GoalSender(Node):
                 self.get_logger().info(f'  - Recoveries: {self.feedback.number_of_recoveries}')
                 self.get_logger().info(f'  - estimated time remaining: {self.feedback.estimated_time_remaining.sec:.2f}m')
                 self.get_logger().info('----------------------------')
-            # if (self.feedback.distance_remaining<1.0):
-            #     msg = Bool()
-            #     msg.data = True
-            #     self.arrived_pub.publish(msg)
-            #     self.get_logger().info("목적지 도착 알림 토픽 발행 완료.")
-
+            
     def get_result_callback(self, future):
         result = future.result().result
         status = result.result  # 상태 코드
 #############################
-        if status == 4:
-            self.get_logger().info("✅ 목적지 도착 (SUCCEEDED)")
+        # if status == 4:
+        #     self.get_logger().info("✅ 목적지 도착 (SUCCEEDED)")
 
-            msg = Bool()
-            msg.data = True
-            self.arrived_pub.publish(msg)
-            self.get_logger().info("목적지 도착 알림 토픽 발행 완료.")
+        #     msg = Bool()
+        #     msg.data = True
+        #     self.arrived_pub.publish(msg)
+        #     self.get_logger().info("목적지 도착 알림 토픽 발행 완료.")
 
 #############################
 
-        elif status == 6:
+        if status == 6:
             self.get_logger().error("❌ 탐색 실패 (ABORTED)")
             # 여기서 알림 전송!!! 
             # and replanning 

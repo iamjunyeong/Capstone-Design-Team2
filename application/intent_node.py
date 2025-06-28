@@ -48,7 +48,7 @@ class IntentNode(Node):
         # keywords for intent classification
         #self.boosted_dst = ["신공학관", "공학관","공대","신공", "새천년관", "학생회관", "법학관","정문", "후문", "문과대","인문학관", "경영대", "경영관"]
         self.boosted_dst = ["신공", "신공학관", "공학관", "공대", "학생회관","청심대", "법학관", "종강", "종합강의동", "수의대", "수의학관", "동생대", "동물생명과학관", "입학정보관","정문"]
-        self.boosted_togo = ["가줘", "가자", "가고 싶어", "데려다줘", "이동", "갈래", "가고","가고싶어", "출발", "가야돼"]
+        #self.boosted_togo = ["가줘", "가자", "가고 싶어", "데려다줘", "이동", "갈래", "가고","가고싶어", "출발", "가야돼"]
         self.boosted_howlong = ["까지 ", "몇", "분이", "분이나", "얼마나", "도착", "시간", "걸릴까", "걸려", "남았어","얼마", "언제"]
         self.boosted_where = ["어디야", "현재 위치", "어디를", "지나고", "위치","지금", "어디", "현재", "지나"]
         self.boosted_yes = ["네", "예","어", "그래", "응","맞아", "맞습니다", "그렇습니다"]
@@ -70,7 +70,7 @@ class IntentNode(Node):
         self.get_logger().info(f"의도 처리 시작: {unprocessed_text}")
         processed_text = []
         processed_text.extend(self.find_closest_word(unprocessed_text, self.boosted_dst))
-        processed_text.extend(self.find_closest_word(unprocessed_text, self.boosted_togo))
+        #processed_text.extend(self.find_closest_word(unprocessed_text, self.boosted_togo))
         processed_text.extend(self.find_closest_word(unprocessed_text, self.boosted_howlong))
         processed_text.extend(self.find_closest_word(unprocessed_text, self.boosted_where))
         processed_text.extend(self.find_closest_word(unprocessed_text, self.boosted_yes))
@@ -93,10 +93,12 @@ class IntentNode(Node):
 
     # 의도 분류 및 목적지 추출 함수, 핵심 
     def classify_intent(self, user_text):
-        
+         #"가줘", "가자", "가고", "데려다줘", "이동", "갈래", "가고싶어", "가야돼",
         # 키워드 매칭을 위한 의도 키워드 사전
         intent_keywords = {
-            "set_destination": ["가줘", "가자", "가고", "데려다줘", "이동", "갈래", "가고싶어", "가야돼",
+            "tutorial" : ["튜토리얼"],
+            "set_destination": [
+               
                                 "새천년관", "신공학관", "공학관", "공대", "학생회관","청심대", "법학관", "종강", 
                                 "종합강의동", "수의대", "수의학관", "동생대", "동물생명과학관", "입학정보관"],
             "change_dst" : ["바꿔", "목적지", "변경", "바꿔줘", "바꿀래",  "변경할", "변경해", "다시" ],
@@ -105,7 +107,7 @@ class IntentNode(Node):
             "confirm_yes" : ["네", "예", "어", "그래", "응","맞아", "맞습니다", "그렇습니다", "좋아","조아"],
             "confirm_no" : ["아니오", "아니", "아닌데","틀려", "틀렸어", "아니야"],
             "stop" : ["정지", "멈춰", "정지해", "멈춰줘"],
-            "tutorial" : ["튜토리얼"]
+            
         }
 
         
@@ -188,7 +190,7 @@ class IntentNode(Node):
 
         # 긍/부정 판단 
         elif self.intent == "confirm_yes" or self.intent == "confirm_no":
-            if self.response_state != 'WATING_CONFIRM': # 확인 요청, WATING_CONFIRM 상태가 아닐 때는 무시
+            if (self.response_state != 'WATING_CONFIRM'): # 확인 요청, WATING_CONFIRM 상태가 아닐 때는 무시
                 return
             else: #WATING_CONFIRM 상태일 때(목적지 설정 확인용)
                 if self.intent == "confirm_yes":
@@ -217,7 +219,6 @@ class IntentNode(Node):
 
     def confirm_action(self, yesorno):
         
-
         req = IntentResponse.Request()
         req.intent = "confirm_yes" if yesorno else "confirm_no"
         

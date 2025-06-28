@@ -17,9 +17,9 @@ def generate_launch_description():
             cmd=[
                 'ros2', 'run', 'micro_ros_agent', 'micro_ros_agent', 'serial',
                 '--dev', ['/dev/ttyACM', acm_number],
-                '-v6'
+                '-v1'
             ],
-            output='screen'
+            output='log'
         ),
 
         Node(
@@ -38,13 +38,13 @@ def generate_launch_description():
             package='application',
             executable='tts_node',
             name='tts_node',
-            output='screen'
+            output='log'
         ),
         Node(
             package='application',
             executable='button_node',
             name='button_node',
-            # output='screen'
+            output='log'
         ),
         # Node(
         #     package='application',

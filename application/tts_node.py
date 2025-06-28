@@ -254,15 +254,17 @@ class TTSNode(Node):
 
             elif self.handlebutton_code == 0:
                 # 손잡이 해제 안내
-                if self.can_output(111, 20):
-                    self.stop_and_clear_queue()
-                    self.request_queue.put((0, self.output_text[11])) 
+                if self.driving_state == 'DRIVING':
+                    if self.can_output(111, 20):
+                        self.stop_and_clear_queue()
+                        self.request_queue.put((0, self.output_text[11])) 
 
             elif self.handlebutton_code == 2:
                 # 손잡이 잡아달라는 안내
-                if self.can_output(110, 10):
-                    self.stop_and_clear_queue()
-                    self.request_queue.put((0, self.output_text[10]))
+                if self.driving_state == 'DRIVING':
+                    if self.can_output(110, 20):
+                        self.stop_and_clear_queue()
+                        self.request_queue.put((0, self.output_text[10]))
 
     def talkbutton_callback(self, msg):
         if msg.data and not self.talkbutton_state:
@@ -274,9 +276,9 @@ class TTSNode(Node):
 
                     self.effect_soundplay(sound_file=self.sound_file)
                     self.get_logger().info("효과음")
-                else: 
-                    self.request_queue.put((0, f", {self.output_text[5]}"))
-                    self.get_logger().info("목적지 변경, 현재 위치 확인, 예상 시간 확인, 정지 기능이 있습니다. 말씀해주세요.")
+                # else: 
+                #     self.request_queue.put((0, f", {self.output_text[5]}"))
+                #     self.get_logger().info("목적지 변경, 현재 위치 확인, 예상 시간 확인, 정지 기능이 있습니다. 말씀해주세요.")
             
             else:
                 self.effect_soundplay(sound_file=self.sound_file)
@@ -312,19 +314,19 @@ class TTSNode(Node):
     def vision_callback(self, msg):
         self.vision_obstacle_info = msg.data
 
-        if self.vision_obstacle_info == 0:
-            pass
-        elif self.vision_obstacle_info == 1:  # 정적 장애물
-            if self.can_output(115 , cooldown=10):  # 5초 간격으로 출력
-                self.clear_queue()
-                self.request_queue.put((1, self.output_text[15]))
-                self.get_logger().info("전방에 장애물이 있습니다.")
+        # if self.vision_obstacle_info == 0:
+        #     pass
+        # elif self.vision_obstacle_info == 1:  # 정적 장애물
+        #     if self.can_output(115 , cooldown=10):  # 5초 간격으로 출력
+        #         self.clear_queue()
+        #         self.request_queue.put((1, self.output_text[15]))
+        #         self.get_logger().info("전방에 장애물이 있습니다.")
 
-        elif self.vision_obstacle_info in (2, 3):  # 동적 장애물
-            if self.can_output(109, cooldown=7):  # 5초 간격으로 출력
-                self.clear_queue()
-                self.request_queue.put((1, self.output_text[9]))
-                self.get_logger().info("보행 중입니다. 주의하여주세요")
+        # elif self.vision_obstacle_info in (2, 3):  # 동적 장애물
+        #     if self.can_output(109, cooldown=7):  # 5초 간격으로 출력
+        #         self.clear_queue()
+        #         self.request_queue.put((1, self.output_text[9]))
+        #         self.get_logger().info("보행 중입니다. 주의하여주세요")
    
     def process_queue(self):
         """우선순위 큐에서 요청을 꺼내 순차적으로 재생"""
